@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
@@ -24,7 +23,8 @@ import {
   Mail,
   ClipboardList,
   Activity,
-  FileSpreadsheet
+  FileSpreadsheet,
+  FilePlus
 } from 'lucide-react';
 
 const menuItems = [
@@ -37,6 +37,11 @@ const menuItems = [
     title: 'Documents',
     icon: FileText,
     submenu: [
+      {
+        title: 'Nouveau Doc',
+        url: '/documents/nouveau',
+        icon: FilePlus,
+      },
       {
         title: 'Qualité Doc',
         url: '/documents/qualite',

@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -16,6 +15,8 @@ import Actions from "./pages/Actions";
 import QRCodes from "./pages/QRCodes";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
+import NouveauDoc from "./pages/NouveauDoc";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/documents" element={<Documents />} />
+          <Route path="/documents/nouveau" element={<NouveauDoc />} />
           <Route path="/documents/qualite" element={<QualiteDoc />} />
           <Route path="/documents/formulaires" element={<FormulairesDoc />} />
           <Route path="/correspondances" element={<Correspondances />} />
@@ -37,6 +39,7 @@ const App = () => (
           <Route path="/qr-codes" element={<QRCodes />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
