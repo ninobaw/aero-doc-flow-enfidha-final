@@ -24,12 +24,27 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
+interface UserProfile {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: string;
+  airport: string;
+  phone: string;
+  department: string;
+  bio?: string;
+  joinDate: string;
+  lastLogin: string;
+}
+
 const Profile = () => {
   const { toast } = useToast();
   const [profileImage, setProfileImage] = useState<string | null>(null);
-
-  // Données utilisateur fictives
-  const user = {
+  const [isEditing, setIsEditing] = useState(false);
+  
+  // Données utilisateur avec état modifiable
+  const [user, setUser] = useState<UserProfile>({
     id: 'user-1',
     firstName: 'Ahmed',
     lastName: 'Ben Ali',
@@ -38,9 +53,17 @@ const Profile = () => {
     airport: 'ENFIDHA',
     phone: '+216 20 123 456',
     department: 'Sécurité Aéroportuaire',
+    bio: 'Responsable de la sécurité aéroportuaire avec 10 ans d\'expérience.',
     joinDate: '2023-01-15',
     lastLogin: '2025-01-26 14:30'
-  };
+  });
+
+  // État pour les mots de passe
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
 
   const activityStats = [
     { label: 'Documents créés', value: '23', icon: FileText, color: 'blue' },
@@ -76,20 +99,66 @@ const Profile = () => {
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Vérifier la taille du fichier (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Erreur",
+          description: "La taille de l'image ne doit pas dépasser 5MB.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Vérifier le type de fichier
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        toast({
+          title: "Erreur",
+          description: "Format d'image non supporté. Utilisez JPG, PNG, GIF ou WebP.",
+          variant: "destructive"
+        });
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = (e) => {
         setProfileImage(e.target?.result as string);
+        toast({
+          title: "Photo mise à jour",
+          description: "Votre photo de profil a été mise à jour."
+        });
       };
       reader.readAsDataURL(file);
-      
-      toast({
-        title: "Photo mise à jour",
-        description: "Votre photo de profil a été mise à jour."
-      });
     }
   };
 
+  const handleProfileUpdate = (field: keyof UserProfile, value: string) => {
+    setUser(prev => ({ ...prev, [field]: value }));
+  };
+
   const handleSaveProfile = () => {
+    // Validation basique
+    if (!user.firstName.trim() || !user.lastName.trim() || !user.email.trim()) {
+      toast({
+        title: "Erreur",
+        description: "Les champs prénom, nom et email sont obligatoires.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validation de l'email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(user.email)) {
+      toast({
+        title: "Erreur",
+        description: "Format d'email invalide.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsEditing(false);
     toast({
       title: "Profil sauvegardé",
       description: "Vos informations ont été mises à jour avec succès."
@@ -97,6 +166,41 @@ const Profile = () => {
   };
 
   const handleChangePassword = () => {
+    // Validation des mots de passe
+    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+      toast({
+        title: "Erreur",
+        description: "Tous les champs sont obligatoires.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (passwordData.newPassword.length < 8) {
+      toast({
+        title: "Erreur",
+        description: "Le nouveau mot de passe doit contenir au moins 8 caractères.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast({
+        title: "Erreur",
+        description: "Les mots de passe ne correspondent pas.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Réinitialiser les champs
+    setPasswordData({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    });
+
     toast({
       title: "Mot de passe modifié",
       description: "Votre mot de passe a été mis à jour avec succès."
@@ -179,6 +283,34 @@ const Profile = () => {
                 </div>
                 <p className="text-gray-600 mt-1">{user.department}</p>
               </div>
+              
+              <div className="flex space-x-2">
+                {isEditing ? (
+                  <>
+                    <Button 
+                      variant="outline"
+                      onClick={() => setIsEditing(false)}
+                    >
+                      Annuler
+                    </Button>
+                    <Button 
+                      onClick={handleSaveProfile}
+                      className="bg-aviation-sky hover:bg-aviation-sky-dark"
+                    >
+                      <Save className="w-4 h-4 mr-2" />
+                      Sauvegarder
+                    </Button>
+                  </>
+                ) : (
+                  <Button 
+                    onClick={() => setIsEditing(true)}
+                    className="bg-aviation-sky hover:bg-aviation-sky-dark"
+                  >
+                    <User className="w-4 h-4 mr-2" />
+                    Modifier
+                  </Button>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -215,33 +347,42 @@ const Profile = () => {
                   Informations Personnelles
                 </CardTitle>
                 <CardDescription>
-                  Modifiez vos informations personnelles
+                  {isEditing ? 'Modifiez vos informations personnelles' : 'Consultez vos informations personnelles'}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="first-name">Prénom</Label>
+                    <Label htmlFor="first-name">Prénom *</Label>
                     <Input
                       id="first-name"
-                      defaultValue={user.firstName}
+                      value={user.firstName}
+                      onChange={(e) => handleProfileUpdate('firstName', e.target.value)}
+                      disabled={!isEditing}
+                      className={!isEditing ? 'bg-gray-50' : ''}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="last-name">Nom</Label>
+                    <Label htmlFor="last-name">Nom *</Label>
                     <Input
                       id="last-name"
-                      defaultValue={user.lastName}
+                      value={user.lastName}
+                      onChange={(e) => handleProfileUpdate('lastName', e.target.value)}
+                      disabled={!isEditing}
+                      className={!isEditing ? 'bg-gray-50' : ''}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email">Email *</Label>
                     <Input
                       id="email"
                       type="email"
-                      defaultValue={user.email}
+                      value={user.email}
+                      onChange={(e) => handleProfileUpdate('email', e.target.value)}
+                      disabled={!isEditing}
+                      className={!isEditing ? 'bg-gray-50' : ''}
                     />
                   </div>
 
@@ -249,7 +390,10 @@ const Profile = () => {
                     <Label htmlFor="phone">Téléphone</Label>
                     <Input
                       id="phone"
-                      defaultValue={user.phone}
+                      value={user.phone}
+                      onChange={(e) => handleProfileUpdate('phone', e.target.value)}
+                      disabled={!isEditing}
+                      className={!isEditing ? 'bg-gray-50' : ''}
                     />
                   </div>
 
@@ -257,14 +401,21 @@ const Profile = () => {
                     <Label htmlFor="department">Département</Label>
                     <Input
                       id="department"
-                      defaultValue={user.department}
+                      value={user.department}
+                      onChange={(e) => handleProfileUpdate('department', e.target.value)}
+                      disabled={!isEditing}
+                      className={!isEditing ? 'bg-gray-50' : ''}
                     />
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="airport">Aéroport</Label>
-                    <Select defaultValue={user.airport.toLowerCase()}>
-                      <SelectTrigger>
+                    <Select 
+                      value={user.airport.toLowerCase()} 
+                      onValueChange={(value) => handleProfileUpdate('airport', value.toUpperCase())}
+                      disabled={!isEditing}
+                    >
+                      <SelectTrigger className={!isEditing ? 'bg-gray-50' : ''}>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -279,19 +430,13 @@ const Profile = () => {
                   <Label htmlFor="bio">Biographie</Label>
                   <Textarea
                     id="bio"
+                    value={user.bio || ''}
+                    onChange={(e) => handleProfileUpdate('bio', e.target.value)}
                     placeholder="Parlez-nous de vous..."
                     rows={4}
+                    disabled={!isEditing}
+                    className={!isEditing ? 'bg-gray-50' : ''}
                   />
-                </div>
-
-                <div className="flex justify-end">
-                  <Button 
-                    onClick={handleSaveProfile}
-                    className="bg-aviation-sky hover:bg-aviation-sky-dark"
-                  >
-                    <Save className="w-4 h-4 mr-2" />
-                    Sauvegarder
-                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -311,28 +456,34 @@ const Profile = () => {
               <CardContent className="space-y-6">
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="current-password">Mot de passe actuel</Label>
+                    <Label htmlFor="current-password">Mot de passe actuel *</Label>
                     <Input
                       id="current-password"
                       type="password"
+                      value={passwordData.currentPassword}
+                      onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
                       placeholder="••••••••"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="new-password">Nouveau mot de passe</Label>
+                    <Label htmlFor="new-password">Nouveau mot de passe * (min. 8 caractères)</Label>
                     <Input
                       id="new-password"
                       type="password"
+                      value={passwordData.newPassword}
+                      onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
                       placeholder="••••••••"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="confirm-password">Confirmer le mot de passe</Label>
+                    <Label htmlFor="confirm-password">Confirmer le mot de passe *</Label>
                     <Input
                       id="confirm-password"
                       type="password"
+                      value={passwordData.confirmPassword}
+                      onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
                       placeholder="••••••••"
                     />
                   </div>
