@@ -23,7 +23,8 @@ import {
   FileCheck,
   Mail,
   ClipboardList,
-  Activity
+  Activity,
+  FileSpreadsheet
 } from 'lucide-react';
 
 const menuItems = [
@@ -36,11 +37,27 @@ const menuItems = [
     title: 'Documents',
     icon: FileText,
     submenu: [
-      { title: 'Tous les documents', url: '/documents', icon: FileText },
-      { title: 'Formulaires Doc', url: '/documents/formulaires', icon: FileCheck },
-      { title: 'Correspondances', url: '/documents/correspondances', icon: Mail },
-      { title: 'Procès-Verbaux', url: '/documents/proces-verbaux', icon: ClipboardList },
+      {
+        title: 'Qualité Doc',
+        url: '/documents/qualite',
+        icon: FileCheck,
+      },
+      {
+        title: 'Formulaires Doc',
+        url: '/documents/formulaires',
+        icon: FileSpreadsheet,
+      },
     ]
+  },
+  {
+    title: 'Correspondances',
+    url: '/correspondances',
+    icon: Mail,
+  },
+  {
+    title: 'Procès-Verbaux',
+    url: '/proces-verbaux',
+    icon: ClipboardList,
   },
   {
     title: 'Actions & Tâches',
