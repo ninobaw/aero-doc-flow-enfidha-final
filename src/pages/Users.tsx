@@ -1,9 +1,11 @@
 
+import { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import {
   Table,
   TableBody,
@@ -12,11 +14,20 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Users as UsersIcon, Plus, UserPlus, Settings, Shield } from 'lucide-react';
-import { UserRole } from '@/types';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Users as UsersIcon, Settings, Shield, Search, Eye, Edit, MoreHorizontal, Trash2 } from 'lucide-react';
+import { CreateUserDialog } from '@/components/users/CreateUserDialog';
+import { User, UserRole } from '@/shared/types';
+import { toast } from '@/hooks/use-toast';
 
 const Users = () => {
-  const users = [
+  const [searchTerm, setSearchTerm] = useState('');
+  const [users, setUsers] = useState<User[]>([
     {
       id: '1',
       firstName: 'Ahmed',
@@ -25,7 +36,10 @@ const Users = () => {
       role: UserRole.SUPER_ADMIN,
       airport: 'ENFIDHA',
       isActive: true,
-      createdAt: '2025-01-20'
+      createdAt: new Date('2025-01-20'),
+      updatedAt: new Date(),
+      phone: '+216 20 123 456',
+      department: 'Administration'
     },
     {
       id: '2',
@@ -35,7 +49,10 @@ const Users = () => {
       role: UserRole.ADMINISTRATOR,
       airport: 'MONASTIR',
       isActive: true,
-      createdAt: '2025-01-18'
+      createdAt: new Date('2025-01-18'),
+      updatedAt: new Date(),
+      phone: '+216 25 789 012',
+      department: 'Opérations'
     },
     {
       id: '3',
@@ -45,7 +62,10 @@ const Users = () => {
       role: UserRole.USER,
       airport: 'ENFIDHA',
       isActive: true,
-      createdAt: '2025-01-15'
+      createdAt: new Date('2025-01-15'),
+      updatedAt: new Date(),
+      phone: '+216 22 456 789',
+      department: 'Maintenance'
     },
     {
       id: '4',
@@ -55,9 +75,30 @@ const Users = () => {
       role: UserRole.APPROVER,
       airport: 'MONASTIR',
       isActive: false,
-      createdAt: '2025-01-10'
+      createdAt: new Date('2025-01-10'),
+      updatedAt: new Date(),
+      phone: '+216 24 321 654',
+      department: 'Qualité'
     }
-  ];
+  ]);
+
+  const handleUserCreated = (newUser: User) => {
+    setUsers([...users, newUser]);
+  };
+
+  const handleToggleUserStatus = (userId: string) => {
+    setUsers(users.map(user => 
+      user.id === userId 
+        ? { ...user, isActive: !user.isActive, updatedAt: new Date() }
+        : user
+    ));
+    
+    const user = users.find(u => u.id === userId);
+    toast({
+      title: user?.isActive ? "Utilisateur désactivé" : "Utilisateur activé",
+      description: `${user?.firstName} ${user?.lastName} a été ${user?.isActive ? 'désactivé' : 'activé'}`
+    });
+  };
 
   const getRoleBadge = (role: UserRole) => {
     const roleConfig = {
@@ -72,6 +113,13 @@ const Users = () => {
     return <Badge className={config.color}>{config.label}</Badge>;
   };
 
+  const filteredUsers = users.filter(user =>
+    user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.department?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -83,10 +131,7 @@ const Users = () => {
               Gérez les utilisateurs et leurs permissions
             </p>
           </div>
-          <Button className="bg-aviation-sky hover:bg-aviation-sky-dark">
-            <UserPlus className="w-4 h-4 mr-2" />
-            Nouvel Utilisateur
-          </Button>
+          <CreateUserDialog onUserCreated={handleUserCreated} />
         </div>
 
         {/* Statistiques utilisateurs */}
@@ -111,12 +156,30 @@ const Users = () => {
           ))}
         </div>
 
+        {/* Recherche */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Rechercher Utilisateurs</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                placeholder="Rechercher par nom, email ou département..."
+                className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Liste des utilisateurs */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
               <UsersIcon className="w-5 h-5 mr-2 text-aviation-sky" />
-              Utilisateurs ({users.length})
+              Utilisateurs ({filteredUsers.length})
             </CardTitle>
             <CardDescription>
               Liste de tous les utilisateurs du système
@@ -129,6 +192,7 @@ const Users = () => {
                   <TableHead>Utilisateur</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Rôle</TableHead>
+                  <TableHead>Département</TableHead>
                   <TableHead>Aéroport</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Date d'ajout</TableHead>
@@ -136,12 +200,12 @@ const Users = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.map((user) => (
+                {filteredUsers.map((user) => (
                   <TableRow key={user.id} className="hover:bg-gray-50">
                     <TableCell>
                       <div className="flex items-center space-x-3">
                         <Avatar className="h-8 w-8">
-                          <AvatarImage src={`/api/placeholder/32/32`} />
+                          <AvatarImage src={user.profilePhoto} />
                           <AvatarFallback className="bg-aviation-sky text-white text-xs">
                             {user.firstName[0]}{user.lastName[0]}
                           </AvatarFallback>
@@ -150,24 +214,61 @@ const Users = () => {
                           <div className="font-medium text-gray-900">
                             {user.firstName} {user.lastName}
                           </div>
+                          {user.phone && (
+                            <div className="text-sm text-gray-500">{user.phone}</div>
+                          )}
                         </div>
                       </div>
                     </TableCell>
                     <TableCell className="text-sm text-gray-600">{user.email}</TableCell>
                     <TableCell>{getRoleBadge(user.role)}</TableCell>
                     <TableCell>
+                      <span className="text-sm text-gray-600">{user.department || 'Non défini'}</span>
+                    </TableCell>
+                    <TableCell>
                       <Badge variant="outline">{user.airport}</Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge className={user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                      <Badge 
+                        className={user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}
+                        onClick={() => handleToggleUserStatus(user.id)}
+                        style={{ cursor: 'pointer' }}
+                      >
                         {user.isActive ? 'Actif' : 'Inactif'}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-sm text-gray-500">{user.createdAt}</TableCell>
+                    <TableCell className="text-sm text-gray-500">
+                      {user.createdAt.toLocaleDateString('fr-FR')}
+                    </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="sm">
-                        <Settings className="h-4 w-4" />
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-white">
+                          <DropdownMenuItem className="cursor-pointer">
+                            <Eye className="mr-2 h-4 w-4" />
+                            Voir profil
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="cursor-pointer">
+                            <Edit className="mr-2 h-4 w-4" />
+                            Modifier
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="cursor-pointer">
+                            <Settings className="mr-2 h-4 w-4" />
+                            Permissions
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            className="cursor-pointer text-red-600"
+                            onClick={() => handleToggleUserStatus(user.id)}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            {user.isActive ? 'Désactiver' : 'Activer'}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}
