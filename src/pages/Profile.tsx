@@ -20,42 +20,27 @@ import {
   Clock,
   MapPin,
   Phone,
-  Mail
+  Mail,
+  Edit
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-
-interface UserProfile {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: string;
-  airport: string;
-  phone: string;
-  department: string;
-  bio?: string;
-  joinDate: string;
-  lastLogin: string;
-}
+import { useAuth } from '@/contexts/AuthContext';
+import { USER_ROLES } from '@/shared/constants';
 
 const Profile = () => {
   const { toast } = useToast();
-  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const { user } = useAuth();
+  const [profileImage, setProfileImage] = useState<string | null>(user?.profilePhoto || null);
   const [isEditing, setIsEditing] = useState(false);
   
   // Données utilisateur avec état modifiable
-  const [user, setUser] = useState<UserProfile>({
-    id: 'user-1',
-    firstName: 'Ahmed',
-    lastName: 'Ben Ali',
-    email: 'ahmed.benali@aerodoc.tn',
-    role: 'ADMINISTRATOR',
-    airport: 'ENFIDHA',
-    phone: '+216 20 123 456',
-    department: 'Sécurité Aéroportuaire',
-    bio: 'Responsable de la sécurité aéroportuaire avec 10 ans d\'expérience.',
-    joinDate: '2023-01-15',
-    lastLogin: '2025-01-26 14:30'
+  const [profileData, setProfileData] = useState({
+    firstName: user?.firstName || '',
+    lastName: user?.lastName || '',
+    email: user?.email || '',
+    phone: user?.phone || '',
+    department: user?.department || '',
+    bio: ''
   });
 
   // État pour les mots de passe
@@ -77,21 +62,21 @@ const Profile = () => {
       id: '1',
       action: 'Création document',
       details: 'Rapport Sécurité Terminal A',
-      timestamp: '2025-01-26 14:30',
+      timestamp: '2025-01-28 14:30',
       type: 'CREATE'
     },
     {
       id: '2',
       action: 'Action complétée',
       details: 'Vérification équipements sécurité',
-      timestamp: '2025-01-26 12:15',
+      timestamp: '2025-01-28 12:15',
       type: 'COMPLETE'
     },
     {
       id: '3',
       action: 'Document approuvé',
       details: 'PV Réunion Sécurité',
-      timestamp: '2025-01-25 16:45',
+      timestamp: '2025-01-27 16:45',
       type: 'APPROVE'
     }
   ];
@@ -132,13 +117,13 @@ const Profile = () => {
     }
   };
 
-  const handleProfileUpdate = (field: keyof UserProfile, value: string) => {
-    setUser(prev => ({ ...prev, [field]: value }));
+  const handleProfileUpdate = (field: string, value: string) => {
+    setProfileData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleSaveProfile = () => {
     // Validation basique
-    if (!user.firstName.trim() || !user.lastName.trim() || !user.email.trim()) {
+    if (!profileData.firstName.trim() || !profileData.lastName.trim() || !profileData.email.trim()) {
       toast({
         title: "Erreur",
         description: "Les champs prénom, nom et email sont obligatoires.",
@@ -149,7 +134,7 @@ const Profile = () => {
 
     // Validation de l'email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(user.email)) {
+    if (!emailRegex.test(profileData.email)) {
       toast({
         title: "Erreur",
         description: "Format d'email invalide.",
@@ -208,14 +193,7 @@ const Profile = () => {
   };
 
   const getRoleLabel = (role: string) => {
-    const roles = {
-      'SUPER_ADMIN': 'Super Administrateur',
-      'ADMINISTRATOR': 'Administrateur',
-      'APPROVER': 'Approbateur',
-      'USER': 'Utilisateur',
-      'VISITOR': 'Visiteur'
-    };
-    return roles[role as keyof typeof roles] || role;
+    return USER_ROLES[role as keyof typeof USER_ROLES]?.label || role;
   };
 
   const getTypeColor = (type: string) => {
@@ -227,6 +205,16 @@ const Profile = () => {
     };
     return colors[type as keyof typeof colors] || 'gray';
   };
+
+  if (!user) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center h-64">
+          <p>Chargement du profil...</p>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
@@ -266,7 +254,7 @@ const Profile = () => {
               
               <div className="flex-1">
                 <h2 className="text-2xl font-bold text-gray-900">
-                  {user.firstName} {user.lastName}
+                  {profileData.firstName} {profileData.lastName}
                 </h2>
                 <div className="flex items-center space-x-4 mt-2">
                   <Badge className="bg-aviation-sky text-white">
@@ -278,10 +266,10 @@ const Profile = () => {
                   </div>
                   <div className="flex items-center text-gray-500">
                     <Mail className="w-4 h-4 mr-1" />
-                    {user.email}
+                    {profileData.email}
                   </div>
                 </div>
-                <p className="text-gray-600 mt-1">{user.department}</p>
+                <p className="text-gray-600 mt-1">{profileData.department}</p>
               </div>
               
               <div className="flex space-x-2">
@@ -306,7 +294,7 @@ const Profile = () => {
                     onClick={() => setIsEditing(true)}
                     className="bg-aviation-sky hover:bg-aviation-sky-dark"
                   >
-                    <User className="w-4 h-4 mr-2" />
+                    <Edit className="w-4 h-4 mr-2" />
                     Modifier
                   </Button>
                 )}
@@ -356,7 +344,7 @@ const Profile = () => {
                     <Label htmlFor="first-name">Prénom *</Label>
                     <Input
                       id="first-name"
-                      value={user.firstName}
+                      value={profileData.firstName}
                       onChange={(e) => handleProfileUpdate('firstName', e.target.value)}
                       disabled={!isEditing}
                       className={!isEditing ? 'bg-gray-50' : ''}
@@ -367,7 +355,7 @@ const Profile = () => {
                     <Label htmlFor="last-name">Nom *</Label>
                     <Input
                       id="last-name"
-                      value={user.lastName}
+                      value={profileData.lastName}
                       onChange={(e) => handleProfileUpdate('lastName', e.target.value)}
                       disabled={!isEditing}
                       className={!isEditing ? 'bg-gray-50' : ''}
@@ -379,7 +367,7 @@ const Profile = () => {
                     <Input
                       id="email"
                       type="email"
-                      value={user.email}
+                      value={profileData.email}
                       onChange={(e) => handleProfileUpdate('email', e.target.value)}
                       disabled={!isEditing}
                       className={!isEditing ? 'bg-gray-50' : ''}
@@ -390,7 +378,7 @@ const Profile = () => {
                     <Label htmlFor="phone">Téléphone</Label>
                     <Input
                       id="phone"
-                      value={user.phone}
+                      value={profileData.phone}
                       onChange={(e) => handleProfileUpdate('phone', e.target.value)}
                       disabled={!isEditing}
                       className={!isEditing ? 'bg-gray-50' : ''}
@@ -401,7 +389,7 @@ const Profile = () => {
                     <Label htmlFor="department">Département</Label>
                     <Input
                       id="department"
-                      value={user.department}
+                      value={profileData.department}
                       onChange={(e) => handleProfileUpdate('department', e.target.value)}
                       disabled={!isEditing}
                       className={!isEditing ? 'bg-gray-50' : ''}
@@ -412,10 +400,9 @@ const Profile = () => {
                     <Label htmlFor="airport">Aéroport</Label>
                     <Select 
                       value={user.airport.toLowerCase()} 
-                      onValueChange={(value) => handleProfileUpdate('airport', value.toUpperCase())}
-                      disabled={!isEditing}
+                      disabled={true}
                     >
-                      <SelectTrigger className={!isEditing ? 'bg-gray-50' : ''}>
+                      <SelectTrigger className="bg-gray-50">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -430,7 +417,7 @@ const Profile = () => {
                   <Label htmlFor="bio">Biographie</Label>
                   <Textarea
                     id="bio"
-                    value={user.bio || ''}
+                    value={profileData.bio}
                     onChange={(e) => handleProfileUpdate('bio', e.target.value)}
                     placeholder="Parlez-nous de vous..."
                     rows={4}
