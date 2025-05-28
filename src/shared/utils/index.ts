@@ -1,6 +1,6 @@
 
 import { DocumentType, Priority, ActionStatus, UserRole } from '../types';
-import { DOCUMENT_TYPES, PRIORITIES, ACTION_STATUS, USER_ROLES } from '../constants';
+import { DOCUMENT_TYPES, PRIORITIES, ACTION_STATUS, USER_ROLES, DOCUMENT_HISTORY_ACTIONS, TASK_STATUS, USER_STATUS } from '../constants';
 
 export const formatDate = (date: Date | string): string => {
   return new Date(date).toLocaleDateString('fr-FR', {
@@ -20,6 +20,25 @@ export const formatDateTime = (date: Date | string): string => {
   });
 };
 
+export const formatTimeAgo = (date: Date | string): string => {
+  const now = new Date();
+  const past = new Date(date);
+  const diffInMs = now.getTime() - past.getTime();
+  const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+  const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+  const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+
+  if (diffInDays > 0) {
+    return `Il y a ${diffInDays} jour${diffInDays > 1 ? 's' : ''}`;
+  } else if (diffInHours > 0) {
+    return `Il y a ${diffInHours} heure${diffInHours > 1 ? 's' : ''}`;
+  } else if (diffInMinutes > 0) {
+    return `Il y a ${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''}`;
+  } else {
+    return 'À l\'instant';
+  }
+};
+
 export const generateQRCode = (documentId: string): string => {
   return `QR-${documentId}-${Date.now()}`;
 };
@@ -35,25 +54,105 @@ export const generateReference = (type: DocumentType, airport: string): string =
   return `${typeCode}-${airportCode}-${year}${month}-${random}`;
 };
 
+export const generateActionReference = (priority: Priority): string => {
+  const year = new Date().getFullYear();
+  const month = String(new Date().getMonth() + 1).padStart(2, '0');
+  const day = String(new Date().getDate()).padStart(2, '0');
+  const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+  
+  const priorityCode = priority.substring(0, 1).toUpperCase();
+  
+  return `ACT-${priorityCode}${year}${month}${day}-${random}`;
+};
+
 export const getDocumentTypeLabel = (type: DocumentType): string => {
   return DOCUMENT_TYPES[type]?.label || type;
+};
+
+export const getDocumentTypeIcon = (type: DocumentType): string => {
+  return DOCUMENT_TYPES[type]?.icon || 'FileText';
+};
+
+export const getDocumentTypeColor = (type: DocumentType): string => {
+  return DOCUMENT_TYPES[type]?.color || 'gray';
 };
 
 export const getPriorityLabel = (priority: Priority): string => {
   return PRIORITIES[priority]?.label || priority;
 };
 
+export const getPriorityColor = (priority: Priority): string => {
+  return PRIORITIES[priority]?.color || 'gray';
+};
+
 export const getStatusLabel = (status: ActionStatus): string => {
   return ACTION_STATUS[status]?.label || status;
+};
+
+export const getStatusColor = (status: ActionStatus): string => {
+  return ACTION_STATUS[status]?.color || 'gray';
+};
+
+export const getTaskStatusLabel = (status: string): string => {
+  return TASK_STATUS[status as keyof typeof TASK_STATUS]?.label || status;
+};
+
+export const getTaskStatusColor = (status: string): string => {
+  return TASK_STATUS[status as keyof typeof TASK_STATUS]?.color || 'gray';
 };
 
 export const getUserRoleLabel = (role: UserRole): string => {
   return USER_ROLES[role]?.label || role;
 };
 
+export const getUserStatusLabel = (status: string): string => {
+  return USER_STATUS[status as keyof typeof USER_STATUS]?.label || status;
+};
+
+export const getUserStatusColor = (status: string): string => {
+  return USER_STATUS[status as keyof typeof USER_STATUS]?.color || 'gray';
+};
+
+export const getDocumentHistoryActionLabel = (action: string): string => {
+  return DOCUMENT_HISTORY_ACTIONS[action as keyof typeof DOCUMENT_HISTORY_ACTIONS]?.label || action;
+};
+
+export const getDocumentHistoryActionColor = (action: string): string => {
+  return DOCUMENT_HISTORY_ACTIONS[action as keyof typeof DOCUMENT_HISTORY_ACTIONS]?.color || 'gray';
+};
+
+export const getDocumentHistoryActionIcon = (action: string): string => {
+  return DOCUMENT_HISTORY_ACTIONS[action as keyof typeof DOCUMENT_HISTORY_ACTIONS]?.icon || 'Clock';
+};
+
 export const calculateProgress = (totalTasks: number, completedTasks: number): number => {
   if (totalTasks === 0) return 0;
   return Math.round((completedTasks / totalTasks) * 100);
+};
+
+export const calculateActionProgress = (tasks: Array<{ completed: boolean }>): number => {
+  const completedTasks = tasks.filter(task => task.completed).length;
+  return calculateProgress(tasks.length, completedTasks);
+};
+
+export const isActionOverdue = (dueDate: Date): boolean => {
+  return new Date(dueDate) < new Date();
+};
+
+export const isActionDueSoon = (dueDate: Date, daysThreshold: number = 3): boolean => {
+  const now = new Date();
+  const due = new Date(dueDate);
+  const diffInMs = due.getTime() - now.getTime();
+  const diffInDays = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
+  
+  return diffInDays <= daysThreshold && diffInDays >= 0;
+};
+
+export const getDaysUntilDue = (dueDate: Date): number => {
+  const now = new Date();
+  const due = new Date(dueDate);
+  const diffInMs = due.getTime() - now.getTime();
+  return Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
 };
 
 export const validateEmail = (email: string): boolean => {
@@ -72,4 +171,63 @@ export const formatFileSize = (bytes: number): string => {
   const sizes = ['Bytes', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+};
+
+export const truncateText = (text: string, maxLength: number): string => {
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength) + '...';
+};
+
+export const initials = (firstName: string, lastName: string): string => {
+  return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+};
+
+export const getAvatarUrl = (userId: string): string => {
+  return `https://api.dicebear.com/7.x/initials/svg?seed=${userId}`;
+};
+
+export const debounce = <T extends (...args: any[]) => any>(
+  func: T,
+  wait: number
+): ((...args: Parameters<T>) => void) => {
+  let timeout: NodeJS.Timeout;
+  return (...args: Parameters<T>) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  };
+};
+
+export const sortByDate = <T>(array: T[], dateKey: keyof T, order: 'asc' | 'desc' = 'desc'): T[] => {
+  return [...array].sort((a, b) => {
+    const dateA = new Date(a[dateKey] as any).getTime();
+    const dateB = new Date(b[dateKey] as any).getTime();
+    return order === 'desc' ? dateB - dateA : dateA - dateB;
+  });
+};
+
+export const groupByDate = <T>(array: T[], dateKey: keyof T): Record<string, T[]> => {
+  return array.reduce((groups, item) => {
+    const date = formatDate(item[dateKey] as any);
+    if (!groups[date]) {
+      groups[date] = [];
+    }
+    groups[date].push(item);
+    return groups;
+  }, {} as Record<string, T[]>);
+};
+
+export const filterBySearchTerm = <T>(
+  array: T[],
+  searchTerm: string,
+  searchKeys: (keyof T)[]
+): T[] => {
+  if (!searchTerm.trim()) return array;
+  
+  const lowercaseSearch = searchTerm.toLowerCase();
+  return array.filter(item =>
+    searchKeys.some(key => {
+      const value = item[key];
+      return typeof value === 'string' && value.toLowerCase().includes(lowercaseSearch);
+    })
+  );
 };
