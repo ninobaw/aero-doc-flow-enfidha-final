@@ -23,7 +23,7 @@ export const USER_ROLES = {
   },
   ADMINISTRATOR: {
     label: 'Administrateur',
-    permissions: ['manage_users', 'manage_documents', 'view_reports', 'manage_settings']
+    permissions: ['manage_users', 'manage_documents', 'view_reports', 'manage_settings', 'manage_forms']
   },
   APPROVER: {
     label: 'Approbateur',

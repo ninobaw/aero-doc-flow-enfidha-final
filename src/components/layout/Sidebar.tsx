@@ -55,7 +55,7 @@ const navigationItems: NavItem[] = [
         title: 'Formulaires Doc',
         href: '/documents/formulaires',
         icon: FileSpreadsheet,
-        permission: 'view_documents'
+        permission: 'manage_forms'
       }
     ]
   },

@@ -52,7 +52,7 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/documents/formulaires" element={
-              <ProtectedRoute requiredPermission="view_documents">
+              <ProtectedRoute requiredPermission="manage_forms">
                 <FormulairesDoc />
               </ProtectedRoute>
             } />

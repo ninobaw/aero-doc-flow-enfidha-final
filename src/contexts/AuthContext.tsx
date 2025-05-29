@@ -87,7 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     const rolePermissions = {
       [UserRole.SUPER_ADMIN]: ['all'],
-      [UserRole.ADMINISTRATOR]: ['manage_users', 'manage_documents', 'view_reports', 'manage_settings'],
+      [UserRole.ADMINISTRATOR]: ['manage_users', 'manage_documents', 'view_reports', 'manage_settings', 'manage_forms'],
       [UserRole.APPROVER]: ['approve_documents', 'view_documents', 'create_documents'],
       [UserRole.USER]: ['view_documents', 'create_documents', 'view_profile'],
       [UserRole.VISITOR]: ['view_documents']
