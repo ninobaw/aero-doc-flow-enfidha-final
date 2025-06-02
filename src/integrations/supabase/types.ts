@@ -9,16 +9,386 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      actions: {
+        Row: {
+          actual_hours: number | null
+          assigned_to: string[]
+          created_at: string
+          description: string | null
+          due_date: string
+          estimated_hours: number | null
+          id: string
+          parent_document_id: string | null
+          priority: Database["public"]["Enums"]["priority"]
+          progress: number
+          status: Database["public"]["Enums"]["action_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          actual_hours?: number | null
+          assigned_to: string[]
+          created_at?: string
+          description?: string | null
+          due_date: string
+          estimated_hours?: number | null
+          id?: string
+          parent_document_id?: string | null
+          priority?: Database["public"]["Enums"]["priority"]
+          progress?: number
+          status?: Database["public"]["Enums"]["action_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          actual_hours?: number | null
+          assigned_to?: string[]
+          created_at?: string
+          description?: string | null
+          due_date?: string
+          estimated_hours?: number | null
+          id?: string
+          parent_document_id?: string | null
+          priority?: Database["public"]["Enums"]["priority"]
+          progress?: number
+          status?: Database["public"]["Enums"]["action_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "actions_parent_document_id_fkey"
+            columns: ["parent_document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      activity_logs: {
+        Row: {
+          action: string
+          details: string
+          entity_id: string
+          entity_type: string
+          id: string
+          ip_address: unknown | null
+          timestamp: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          details: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          ip_address?: unknown | null
+          timestamp?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          details?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          ip_address?: unknown | null
+          timestamp?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      correspondances: {
+        Row: {
+          airport: Database["public"]["Enums"]["airport_code"]
+          attachments: string[] | null
+          content: string
+          created_at: string
+          document_id: string
+          from_address: string
+          id: string
+          priority: Database["public"]["Enums"]["priority"]
+          status: string
+          subject: string
+          to_address: string
+        }
+        Insert: {
+          airport: Database["public"]["Enums"]["airport_code"]
+          attachments?: string[] | null
+          content: string
+          created_at?: string
+          document_id: string
+          from_address: string
+          id?: string
+          priority?: Database["public"]["Enums"]["priority"]
+          status?: string
+          subject: string
+          to_address: string
+        }
+        Update: {
+          airport?: Database["public"]["Enums"]["airport_code"]
+          attachments?: string[] | null
+          content?: string
+          created_at?: string
+          document_id?: string
+          from_address?: string
+          id?: string
+          priority?: Database["public"]["Enums"]["priority"]
+          status?: string
+          subject?: string
+          to_address?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "correspondances_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_history: {
+        Row: {
+          action: string
+          changes: Json | null
+          comment: string | null
+          document_id: string
+          id: string
+          timestamp: string
+          user_id: string
+          version: number
+        }
+        Insert: {
+          action: string
+          changes?: Json | null
+          comment?: string | null
+          document_id: string
+          id?: string
+          timestamp?: string
+          user_id: string
+          version: number
+        }
+        Update: {
+          action?: string
+          changes?: Json | null
+          comment?: string | null
+          document_id?: string
+          id?: string
+          timestamp?: string
+          user_id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_history_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documents: {
+        Row: {
+          airport: Database["public"]["Enums"]["airport_code"]
+          author_id: string
+          content: string | null
+          created_at: string
+          file_path: string | null
+          file_type: string | null
+          id: string
+          qr_code: string
+          status: Database["public"]["Enums"]["document_status"]
+          title: string
+          type: Database["public"]["Enums"]["document_type"]
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          airport: Database["public"]["Enums"]["airport_code"]
+          author_id: string
+          content?: string | null
+          created_at?: string
+          file_path?: string | null
+          file_type?: string | null
+          id?: string
+          qr_code?: string
+          status?: Database["public"]["Enums"]["document_status"]
+          title: string
+          type: Database["public"]["Enums"]["document_type"]
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          airport?: Database["public"]["Enums"]["airport_code"]
+          author_id?: string
+          content?: string | null
+          created_at?: string
+          file_path?: string | null
+          file_type?: string | null
+          id?: string
+          qr_code?: string
+          status?: Database["public"]["Enums"]["document_status"]
+          title?: string
+          type?: Database["public"]["Enums"]["document_type"]
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      proces_verbaux: {
+        Row: {
+          agenda: string
+          airport: Database["public"]["Enums"]["airport_code"]
+          created_at: string
+          decisions: string
+          document_id: string
+          id: string
+          location: string
+          meeting_date: string
+          meeting_type: string
+          next_meeting_date: string | null
+          participants: string[]
+        }
+        Insert: {
+          agenda: string
+          airport: Database["public"]["Enums"]["airport_code"]
+          created_at?: string
+          decisions: string
+          document_id: string
+          id?: string
+          location: string
+          meeting_date: string
+          meeting_type: string
+          next_meeting_date?: string | null
+          participants: string[]
+        }
+        Update: {
+          agenda?: string
+          airport?: Database["public"]["Enums"]["airport_code"]
+          created_at?: string
+          decisions?: string
+          document_id?: string
+          id?: string
+          location?: string
+          meeting_date?: string
+          meeting_type?: string
+          next_meeting_date?: string | null
+          participants?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proces_verbaux_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          airport: Database["public"]["Enums"]["airport_code"]
+          created_at: string
+          department: string | null
+          email: string
+          first_name: string
+          id: string
+          is_active: boolean
+          last_name: string
+          phone: string | null
+          profile_photo: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+        }
+        Insert: {
+          airport: Database["public"]["Enums"]["airport_code"]
+          created_at?: string
+          department?: string | null
+          email: string
+          first_name: string
+          id: string
+          is_active?: boolean
+          last_name: string
+          phone?: string | null
+          profile_photo?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Update: {
+          airport?: Database["public"]["Enums"]["airport_code"]
+          created_at?: string
+          department?: string | null
+          email?: string
+          first_name?: string
+          id?: string
+          is_active?: boolean
+          last_name?: string
+          phone?: string | null
+          profile_photo?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _user_id: string
+          _role: Database["public"]["Enums"]["user_role"]
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      action_status: "PENDING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED"
+      airport_code: "ENFIDHA" | "MONASTIR"
+      document_status: "DRAFT" | "ACTIVE" | "ARCHIVED"
+      document_type:
+        | "FORMULAIRE_DOC"
+        | "CORRESPONDANCE"
+        | "PROCES_VERBAL"
+        | "QUALITE_DOC"
+        | "NOUVEAU_DOC"
+        | "GENERAL"
+      priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT"
+      user_role:
+        | "SUPER_ADMIN"
+        | "ADMINISTRATOR"
+        | "APPROVER"
+        | "USER"
+        | "VISITOR"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +503,26 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      action_status: ["PENDING", "IN_PROGRESS", "COMPLETED", "CANCELLED"],
+      airport_code: ["ENFIDHA", "MONASTIR"],
+      document_status: ["DRAFT", "ACTIVE", "ARCHIVED"],
+      document_type: [
+        "FORMULAIRE_DOC",
+        "CORRESPONDANCE",
+        "PROCES_VERBAL",
+        "QUALITE_DOC",
+        "NOUVEAU_DOC",
+        "GENERAL",
+      ],
+      priority: ["LOW", "MEDIUM", "HIGH", "URGENT"],
+      user_role: [
+        "SUPER_ADMIN",
+        "ADMINISTRATOR",
+        "APPROVER",
+        "USER",
+        "VISITOR",
+      ],
+    },
   },
 } as const
