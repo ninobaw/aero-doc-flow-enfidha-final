@@ -6,65 +6,101 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
 import { Settings as SettingsIcon, Save, Bell, Shield, Globe, Database, Mail } from 'lucide-react';
-import { useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { useState, useEffect } from 'react';
+import { useSettings } from '@/hooks/useSettings';
 
 const Settings = () => {
-  const { toast } = useToast();
-  const [settings, setSettings] = useState({
-    // Paramètres généraux
-    companyName: 'AeroDoc - Gestion Documentaire',
-    defaultAirport: 'ENFIDHA',
+  const { settings, isLoading, updateSettings, isUpdating } = useSettings();
+  const [formData, setFormData] = useState({
+    company_name: '',
+    default_airport: 'ENFIDHA' as const,
     language: 'fr',
     theme: 'light',
-    
-    // Paramètres de notification
-    emailNotifications: true,
-    smsNotifications: false,
-    pushNotifications: true,
-    
-    // Paramètres de sécurité
-    sessionTimeout: '60',
-    requireTwoFactor: false,
-    passwordExpiry: '90',
-    
-    // Paramètres de documents
-    documentRetention: '365',
-    autoArchive: true,
-    maxFileSize: '10',
-    
-    // Paramètres d'email
-    smtpHost: '',
-    smtpPort: '587',
-    smtpUsername: '',
-    useSSL: true,
+    email_notifications: true,
+    sms_notifications: false,
+    push_notifications: true,
+    session_timeout: 60,
+    require_two_factor: false,
+    password_expiry: 90,
+    document_retention: 365,
+    auto_archive: true,
+    max_file_size: 10,
+    smtp_host: '',
+    smtp_port: 587,
+    smtp_username: '',
+    use_ssl: true,
   });
 
   // ===========================================
   // DÉBUT INTÉGRATION BACKEND SUPABASE - PAGE PARAMÈTRES
   // ===========================================
 
-  const handleSave = () => {
-    // Ici on pourrait sauvegarder dans Supabase
-    toast({
-      title: 'Paramètres sauvegardés',
-      description: 'Vos paramètres ont été mis à jour avec succès.',
-    });
+  useEffect(() => {
+    if (settings) {
+      setFormData({
+        company_name: settings.company_name || '',
+        default_airport: settings.default_airport || 'ENFIDHA',
+        language: settings.language || 'fr',
+        theme: settings.theme || 'light',
+        email_notifications: settings.email_notifications ?? true,
+        sms_notifications: settings.sms_notifications ?? false,
+        push_notifications: settings.push_notifications ?? true,
+        session_timeout: settings.session_timeout || 60,
+        require_two_factor: settings.require_two_factor ?? false,
+        password_expiry: settings.password_expiry || 90,
+        document_retention: settings.document_retention || 365,
+        auto_archive: settings.auto_archive ?? true,
+        max_file_size: settings.max_file_size || 10,
+        smtp_host: settings.smtp_host || '',
+        smtp_port: settings.smtp_port || 587,
+        smtp_username: settings.smtp_username || '',
+        use_ssl: settings.use_ssl ?? true,
+      });
+    }
+  }, [settings]);
+
+  const handleSave = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateSettings(formData);
   };
 
   const updateSetting = (key: string, value: any) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
+    setFormData(prev => ({ ...prev, [key]: value }));
   };
 
   // ===========================================
   // FIN INTÉGRATION BACKEND SUPABASE - PAGE PARAMÈTRES
   // ===========================================
 
+  if (isLoading) {
+    return (
+      <AppLayout>
+        <div className="space-y-6">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-48 mb-2"></div>
+            <div className="h-4 bg-gray-200 rounded w-64"></div>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {[...Array(4)].map((_, i) => (
+              <Card key={i} className="animate-pulse">
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
+
   return (
     <AppLayout>
-      <div className="space-y-6">
+      <form onSubmit={handleSave} className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Paramètres</h1>
           <p className="text-gray-500 mt-1">
@@ -89,16 +125,16 @@ const Settings = () => {
                 <Label htmlFor="companyName">Nom de l'organisation</Label>
                 <Input
                   id="companyName"
-                  value={settings.companyName}
-                  onChange={(e) => updateSetting('companyName', e.target.value)}
+                  value={formData.company_name}
+                  onChange={(e) => updateSetting('company_name', e.target.value)}
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="defaultAirport">Aéroport par défaut</Label>
                 <Select 
-                  value={settings.defaultAirport} 
-                  onValueChange={(value) => updateSetting('defaultAirport', value)}
+                  value={formData.default_airport} 
+                  onValueChange={(value) => updateSetting('default_airport', value)}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -113,7 +149,7 @@ const Settings = () => {
               <div className="space-y-2">
                 <Label htmlFor="language">Langue</Label>
                 <Select 
-                  value={settings.language} 
+                  value={formData.language} 
                   onValueChange={(value) => updateSetting('language', value)}
                 >
                   <SelectTrigger>
@@ -130,7 +166,7 @@ const Settings = () => {
               <div className="space-y-2">
                 <Label htmlFor="theme">Thème</Label>
                 <Select 
-                  value={settings.theme} 
+                  value={formData.theme} 
                   onValueChange={(value) => updateSetting('theme', value)}
                 >
                   <SelectTrigger>
@@ -166,8 +202,8 @@ const Settings = () => {
                   </p>
                 </div>
                 <Switch
-                  checked={settings.emailNotifications}
-                  onCheckedChange={(checked) => updateSetting('emailNotifications', checked)}
+                  checked={formData.email_notifications}
+                  onCheckedChange={(checked) => updateSetting('email_notifications', checked)}
                 />
               </div>
 
@@ -179,8 +215,8 @@ const Settings = () => {
                   </p>
                 </div>
                 <Switch
-                  checked={settings.smsNotifications}
-                  onCheckedChange={(checked) => updateSetting('smsNotifications', checked)}
+                  checked={formData.sms_notifications}
+                  onCheckedChange={(checked) => updateSetting('sms_notifications', checked)}
                 />
               </div>
 
@@ -192,8 +228,8 @@ const Settings = () => {
                   </p>
                 </div>
                 <Switch
-                  checked={settings.pushNotifications}
-                  onCheckedChange={(checked) => updateSetting('pushNotifications', checked)}
+                  checked={formData.push_notifications}
+                  onCheckedChange={(checked) => updateSetting('push_notifications', checked)}
                 />
               </div>
             </CardContent>
@@ -216,8 +252,8 @@ const Settings = () => {
                 <Input
                   id="sessionTimeout"
                   type="number"
-                  value={settings.sessionTimeout}
-                  onChange={(e) => updateSetting('sessionTimeout', e.target.value)}
+                  value={formData.session_timeout}
+                  onChange={(e) => updateSetting('session_timeout', parseInt(e.target.value))}
                 />
               </div>
 
@@ -229,8 +265,8 @@ const Settings = () => {
                   </p>
                 </div>
                 <Switch
-                  checked={settings.requireTwoFactor}
-                  onCheckedChange={(checked) => updateSetting('requireTwoFactor', checked)}
+                  checked={formData.require_two_factor}
+                  onCheckedChange={(checked) => updateSetting('require_two_factor', checked)}
                 />
               </div>
 
@@ -239,8 +275,8 @@ const Settings = () => {
                 <Input
                   id="passwordExpiry"
                   type="number"
-                  value={settings.passwordExpiry}
-                  onChange={(e) => updateSetting('passwordExpiry', e.target.value)}
+                  value={formData.password_expiry}
+                  onChange={(e) => updateSetting('password_expiry', parseInt(e.target.value))}
                 />
               </div>
             </CardContent>
@@ -263,8 +299,8 @@ const Settings = () => {
                 <Input
                   id="documentRetention"
                   type="number"
-                  value={settings.documentRetention}
-                  onChange={(e) => updateSetting('documentRetention', e.target.value)}
+                  value={formData.document_retention}
+                  onChange={(e) => updateSetting('document_retention', parseInt(e.target.value))}
                 />
               </div>
 
@@ -276,8 +312,8 @@ const Settings = () => {
                   </p>
                 </div>
                 <Switch
-                  checked={settings.autoArchive}
-                  onCheckedChange={(checked) => updateSetting('autoArchive', checked)}
+                  checked={formData.auto_archive}
+                  onCheckedChange={(checked) => updateSetting('auto_archive', checked)}
                 />
               </div>
 
@@ -286,8 +322,8 @@ const Settings = () => {
                 <Input
                   id="maxFileSize"
                   type="number"
-                  value={settings.maxFileSize}
-                  onChange={(e) => updateSetting('maxFileSize', e.target.value)}
+                  value={formData.max_file_size}
+                  onChange={(e) => updateSetting('max_file_size', parseInt(e.target.value))}
                 />
               </div>
             </CardContent>
@@ -311,8 +347,8 @@ const Settings = () => {
                 <Label htmlFor="smtpHost">Serveur SMTP</Label>
                 <Input
                   id="smtpHost"
-                  value={settings.smtpHost}
-                  onChange={(e) => updateSetting('smtpHost', e.target.value)}
+                  value={formData.smtp_host}
+                  onChange={(e) => updateSetting('smtp_host', e.target.value)}
                   placeholder="smtp.example.com"
                 />
               </div>
@@ -322,8 +358,8 @@ const Settings = () => {
                 <Input
                   id="smtpPort"
                   type="number"
-                  value={settings.smtpPort}
-                  onChange={(e) => updateSetting('smtpPort', e.target.value)}
+                  value={formData.smtp_port}
+                  onChange={(e) => updateSetting('smtp_port', parseInt(e.target.value))}
                 />
               </div>
 
@@ -331,8 +367,8 @@ const Settings = () => {
                 <Label htmlFor="smtpUsername">Nom d'utilisateur</Label>
                 <Input
                   id="smtpUsername"
-                  value={settings.smtpUsername}
-                  onChange={(e) => updateSetting('smtpUsername', e.target.value)}
+                  value={formData.smtp_username}
+                  onChange={(e) => updateSetting('smtp_username', e.target.value)}
                 />
               </div>
 
@@ -344,8 +380,8 @@ const Settings = () => {
                   </p>
                 </div>
                 <Switch
-                  checked={settings.useSSL}
-                  onCheckedChange={(checked) => updateSetting('useSSL', checked)}
+                  checked={formData.use_ssl}
+                  onCheckedChange={(checked) => updateSetting('use_ssl', checked)}
                 />
               </div>
             </div>
@@ -354,12 +390,16 @@ const Settings = () => {
 
         {/* Bouton de sauvegarde */}
         <div className="flex justify-end">
-          <Button onClick={handleSave} className="bg-aviation-sky hover:bg-aviation-sky-dark">
+          <Button 
+            type="submit" 
+            disabled={isUpdating}
+            className="bg-aviation-sky hover:bg-aviation-sky-dark"
+          >
             <Save className="w-4 h-4 mr-2" />
-            Sauvegarder les paramètres
+            {isUpdating ? 'Sauvegarde...' : 'Sauvegarder les paramètres'}
           </Button>
         </div>
-      </div>
+      </form>
     </AppLayout>
   );
 };

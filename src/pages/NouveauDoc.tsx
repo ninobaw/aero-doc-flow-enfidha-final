@@ -8,13 +8,38 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FilePlus, Upload, FileText, Save, Eye } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { FilePlus, Upload, FileText, Save, Eye, X } from 'lucide-react';
+import { useDocuments } from '@/hooks/useDocuments';
+import { useAuth } from '@/contexts/AuthContext';
 
 const NouveauDoc = () => {
-  const { toast } = useToast();
+  const { user } = useAuth();
+  const { createDocument, isCreating } = useDocuments();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  // État pour le formulaire direct
+  const [formData, setFormData] = useState({
+    titre: '',
+    reference: '',
+    aeroport: '',
+    categorie: '',
+    version: '1.0',
+    responsable: '',
+    description: '',
+    contenu: ''
+  });
+
+  // État pour l'import de fichier
+  const [importData, setImportData] = useState({
+    titre: '',
+    aeroport: '',
+    description: ''
+  });
+
+  // ===========================================
+  // DÉBUT INTÉGRATION BACKEND SUPABASE - NOUVEAU DOCUMENT
+  // ===========================================
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -23,41 +48,72 @@ const NouveauDoc = () => {
       
       // Créer une URL de prévisualisation pour les images et PDFs
       if (file.type.startsWith('image/') || file.type === 'application/pdf') {
+        if (previewUrl) {
+          URL.revokeObjectURL(previewUrl);
+        }
         const url = URL.createObjectURL(file);
         setPreviewUrl(url);
       }
-      
-      toast({
-        title: "Fichier sélectionné",
-        description: `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`
-      });
     }
+  };
+
+  const removeFile = () => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    setSelectedFile(null);
+    setPreviewUrl(null);
   };
 
   const handleFormSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    toast({
-      title: "Document créé",
-      description: "Le nouveau document a été enregistré avec succès."
-    });
+    
+    if (!user) {
+      return;
+    }
+
+    if (!formData.titre.trim() || !formData.aeroport) {
+      return;
+    }
+
+    const documentData = {
+      title: formData.titre,
+      content: formData.contenu,
+      type: 'OTHER',
+      airport: formData.aeroport as 'ENFIDHA' | 'MONASTIR',
+      category: formData.categorie,
+      description: formData.description,
+    };
+
+    createDocument(documentData);
   };
 
   const handleFileSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    if (!selectedFile) {
-      toast({
-        title: "Erreur",
-        description: "Veuillez sélectionner un fichier.",
-        variant: "destructive"
-      });
+    
+    if (!user) {
       return;
     }
-    
-    toast({
-      title: "Document importé",
-      description: "Le document a été importé et enregistré avec succès."
-    });
+
+    if (!importData.titre.trim() || !importData.aeroport || !selectedFile) {
+      return;
+    }
+
+    const documentData = {
+      title: importData.titre,
+      content: importData.description,
+      type: 'OTHER',
+      airport: importData.aeroport as 'ENFIDHA' | 'MONASTIR',
+      description: importData.description,
+      file: selectedFile,
+    };
+
+    createDocument(documentData);
   };
+
+  // ===========================================
+  // FIN INTÉGRATION BACKEND SUPABASE - NOUVEAU DOCUMENT
+  // ===========================================
 
   return (
     <AppLayout>
@@ -99,6 +155,8 @@ const NouveauDoc = () => {
                       <Label htmlFor="titre">Titre du document *</Label>
                       <Input
                         id="titre"
+                        value={formData.titre}
+                        onChange={(e) => setFormData(prev => ({ ...prev, titre: e.target.value }))}
                         placeholder="Entrez le titre du document"
                         required
                       />
@@ -108,26 +166,34 @@ const NouveauDoc = () => {
                       <Label htmlFor="reference">Référence</Label>
                       <Input
                         id="reference"
+                        value={formData.reference}
+                        onChange={(e) => setFormData(prev => ({ ...prev, reference: e.target.value }))}
                         placeholder="NDOC-ENF-2025-001"
                       />
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="aeroport">Aéroport *</Label>
-                      <Select>
+                      <Select 
+                        value={formData.aeroport}
+                        onValueChange={(value) => setFormData(prev => ({ ...prev, aeroport: value }))}
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner un aéroport" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="enfidha">Enfidha</SelectItem>
-                          <SelectItem value="monastir">Monastir</SelectItem>
+                          <SelectItem value="ENFIDHA">Enfidha</SelectItem>
+                          <SelectItem value="MONASTIR">Monastir</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="categorie">Catégorie</Label>
-                      <Select>
+                      <Select
+                        value={formData.categorie}
+                        onValueChange={(value) => setFormData(prev => ({ ...prev, categorie: value }))}
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner une catégorie" />
                         </SelectTrigger>
@@ -145,8 +211,9 @@ const NouveauDoc = () => {
                       <Label htmlFor="version">Version</Label>
                       <Input
                         id="version"
+                        value={formData.version}
+                        onChange={(e) => setFormData(prev => ({ ...prev, version: e.target.value }))}
                         placeholder="1.0"
-                        defaultValue="1.0"
                       />
                     </div>
 
@@ -154,6 +221,8 @@ const NouveauDoc = () => {
                       <Label htmlFor="responsable">Responsable</Label>
                       <Input
                         id="responsable"
+                        value={formData.responsable}
+                        onChange={(e) => setFormData(prev => ({ ...prev, responsable: e.target.value }))}
                         placeholder="Nom du responsable"
                       />
                     </div>
@@ -163,6 +232,8 @@ const NouveauDoc = () => {
                     <Label htmlFor="description">Description</Label>
                     <Textarea
                       id="description"
+                      value={formData.description}
+                      onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                       placeholder="Description détaillée du document..."
                       rows={4}
                     />
@@ -172,18 +243,24 @@ const NouveauDoc = () => {
                     <Label htmlFor="contenu">Contenu du document</Label>
                     <Textarea
                       id="contenu"
+                      value={formData.contenu}
+                      onChange={(e) => setFormData(prev => ({ ...prev, contenu: e.target.value }))}
                       placeholder="Saisissez le contenu complet du document..."
                       rows={8}
                     />
                   </div>
 
                   <div className="flex justify-end space-x-4">
-                    <Button variant="outline">
+                    <Button type="button" variant="outline">
                       Annuler
                     </Button>
-                    <Button type="submit" className="bg-aviation-sky hover:bg-aviation-sky-dark">
+                    <Button 
+                      type="submit" 
+                      disabled={isCreating || !formData.titre.trim() || !formData.aeroport}
+                      className="bg-aviation-sky hover:bg-aviation-sky-dark"
+                    >
                       <Save className="w-4 h-4 mr-2" />
-                      Enregistrer
+                      {isCreating ? 'Enregistrement...' : 'Enregistrer'}
                     </Button>
                   </div>
                 </form>
@@ -196,6 +273,8 @@ const NouveauDoc = () => {
                       <Label htmlFor="titre-import">Titre du document *</Label>
                       <Input
                         id="titre-import"
+                        value={importData.titre}
+                        onChange={(e) => setImportData(prev => ({ ...prev, titre: e.target.value }))}
                         placeholder="Entrez le titre du document"
                         required
                       />
@@ -203,13 +282,16 @@ const NouveauDoc = () => {
 
                     <div className="space-y-2">
                       <Label htmlFor="aeroport-import">Aéroport *</Label>
-                      <Select>
+                      <Select
+                        value={importData.aeroport}
+                        onValueChange={(value) => setImportData(prev => ({ ...prev, aeroport: value }))}
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner un aéroport" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="enfidha">Enfidha</SelectItem>
-                          <SelectItem value="monastir">Monastir</SelectItem>
+                          <SelectItem value="ENFIDHA">Enfidha</SelectItem>
+                          <SelectItem value="MONASTIR">Monastir</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -219,6 +301,8 @@ const NouveauDoc = () => {
                     <Label htmlFor="description-import">Description</Label>
                     <Textarea
                       id="description-import"
+                      value={importData.description}
+                      onChange={(e) => setImportData(prev => ({ ...prev, description: e.target.value }))}
                       placeholder="Description du document importé..."
                       rows={3}
                     />
@@ -257,24 +341,38 @@ const NouveauDoc = () => {
                               {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                             </p>
                           </div>
-                          {previewUrl && (
-                            <Button variant="outline" size="sm">
-                              <Eye className="w-4 h-4 mr-2" />
-                              Prévisualiser
+                          <div className="flex space-x-2">
+                            {previewUrl && (
+                              <Button variant="outline" size="sm" type="button">
+                                <Eye className="w-4 h-4 mr-2" />
+                                Prévisualiser
+                              </Button>
+                            )}
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              type="button"
+                              onClick={removeFile}
+                            >
+                              <X className="w-4 h-4" />
                             </Button>
-                          )}
+                          </div>
                         </div>
                       </div>
                     )}
                   </div>
 
                   <div className="flex justify-end space-x-4">
-                    <Button variant="outline">
+                    <Button type="button" variant="outline">
                       Annuler
                     </Button>
-                    <Button type="submit" className="bg-aviation-sky hover:bg-aviation-sky-dark">
+                    <Button 
+                      type="submit" 
+                      disabled={isCreating || !importData.titre.trim() || !importData.aeroport || !selectedFile}
+                      className="bg-aviation-sky hover:bg-aviation-sky-dark"
+                    >
                       <Save className="w-4 h-4 mr-2" />
-                      Importer et Enregistrer
+                      {isCreating ? 'Import...' : 'Importer et Enregistrer'}
                     </Button>
                   </div>
                 </form>
