@@ -30,6 +30,10 @@ export const useFormulaires = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
+  // ===========================================
+  // DÉBUT INTÉGRATION BACKEND SUPABASE - FORMULAIRES
+  // ===========================================
+
   const { data: formulaires = [], isLoading, error } = useQuery({
     queryKey: ['formulaires'],
     queryFn: async () => {
@@ -42,9 +46,13 @@ export const useFormulaires = () => {
         .eq('type', 'FORMULAIRE_DOC')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erreur récupération formulaires:', error);
+        throw error;
+      }
       return data as FormulaireDoc[];
     },
+    enabled: true, // Toujours activer la requête
   });
 
   const createFormulaire = useMutation({
@@ -57,47 +65,88 @@ export const useFormulaires = () => {
       description?: string;
       instructions?: string;
     }) => {
-      if (!user) throw new Error('Utilisateur non connecté');
+      // Vérifier que l'utilisateur est connecté
+      if (!user?.id) {
+        throw new Error('Vous devez être connecté pour créer un formulaire');
+      }
+
+      // Valider que l'ID utilisateur est un UUID valide
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(user.id)) {
+        console.error('ID utilisateur invalide:', user.id);
+        throw new Error('ID utilisateur invalide. Veuillez vous reconnecter.');
+      }
+
+      // Préparer le contenu JSON
+      const contentJson = {
+        code: formulaireData.code || '',
+        category: formulaireData.category || '',
+        description: formulaireData.description || '',
+        instructions: formulaireData.instructions || '',
+      };
 
       const documentData = {
         title: formulaireData.title,
         type: 'FORMULAIRE_DOC' as const,
-        content: JSON.stringify({
-          code: formulaireData.code,
-          category: formulaireData.category,
-          description: formulaireData.description,
-          instructions: formulaireData.instructions,
-        }),
+        content: JSON.stringify(contentJson),
         author_id: user.id,
         airport: formulaireData.airport,
         status: 'DRAFT' as const,
       };
 
+      console.log('Données à insérer:', documentData);
+
       const { data, error } = await supabase
         .from('documents')
         .insert(documentData)
-        .select()
+        .select(`
+          *,
+          author:profiles(first_name, last_name, email)
+        `)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erreur création formulaire:', error);
+        throw error;
+      }
+
+      console.log('Formulaire créé avec succès:', data);
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['formulaires'] });
+      queryClient.invalidateQueries({ queryKey: ['documents'] });
       toast({
         title: 'Formulaire créé',
-        description: 'Le formulaire a été créé avec succès.',
+        description: `Le formulaire "${data.title}" a été créé avec succès.`,
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Erreur création formulaire:', error);
+      
+      let errorMessage = 'Impossible de créer le formulaire.';
+      
+      if (error.message?.includes('uuid')) {
+        errorMessage = 'Problème d\'authentification. Veuillez vous reconnecter.';
+      } else if (error.message?.includes('Vous devez être connecté')) {
+        errorMessage = error.message;
+      } else if (error.code === '23505') {
+        errorMessage = 'Un formulaire avec ce titre existe déjà.';
+      } else if (error.code === '42501') {
+        errorMessage = 'Permissions insuffisantes pour créer un formulaire.';
+      }
+
       toast({
         title: 'Erreur',
-        description: 'Impossible de créer le formulaire.',
+        description: errorMessage,
         variant: 'destructive',
       });
     },
   });
+
+  // ===========================================
+  // FIN INTÉGRATION BACKEND SUPABASE - FORMULAIRES
+  // ===========================================
 
   return {
     formulaires,

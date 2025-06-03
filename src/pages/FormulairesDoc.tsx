@@ -13,6 +13,7 @@ import { useFormulaires } from '@/hooks/useFormulaires';
 import { FormulairesList } from '@/components/formulaires/FormulairesList';
 import { useAuth } from '@/contexts/AuthContext';
 import { useForm } from 'react-hook-form';
+import { useToast } from '@/hooks/use-toast';
 
 interface FormulaireFormData {
   title: string;
@@ -25,6 +26,7 @@ interface FormulaireFormData {
 
 const FormulairesDoc = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const { formulaires, isLoading, createFormulaire, isCreating } = useFormulaires();
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -62,20 +64,75 @@ const FormulairesDoc = () => {
   };
 
   const onSubmit = (data: FormulaireFormData) => {
+    // Vérifier que l'utilisateur est connecté
+    if (!user) {
+      toast({
+        title: 'Erreur d\'authentification',
+        description: 'Vous devez être connecté pour créer un formulaire.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Valider les champs requis
+    if (!data.title.trim()) {
+      toast({
+        title: 'Erreur de validation',
+        description: 'Le nom du formulaire est requis.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    console.log('Données du formulaire à soumettre:', data);
+    console.log('Utilisateur connecté:', user);
+
     createFormulaire({
-      title: data.title,
-      content: data.description,
-      code: data.code,
+      title: data.title.trim(),
+      content: data.description || '',
+      code: data.code || '',
       airport: data.airport,
-      category: data.category,
-      description: data.description,
-      instructions: data.instructions,
+      category: data.category || '',
+      description: data.description || '',
+      instructions: data.instructions || '',
     });
 
-    // Reset form après création réussie
-    reset();
+    // Reset form après création réussie sera géré dans le onSuccess du hook
+  };
+
+  // Réinitialiser le formulaire quand la création réussit
+  const resetForm = () => {
+    reset({
+      airport: user?.airport || 'ENFIDHA',
+      category: '',
+      title: '',
+      code: '',
+      description: '',
+      instructions: '',
+    });
     removeFile();
   };
+
+  // Afficher un message si l'utilisateur n'est pas connecté
+  if (!user) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Card className="w-full max-w-md">
+            <CardContent className="p-6 text-center">
+              <FileSpreadsheet className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Authentification requise
+              </h3>
+              <p className="text-gray-500">
+                Vous devez être connecté pour accéder aux formulaires documentaires.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
@@ -283,7 +340,7 @@ const FormulairesDoc = () => {
                   )}
 
                   <div className="flex justify-end space-x-4">
-                    <Button type="button" variant="outline" onClick={() => reset()}>
+                    <Button type="button" variant="outline" onClick={resetForm}>
                       Annuler
                     </Button>
                     <Button 
