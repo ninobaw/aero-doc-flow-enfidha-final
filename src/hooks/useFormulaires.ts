@@ -52,7 +52,7 @@ export const useFormulaires = () => {
       }
       return data as FormulaireDoc[];
     },
-    enabled: true, // Toujours activer la requête
+    enabled: true,
   });
 
   const createFormulaire = useMutation({
@@ -65,19 +65,16 @@ export const useFormulaires = () => {
       description?: string;
       instructions?: string;
     }) => {
-      // Vérifier que l'utilisateur est connecté
       if (!user?.id) {
         throw new Error('Vous devez être connecté pour créer un formulaire');
       }
 
-      // Valider que l'ID utilisateur est un UUID valide
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
       if (!uuidRegex.test(user.id)) {
         console.error('ID utilisateur invalide:', user.id);
         throw new Error('ID utilisateur invalide. Veuillez vous reconnecter.');
       }
 
-      // Préparer le contenu JSON
       const contentJson = {
         code: formulaireData.code || '',
         category: formulaireData.category || '',
@@ -144,6 +141,70 @@ export const useFormulaires = () => {
     },
   });
 
+  const updateFormulaire = useMutation({
+    mutationFn: async ({ id, ...updates }: { id: string } & Partial<FormulaireDoc>) => {
+      if (!user?.id) throw new Error('Utilisateur non connecté');
+
+      const { data, error } = await supabase
+        .from('documents')
+        .update(updates)
+        .eq('id', id)
+        .eq('author_id', user.id)
+        .select(`
+          *,
+          author:profiles(first_name, last_name, email)
+        `)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['formulaires'] });
+      toast({
+        title: 'Formulaire mis à jour',
+        description: `Le formulaire "${data.title}" a été mis à jour.`,
+      });
+    },
+    onError: (error) => {
+      console.error('Erreur mise à jour formulaire:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de mettre à jour le formulaire.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const deleteFormulaire = useMutation({
+    mutationFn: async (id: string) => {
+      if (!user?.id) throw new Error('Utilisateur non connecté');
+
+      const { error } = await supabase
+        .from('documents')
+        .delete()
+        .eq('id', id)
+        .eq('author_id', user.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['formulaires'] });
+      toast({
+        title: 'Formulaire supprimé',
+        description: 'Le formulaire a été supprimé avec succès.',
+      });
+    },
+    onError: (error) => {
+      console.error('Erreur suppression formulaire:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de supprimer le formulaire.',
+        variant: 'destructive',
+      });
+    },
+  });
+
   // ===========================================
   // FIN INTÉGRATION BACKEND SUPABASE - FORMULAIRES
   // ===========================================
@@ -154,5 +215,9 @@ export const useFormulaires = () => {
     error,
     createFormulaire: createFormulaire.mutate,
     isCreating: createFormulaire.isPending,
+    updateFormulaire: updateFormulaire.mutate,
+    isUpdating: updateFormulaire.isPending,
+    deleteFormulaire: deleteFormulaire.mutate,
+    isDeleting: deleteFormulaire.isPending,
   };
 };

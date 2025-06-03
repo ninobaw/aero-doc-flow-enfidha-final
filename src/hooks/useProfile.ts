@@ -13,7 +13,7 @@ export interface ProfileData {
   department?: string;
   profile_photo?: string;
   airport: 'ENFIDHA' | 'MONASTIR';
-  role: string;
+  role: 'SUPER_ADMIN' | 'ADMINISTRATOR' | 'APPROVER' | 'USER' | 'VISITOR';
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -46,7 +46,7 @@ export const useProfile = () => {
   });
 
   const updateProfile = useMutation({
-    mutationFn: async (updates: Partial<ProfileData>) => {
+    mutationFn: async (updates: Partial<Omit<ProfileData, 'id' | 'created_at' | 'updated_at'>>) => {
       if (!user?.id) throw new Error('Utilisateur non connecté');
 
       const { data, error } = await supabase

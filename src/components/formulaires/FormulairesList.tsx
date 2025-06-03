@@ -2,8 +2,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { FileSpreadsheet, Eye, Download, Calendar, User } from 'lucide-react';
+import { FileSpreadsheet, Eye, Download, Calendar, User, Edit, Trash2 } from 'lucide-react';
 import { formatDate } from '@/shared/utils';
+import { useFormulaires } from '@/hooks/useFormulaires';
 import type { FormulaireDoc } from '@/hooks/useFormulaires';
 
 interface FormulairesListProps {
@@ -12,6 +13,8 @@ interface FormulairesListProps {
 }
 
 export const FormulairesList = ({ formulaires, isLoading }: FormulairesListProps) => {
+  const { deleteFormulaire, isDeleting } = useFormulaires();
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -64,6 +67,12 @@ export const FormulairesList = ({ formulaires, isLoading }: FormulairesListProps
       case 'DRAFT': return 'Brouillon';
       case 'ARCHIVED': return 'Archivé';
       default: return status;
+    }
+  };
+
+  const handleDelete = (id: string, title: string) => {
+    if (window.confirm(`Êtes-vous sûr de vouloir supprimer le formulaire "${title}" ?`)) {
+      deleteFormulaire(id);
     }
   };
 
@@ -127,15 +136,31 @@ export const FormulairesList = ({ formulaires, isLoading }: FormulairesListProps
                   </div>
                 </div>
 
-                <div className="flex justify-between pt-2">
-                  <Button variant="outline" size="sm">
-                    <Eye className="w-4 h-4 mr-1" />
-                    Voir
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Download className="w-4 h-4 mr-1" />
-                    Télécharger
-                  </Button>
+                <div className="flex justify-between pt-2 space-x-2">
+                  <div className="flex space-x-1">
+                    <Button variant="outline" size="sm">
+                      <Eye className="w-3 h-3 mr-1" />
+                      Voir
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Download className="w-3 h-3 mr-1" />
+                      DL
+                    </Button>
+                  </div>
+                  <div className="flex space-x-1">
+                    <Button variant="outline" size="sm">
+                      <Edit className="w-3 h-3" />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleDelete(formulaire.id, formulaire.title)}
+                      disabled={isDeleting}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             </CardContent>
