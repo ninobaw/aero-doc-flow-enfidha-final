@@ -12,87 +12,70 @@ import {
   AlertTriangle,
   Activity
 } from 'lucide-react';
+import { useDashboard } from '@/hooks/useDashboard';
+import { formatDate } from '@/shared/utils';
 
 export const Dashboard = () => {
-  const stats = [
+  // ===========================================
+  // DÉBUT INTÉGRATION BACKEND SUPABASE - DASHBOARD
+  // ===========================================
+  
+  const { stats, isLoading } = useDashboard();
+
+  // ===========================================
+  // FIN INTÉGRATION BACKEND SUPABASE - DASHBOARD
+  // ===========================================
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-48 mb-2"></div>
+          <div className="h-4 bg-gray-200 rounded w-64"></div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardContent className="p-6">
+                <div className="h-4 bg-gray-200 rounded w-24 mb-2"></div>
+                <div className="h-8 bg-gray-200 rounded w-16 mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-32"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  const dashboardStats = [
     {
       title: 'Total Documents',
-      value: '2,847',
+      value: stats?.totalDocuments?.toString() || '0',
       change: '+12.5%',
       icon: FileText,
       color: 'text-aviation-sky'
     },
     {
       title: 'Utilisateurs Actifs',
-      value: '156',
+      value: stats?.activeUsers?.toString() || '0',
       change: '+3.2%',
       icon: Users,
       color: 'text-green-600'
     },
     {
       title: 'Actions Complétées',
-      value: '89%',
+      value: stats?.completedActions?.toString() || '0',
       change: '+5.1%',
       icon: CheckCircle,
       color: 'text-aviation-success'
     },
     {
       title: 'Tâches en Cours',
-      value: '23',
+      value: stats?.pendingActions?.toString() || '0',
       change: '-2.4%',
       icon: Clock,
       color: 'text-aviation-warning'
-    }
-  ];
-
-  const recentDocuments = [
-    {
-      id: '1',
-      title: 'Rapport Sécurité Terminal A',
-      type: 'PROCES_VERBAL',
-      status: 'En cours',
-      date: '2025-01-26',
-      airport: 'ENFIDHA'
-    },
-    {
-      id: '2',
-      title: 'Correspondance DGAC',
-      type: 'CORRESPONDANCE',
-      status: 'Approuvé',
-      date: '2025-01-25',
-      airport: 'MONASTIR'
-    },
-    {
-      id: '3',
-      title: 'Formulaire Maintenance',
-      type: 'FORMULAIRE_DOC',
-      status: 'En attente',
-      date: '2025-01-24',
-      airport: 'ENFIDHA'
-    }
-  ];
-
-  const urgentActions = [
-    {
-      id: '1',
-      title: 'Inspection piste principale',
-      assignee: 'Ahmed Ben Ali',
-      dueDate: 'Aujourd\'hui',
-      priority: 'URGENT'
-    },
-    {
-      id: '2',
-      title: 'Révision protocole sécurité',
-      assignee: 'Fatma Trabelsi',
-      dueDate: 'Demain',
-      priority: 'HIGH'
-    },
-    {
-      id: '3',
-      title: 'Formation équipe bagages',
-      assignee: 'Mohamed Sassi',
-      dueDate: '3 jours',
-      priority: 'MEDIUM'
     }
   ];
 
@@ -114,7 +97,7 @@ export const Dashboard = () => {
 
       {/* Statistiques */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => (
+        {dashboardStats.map((stat, index) => (
           <Card key={index} className="hover:shadow-lg transition-shadow duration-200">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">
@@ -149,7 +132,7 @@ export const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentDocuments.map((doc) => (
+              {stats?.recentDocuments?.slice(0, 3).map((doc: any) => (
                 <div key={doc.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex-1">
                     <h4 className="font-medium text-gray-900">{doc.title}</h4>
@@ -162,15 +145,17 @@ export const Dashboard = () => {
                   </div>
                   <div className="text-right">
                     <Badge 
-                      variant={doc.status === 'Approuvé' ? 'default' : 'secondary'}
+                      variant={doc.status === 'ACTIVE' ? 'default' : 'secondary'}
                       className="mb-1"
                     >
                       {doc.status}
                     </Badge>
-                    <p className="text-xs text-gray-500">{doc.date}</p>
+                    <p className="text-xs text-gray-500">{formatDate(doc.created_at)}</p>
                   </div>
                 </div>
-              ))}
+              )) || (
+                <p className="text-gray-500 text-center py-4">Aucun document récent</p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -188,11 +173,11 @@ export const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {urgentActions.map((action) => (
+              {stats?.urgentActions?.slice(0, 3).map((action: any) => (
                 <div key={action.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex-1">
                     <h4 className="font-medium text-gray-900">{action.title}</h4>
-                    <p className="text-sm text-gray-600">{action.assignee}</p>
+                    <p className="text-sm text-gray-600">{action.assigned_to?.[0] || 'Non assigné'}</p>
                   </div>
                   <div className="text-right">
                     <Badge 
@@ -201,10 +186,12 @@ export const Dashboard = () => {
                     >
                       {action.priority}
                     </Badge>
-                    <p className="text-xs text-gray-500">{action.dueDate}</p>
+                    <p className="text-xs text-gray-500">{formatDate(action.due_date)}</p>
                   </div>
                 </div>
-              ))}
+              )) || (
+                <p className="text-gray-500 text-center py-4">Aucune action urgente</p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -223,26 +210,21 @@ export const Dashboard = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {[
-              { user: 'Ahmed Ben Ali', action: 'a créé le document', target: 'Rapport Sécurité Terminal A', time: 'Il y a 2h' },
-              { user: 'Fatma Trabelsi', action: 'a approuvé', target: 'Correspondance DGAC', time: 'Il y a 4h' },
-              { user: 'Mohamed Sassi', action: 'a complété la tâche', target: 'Inspection bagages', time: 'Il y a 6h' },
-              { user: 'Leila Hamdi', action: 'a généré le QR code pour', target: 'Formulaire Maintenance', time: 'Il y a 8h' }
-            ].map((activity, index) => (
-              <div key={index} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-md">
+            {stats?.activityLogs?.slice(0, 4).map((activity: any, index: number) => (
+              <div key={activity.id || index} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-md">
                 <div className="w-8 h-8 bg-aviation-sky/10 rounded-full flex items-center justify-center">
                   <Activity className="w-4 h-4 text-aviation-sky" />
                 </div>
                 <div className="flex-1">
                   <p className="text-sm">
-                    <span className="font-medium">{activity.user}</span>
-                    {' '}{activity.action}{' '}
-                    <span className="font-medium">{activity.target}</span>
+                    <span className="font-medium">{activity.details}</span>
                   </p>
                 </div>
-                <span className="text-xs text-gray-500">{activity.time}</span>
+                <span className="text-xs text-gray-500">{formatDate(activity.timestamp)}</span>
               </div>
-            ))}
+            )) || (
+              <p className="text-gray-500 text-center py-4">Aucune activité récente</p>
+            )}
           </div>
         </CardContent>
       </Card>

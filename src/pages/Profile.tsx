@@ -1,216 +1,76 @@
 
-import { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { 
-  User, 
-  Camera, 
-  Save, 
-  Lock, 
-  Activity, 
-  FileText, 
-  Clock,
-  MapPin,
-  Phone,
-  Mail,
-  Edit
-} from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { User, Mail, Phone, Building2, Calendar, Save, Camera } from 'lucide-react';
+import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/contexts/AuthContext';
-import { USER_ROLES } from '@/shared/constants';
+import { useState, useEffect } from 'react';
+import { formatDate } from '@/shared/utils';
 
 const Profile = () => {
-  const { toast } = useToast();
   const { user } = useAuth();
-  const [profileImage, setProfileImage] = useState<string | null>(user?.profilePhoto || null);
-  const [isEditing, setIsEditing] = useState(false);
-  
-  // Données utilisateur avec état modifiable
-  const [profileData, setProfileData] = useState({
-    firstName: user?.firstName || '',
-    lastName: user?.lastName || '',
-    email: user?.email || '',
-    phone: user?.phone || '',
-    department: user?.department || '',
-    bio: ''
+  const { profile, isLoading, updateProfile, isUpdating } = useProfile();
+  const [formData, setFormData] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone: '',
+    department: '',
   });
 
-  // État pour les mots de passe
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
-  });
+  // ===========================================
+  // DÉBUT INTÉGRATION BACKEND SUPABASE - PAGE PROFIL
+  // ===========================================
 
-  const activityStats = [
-    { label: 'Documents créés', value: '23', icon: FileText, color: 'blue' },
-    { label: 'Actions complétées', value: '45', icon: Activity, color: 'green' },
-    { label: 'Heures connecté', value: '127h', icon: Clock, color: 'purple' },
-    { label: 'Dernière connexion', value: 'Aujourd\'hui', icon: User, color: 'orange' }
-  ];
-
-  const recentActivities = [
-    {
-      id: '1',
-      action: 'Création document',
-      details: 'Rapport Sécurité Terminal A',
-      timestamp: '2025-01-28 14:30',
-      type: 'CREATE'
-    },
-    {
-      id: '2',
-      action: 'Action complétée',
-      details: 'Vérification équipements sécurité',
-      timestamp: '2025-01-28 12:15',
-      type: 'COMPLETE'
-    },
-    {
-      id: '3',
-      action: 'Document approuvé',
-      details: 'PV Réunion Sécurité',
-      timestamp: '2025-01-27 16:45',
-      type: 'APPROVE'
-    }
-  ];
-
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      // Vérifier la taille du fichier (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        toast({
-          title: "Erreur",
-          description: "La taille de l'image ne doit pas dépasser 5MB.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      // Vérifier le type de fichier
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-      if (!allowedTypes.includes(file.type)) {
-        toast({
-          title: "Erreur",
-          description: "Format d'image non supporté. Utilisez JPG, PNG, GIF ou WebP.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setProfileImage(e.target?.result as string);
-        toast({
-          title: "Photo mise à jour",
-          description: "Votre photo de profil a été mise à jour."
-        });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleProfileUpdate = (field: string, value: string) => {
-    setProfileData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleSaveProfile = () => {
-    // Validation basique
-    if (!profileData.firstName.trim() || !profileData.lastName.trim() || !profileData.email.trim()) {
-      toast({
-        title: "Erreur",
-        description: "Les champs prénom, nom et email sont obligatoires.",
-        variant: "destructive"
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        first_name: profile.first_name || '',
+        last_name: profile.last_name || '',
+        email: profile.email || '',
+        phone: profile.phone || '',
+        department: profile.department || '',
       });
-      return;
     }
+  }, [profile]);
 
-    // Validation de l'email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(profileData.email)) {
-      toast({
-        title: "Erreur",
-        description: "Format d'email invalide.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsEditing(false);
-    toast({
-      title: "Profil sauvegardé",
-      description: "Vos informations ont été mises à jour avec succès."
-    });
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateProfile(formData);
   };
 
-  const handleChangePassword = () => {
-    // Validation des mots de passe
-    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
-      toast({
-        title: "Erreur",
-        description: "Tous les champs sont obligatoires.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (passwordData.newPassword.length < 8) {
-      toast({
-        title: "Erreur",
-        description: "Le nouveau mot de passe doit contenir au moins 8 caractères.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast({
-        title: "Erreur",
-        description: "Les mots de passe ne correspondent pas.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Réinitialiser les champs
-    setPasswordData({
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: ''
-    });
-
-    toast({
-      title: "Mot de passe modifié",
-      description: "Votre mot de passe a été mis à jour avec succès."
-    });
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const getRoleLabel = (role: string) => {
-    return USER_ROLES[role as keyof typeof USER_ROLES]?.label || role;
-  };
+  // ===========================================
+  // FIN INTÉGRATION BACKEND SUPABASE - PAGE PROFIL
+  // ===========================================
 
-  const getTypeColor = (type: string) => {
-    const colors = {
-      'CREATE': 'blue',
-      'COMPLETE': 'green',
-      'APPROVE': 'purple',
-      'UPDATE': 'orange'
-    };
-    return colors[type as keyof typeof colors] || 'gray';
-  };
-
-  if (!user) {
+  if (isLoading) {
     return (
       <AppLayout>
-        <div className="flex items-center justify-center h-64">
-          <p>Chargement du profil...</p>
+        <div className="space-y-6">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-48 mb-2"></div>
+            <div className="h-4 bg-gray-200 rounded w-64"></div>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Card className="animate-pulse">
+              <CardContent className="p-6">
+                <div className="flex flex-col items-center space-y-4">
+                  <div className="w-24 h-24 bg-gray-200 rounded-full"></div>
+                  <div className="h-6 bg-gray-200 rounded w-32"></div>
+                  <div className="h-4 bg-gray-200 rounded w-24"></div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </AppLayout>
     );
@@ -222,143 +82,93 @@ const Profile = () => {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Mon Profil</h1>
           <p className="text-gray-500 mt-1">
-            Gérez vos informations personnelles et préférences
+            Gérer vos informations personnelles
           </p>
         </div>
 
-        {/* En-tête profil */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-6">
-              <div className="relative">
-                <Avatar className="w-24 h-24">
-                  <AvatarImage src={profileImage || undefined} />
-                  <AvatarFallback className="text-2xl bg-aviation-sky text-white">
-                    {user.firstName[0]}{user.lastName[0]}
-                  </AvatarFallback>
-                </Avatar>
-                <label 
-                  htmlFor="profile-image"
-                  className="absolute bottom-0 right-0 bg-aviation-sky text-white p-2 rounded-full cursor-pointer hover:bg-aviation-sky-dark transition-colors"
-                >
-                  <Camera className="w-4 h-4" />
-                  <input
-                    id="profile-image"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                  />
-                </label>
-              </div>
-              
-              <div className="flex-1">
-                <h2 className="text-2xl font-bold text-gray-900">
-                  {profileData.firstName} {profileData.lastName}
-                </h2>
-                <div className="flex items-center space-x-4 mt-2">
-                  <Badge className="bg-aviation-sky text-white">
-                    {getRoleLabel(user.role)}
-                  </Badge>
-                  <div className="flex items-center text-gray-500">
-                    <MapPin className="w-4 h-4 mr-1" />
-                    {user.airport}
-                  </div>
-                  <div className="flex items-center text-gray-500">
-                    <Mail className="w-4 h-4 mr-1" />
-                    {profileData.email}
-                  </div>
-                </div>
-                <p className="text-gray-600 mt-1">{profileData.department}</p>
-              </div>
-              
-              <div className="flex space-x-2">
-                {isEditing ? (
-                  <>
-                    <Button 
-                      variant="outline"
-                      onClick={() => setIsEditing(false)}
-                    >
-                      Annuler
-                    </Button>
-                    <Button 
-                      onClick={handleSaveProfile}
-                      className="bg-aviation-sky hover:bg-aviation-sky-dark"
-                    >
-                      <Save className="w-4 h-4 mr-2" />
-                      Sauvegarder
-                    </Button>
-                  </>
-                ) : (
-                  <Button 
-                    onClick={() => setIsEditing(true)}
-                    className="bg-aviation-sky hover:bg-aviation-sky-dark"
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Carte de profil */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex flex-col items-center space-y-4">
+                <div className="relative">
+                  <Avatar className="w-24 h-24">
+                    <AvatarImage src={profile?.profile_photo} />
+                    <AvatarFallback className="bg-aviation-sky text-white text-xl">
+                      {profile?.first_name?.[0]}{profile?.last_name?.[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="absolute -bottom-2 -right-2 rounded-full w-8 h-8 p-0"
                   >
-                    <Edit className="w-4 h-4 mr-2" />
-                    Modifier
+                    <Camera className="w-4 h-4" />
                   </Button>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Statistiques d'activité */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {activityStats.map((stat, index) => (
-            <Card key={index}>
-              <CardContent className="p-6">
-                <div className="flex items-center">
-                  <stat.icon className={`h-8 w-8 text-${stat.color}-500 mr-4`} />
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">{stat.label}</p>
-                    <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                </div>
+                <div className="text-center">
+                  <h3 className="text-xl font-semibold">
+                    {profile?.first_name} {profile?.last_name}
+                  </h3>
+                  <Badge variant="secondary" className="mt-1">
+                    {profile?.role}
+                  </Badge>
+                </div>
+                <div className="w-full space-y-2 text-sm text-gray-500">
+                  <div className="flex items-center space-x-2">
+                    <Mail className="w-4 h-4" />
+                    <span>{profile?.email}</span>
+                  </div>
+                  {profile?.phone && (
+                    <div className="flex items-center space-x-2">
+                      <Phone className="w-4 h-4" />
+                      <span>{profile.phone}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center space-x-2">
+                    <Building2 className="w-4 h-4" />
+                    <span>{profile?.airport}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Calendar className="w-4 h-4" />
+                    <span>Inscrit le {formatDate(profile?.created_at || '')}</span>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+              </div>
+            </CardContent>
+          </Card>
 
-        <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="profile">Informations Personnelles</TabsTrigger>
-            <TabsTrigger value="security">Sécurité</TabsTrigger>
-            <TabsTrigger value="activity">Activité</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="profile" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <User className="w-5 h-5 mr-2 text-aviation-sky" />
-                  Informations Personnelles
-                </CardTitle>
-                <CardDescription>
-                  {isEditing ? 'Modifiez vos informations personnelles' : 'Consultez vos informations personnelles'}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
+          {/* Formulaire d'édition */}
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <User className="w-5 h-5 mr-2" />
+                Informations Personnelles
+              </CardTitle>
+              <CardDescription>
+                Modifiez vos informations personnelles
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="first-name">Prénom *</Label>
+                    <Label htmlFor="first_name">Prénom *</Label>
                     <Input
-                      id="first-name"
-                      value={profileData.firstName}
-                      onChange={(e) => handleProfileUpdate('firstName', e.target.value)}
-                      disabled={!isEditing}
-                      className={!isEditing ? 'bg-gray-50' : ''}
+                      id="first_name"
+                      value={formData.first_name}
+                      onChange={(e) => handleInputChange('first_name', e.target.value)}
+                      required
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="last-name">Nom *</Label>
+                    <Label htmlFor="last_name">Nom *</Label>
                     <Input
-                      id="last-name"
-                      value={profileData.lastName}
-                      onChange={(e) => handleProfileUpdate('lastName', e.target.value)}
-                      disabled={!isEditing}
-                      className={!isEditing ? 'bg-gray-50' : ''}
+                      id="last_name"
+                      value={formData.last_name}
+                      onChange={(e) => handleInputChange('last_name', e.target.value)}
+                      required
                     />
                   </div>
 
@@ -367,21 +177,25 @@ const Profile = () => {
                     <Input
                       id="email"
                       type="email"
-                      value={profileData.email}
-                      onChange={(e) => handleProfileUpdate('email', e.target.value)}
-                      disabled={!isEditing}
-                      className={!isEditing ? 'bg-gray-50' : ''}
+                      value={formData.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      required
+                      disabled
+                      className="bg-gray-50"
                     />
+                    <p className="text-xs text-gray-500">
+                      L'email ne peut pas être modifié
+                    </p>
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="phone">Téléphone</Label>
                     <Input
                       id="phone"
-                      value={profileData.phone}
-                      onChange={(e) => handleProfileUpdate('phone', e.target.value)}
-                      disabled={!isEditing}
-                      className={!isEditing ? 'bg-gray-50' : ''}
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                      placeholder="+216 XX XXX XXX"
                     />
                   </div>
 
@@ -389,136 +203,56 @@ const Profile = () => {
                     <Label htmlFor="department">Département</Label>
                     <Input
                       id="department"
-                      value={profileData.department}
-                      onChange={(e) => handleProfileUpdate('department', e.target.value)}
-                      disabled={!isEditing}
-                      className={!isEditing ? 'bg-gray-50' : ''}
+                      value={formData.department}
+                      onChange={(e) => handleInputChange('department', e.target.value)}
+                      placeholder="Ex: Sécurité, Maintenance, Opérations..."
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="airport">Aéroport</Label>
-                    <Select 
-                      value={user.airport.toLowerCase()} 
-                      disabled={true}
-                    >
-                      <SelectTrigger className="bg-gray-50">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="enfidha">Enfidha</SelectItem>
-                        <SelectItem value="monastir">Monastir</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label>Aéroport</Label>
+                    <Input
+                      value={profile?.airport || ''}
+                      disabled
+                      className="bg-gray-50"
+                    />
+                    <p className="text-xs text-gray-500">
+                      L'aéroport d'affectation ne peut pas être modifié
+                    </p>
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="bio">Biographie</Label>
-                  <Textarea
-                    id="bio"
-                    value={profileData.bio}
-                    onChange={(e) => handleProfileUpdate('bio', e.target.value)}
-                    placeholder="Parlez-nous de vous..."
-                    rows={4}
-                    disabled={!isEditing}
-                    className={!isEditing ? 'bg-gray-50' : ''}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="security" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Lock className="w-5 h-5 mr-2 text-aviation-sky" />
-                  Paramètres de Sécurité
-                </CardTitle>
-                <CardDescription>
-                  Modifiez votre mot de passe et paramètres de sécurité
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="current-password">Mot de passe actuel *</Label>
-                    <Input
-                      id="current-password"
-                      type="password"
-                      value={passwordData.currentPassword}
-                      onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
-                      placeholder="••••••••"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="new-password">Nouveau mot de passe * (min. 8 caractères)</Label>
-                    <Input
-                      id="new-password"
-                      type="password"
-                      value={passwordData.newPassword}
-                      onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
-                      placeholder="••••••••"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="confirm-password">Confirmer le mot de passe *</Label>
-                    <Input
-                      id="confirm-password"
-                      type="password"
-                      value={passwordData.confirmPassword}
-                      onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                      placeholder="••••••••"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex justify-end">
-                  <Button 
-                    onClick={handleChangePassword}
+                <div className="flex justify-end space-x-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      if (profile) {
+                        setFormData({
+                          first_name: profile.first_name || '',
+                          last_name: profile.last_name || '',
+                          email: profile.email || '',
+                          phone: profile.phone || '',
+                          department: profile.department || '',
+                        });
+                      }
+                    }}
+                  >
+                    Annuler
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={isUpdating}
                     className="bg-aviation-sky hover:bg-aviation-sky-dark"
                   >
-                    <Lock className="w-4 h-4 mr-2" />
-                    Changer le mot de passe
+                    <Save className="w-4 h-4 mr-2" />
+                    {isUpdating ? 'Enregistrement...' : 'Enregistrer'}
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="activity" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Activity className="w-5 h-5 mr-2 text-aviation-sky" />
-                  Activité Récente
-                </CardTitle>
-                <CardDescription>
-                  Historique de vos dernières actions
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {recentActivities.map((activity) => (
-                    <div key={activity.id} className="flex items-center space-x-4 p-4 border rounded-lg">
-                      <div className={`w-3 h-3 rounded-full bg-${getTypeColor(activity.type)}-500`}></div>
-                      <div className="flex-1">
-                        <p className="font-medium text-gray-900">{activity.action}</p>
-                        <p className="text-sm text-gray-500">{activity.details}</p>
-                      </div>
-                      <div className="text-sm text-gray-400">
-                        {activity.timestamp}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </AppLayout>
   );
