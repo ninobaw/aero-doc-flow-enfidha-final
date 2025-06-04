@@ -7,87 +7,109 @@ export interface DashboardStats {
   activeUsers: number;
   completedActions: number;
   pendingActions: number;
-  recentDocuments: any[];
-  urgentActions: any[];
-  activityLogs: any[];
+  documentsThisMonth: number;
+  averageCompletionTime: number;
+}
+
+export interface DashboardActivity {
+  id: string;
+  type: 'document_created' | 'user_added' | 'action_completed' | 'action_overdue';
+  title: string;
+  description: string;
+  user: {
+    name: string;
+    initials: string;
+  };
+  timestamp: string;
+  priority?: 'low' | 'medium' | 'high' | 'urgent';
 }
 
 export const useDashboard = () => {
-  // ===========================================
-  // DÉBUT INTÉGRATION BACKEND SUPABASE - DASHBOARD
-  // ===========================================
-
-  const { data: stats, isLoading, error } = useQuery({
+  const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['dashboard-stats'],
-    queryFn: async () => {
-      // Récupération des statistiques
-      const [
-        documentsCount,
-        usersCount,
-        actionsStats,
-        recentDocs,
-        urgentActions,
-        activityLogs
-      ] = await Promise.all([
-        supabase.from('documents').select('id', { count: 'exact' }),
-        supabase.from('profiles').select('id', { count: 'exact' }).eq('is_active', true),
-        supabase.from('actions').select('status', { count: 'exact' }),
-        supabase
-          .from('documents')
-          .select('id, title, type, status, created_at, airport')
-          .order('created_at', { ascending: false })
-          .limit(5),
-        supabase
-          .from('actions')
-          .select('id, title, due_date, priority, assigned_to')
-          .in('priority', ['HIGH', 'URGENT'])
-          .eq('status', 'PENDING')
-          .order('due_date', { ascending: true })
-          .limit(5),
-        supabase
-          .from('activity_logs')
-          .select('*')
-          .order('timestamp', { ascending: false })
-          .limit(10)
-      ]);
+    queryFn: async (): Promise<DashboardStats> => {
+      // Récupérer les statistiques des documents
+      const { data: documents } = await supabase
+        .from('documents')
+        .select('created_at');
 
-      if (documentsCount.error) throw documentsCount.error;
-      if (usersCount.error) throw usersCount.error;
-      if (actionsStats.error) throw actionsStats.error;
-      if (recentDocs.error) throw recentDocs.error;
-      if (urgentActions.error) throw urgentActions.error;
-      if (activityLogs.error) throw activityLogs.error;
+      // Récupérer les utilisateurs actifs
+      const { data: users } = await supabase
+        .from('profiles')
+        .select('id, is_active')
+        .eq('is_active', true);
 
-      // Calcul des actions complétées
-      const completedActionsCount = await supabase
+      // Récupérer les actions
+      const { data: actions } = await supabase
         .from('actions')
-        .select('id', { count: 'exact' })
-        .eq('status', 'COMPLETED');
+        .select('status, created_at');
 
-      const pendingActionsCount = await supabase
-        .from('actions')
-        .select('id', { count: 'exact' })
-        .eq('status', 'PENDING');
+      const now = new Date();
+      const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+      const totalDocuments = documents?.length || 0;
+      const activeUsers = users?.length || 0;
+      const completedActions = actions?.filter(a => a.status === 'COMPLETED').length || 0;
+      const pendingActions = actions?.filter(a => a.status === 'PENDING').length || 0;
+      const documentsThisMonth = documents?.filter(d => new Date(d.created_at) >= thisMonth).length || 0;
 
       return {
-        totalDocuments: documentsCount.count || 0,
-        activeUsers: usersCount.count || 0,
-        completedActions: completedActionsCount.data?.length || 0,
-        pendingActions: pendingActionsCount.data?.length || 0,
-        recentDocuments: recentDocs.data || [],
-        urgentActions: urgentActions.data || [],
-        activityLogs: activityLogs.data || [],
-      } as DashboardStats;
+        totalDocuments,
+        activeUsers,
+        completedActions,
+        pendingActions,
+        documentsThisMonth,
+        averageCompletionTime: 5, // Valeur mockée pour l'instant
+      };
     },
   });
 
-  // ===========================================
-  // FIN INTÉGRATION BACKEND SUPABASE - DASHBOARD
-  // ===========================================
+  const { data: activities, isLoading: activitiesLoading } = useQuery({
+    queryKey: ['dashboard-activities'],
+    queryFn: async (): Promise<DashboardActivity[]> => {
+      // Récupérer les activités récentes depuis les logs d'activité
+      const { data: logs } = await supabase
+        .from('activity_logs')
+        .select('*')
+        .order('timestamp', { ascending: false })
+        .limit(10);
+
+      // Pour l'instant, retourner des données mockées
+      return [
+        {
+          id: '1',
+          type: 'document_created',
+          title: 'Nouveau document créé',
+          description: 'Document "Procédure de sécurité" ajouté',
+          user: { name: 'Admin User', initials: 'AU' },
+          timestamp: new Date().toISOString(),
+          priority: 'medium',
+        },
+        {
+          id: '2',
+          type: 'action_completed',
+          title: 'Action terminée',
+          description: 'Révision du manuel de qualité complétée',
+          user: { name: 'John Doe', initials: 'JD' },
+          timestamp: new Date(Date.now() - 3600000).toISOString(),
+          priority: 'high',
+        },
+      ];
+    },
+  });
 
   return {
-    stats,
-    isLoading,
-    error,
+    stats: stats || {
+      totalDocuments: 0,
+      activeUsers: 0,
+      completedActions: 0,
+      pendingActions: 0,
+      documentsThisMonth: 0,
+      averageCompletionTime: 0,
+    },
+    activities: activities || [],
+    isLoading: statsLoading || activitiesLoading,
+    statsLoading,
+    activitiesLoading,
   };
 };

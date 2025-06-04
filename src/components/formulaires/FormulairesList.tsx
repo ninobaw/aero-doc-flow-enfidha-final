@@ -5,10 +5,10 @@ import { Button } from '@/components/ui/button';
 import { FileSpreadsheet, Eye, Download, Calendar, User, Edit, Trash2 } from 'lucide-react';
 import { formatDate } from '@/shared/utils';
 import { useFormulaires } from '@/hooks/useFormulaires';
-import type { FormulaireDoc } from '@/hooks/useFormulaires';
+import type { FormulaireData } from '@/hooks/useFormulaires';
 
 interface FormulairesListProps {
-  formulaires: FormulaireDoc[];
+  formulaires: FormulaireData[];
   isLoading: boolean;
 }
 
