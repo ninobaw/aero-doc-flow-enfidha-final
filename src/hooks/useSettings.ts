@@ -34,27 +34,29 @@ export const useSettings = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // ===========================================
-  // DÉBUT INTÉGRATION BACKEND SUPABASE - PARAMÈTRES
-  // ===========================================
-
   const { data: settings, isLoading, error } = useQuery({
     queryKey: ['settings', user?.id],
     queryFn: async () => {
       if (!user?.id) throw new Error('Utilisateur non connecté');
 
+      console.log('Récupération des paramètres pour user_id:', user.id);
+
       const { data, error } = await supabase
         .from('app_settings')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
+        console.error('Erreur récupération paramètres:', error);
         throw error;
       }
 
+      console.log('Paramètres récupérés:', data);
+
       // Si aucuns paramètres trouvés, retourner les valeurs par défaut
       if (!data) {
+        console.log('Aucuns paramètres trouvés, retour des valeurs par défaut');
         return {
           user_id: user.id,
           company_name: 'AeroDoc - Gestion Documentaire',
@@ -86,20 +88,50 @@ export const useSettings = () => {
     mutationFn: async (settingsData: Partial<AppSettings>) => {
       if (!user?.id) throw new Error('Utilisateur non connecté');
 
+      console.log('Mise à jour des paramètres pour user_id:', user.id);
+      console.log('Données à sauvegarder:', settingsData);
+
       const dataToSave = {
         ...settingsData,
         user_id: user.id,
       };
 
-      const { data, error } = await supabase
+      // Essayer d'abord une mise à jour
+      const { data: existingData } = await supabase
         .from('app_settings')
-        .upsert(dataToSave)
+        .select('id')
         .eq('user_id', user.id)
-        .select()
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
-      return data;
+      let result;
+
+      if (existingData) {
+        // Mise à jour
+        console.log('Mise à jour des paramètres existants');
+        const { data, error } = await supabase
+          .from('app_settings')
+          .update(dataToSave)
+          .eq('user_id', user.id)
+          .select()
+          .single();
+
+        if (error) throw error;
+        result = data;
+      } else {
+        // Insertion
+        console.log('Création de nouveaux paramètres');
+        const { data, error } = await supabase
+          .from('app_settings')
+          .insert(dataToSave)
+          .select()
+          .single();
+
+        if (error) throw error;
+        result = data;
+      }
+
+      console.log('Paramètres sauvegardés avec succès:', result);
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['settings'] });
@@ -117,10 +149,6 @@ export const useSettings = () => {
       });
     },
   });
-
-  // ===========================================
-  // FIN INTÉGRATION BACKEND SUPABASE - PARAMÈTRES
-  // ===========================================
 
   return {
     settings,

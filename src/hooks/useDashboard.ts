@@ -9,6 +9,9 @@ export interface DashboardStats {
   pendingActions: number;
   documentsThisMonth: number;
   averageCompletionTime: number;
+  recentDocuments?: any[];
+  urgentActions?: any[];
+  activityLogs?: any[];
 }
 
 export interface DashboardActivity {
@@ -31,7 +34,8 @@ export const useDashboard = () => {
       // Récupérer les statistiques des documents
       const { data: documents } = await supabase
         .from('documents')
-        .select('created_at');
+        .select('*, author:profiles(first_name, last_name)')
+        .order('created_at', { ascending: false });
 
       // Récupérer les utilisateurs actifs
       const { data: users } = await supabase
@@ -42,7 +46,15 @@ export const useDashboard = () => {
       // Récupérer les actions
       const { data: actions } = await supabase
         .from('actions')
-        .select('status, created_at');
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      // Récupérer les logs d'activité
+      const { data: activityLogs } = await supabase
+        .from('activity_logs')
+        .select('*')
+        .order('timestamp', { ascending: false })
+        .limit(10);
 
       const now = new Date();
       const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -52,6 +64,8 @@ export const useDashboard = () => {
       const completedActions = actions?.filter(a => a.status === 'COMPLETED').length || 0;
       const pendingActions = actions?.filter(a => a.status === 'PENDING').length || 0;
       const documentsThisMonth = documents?.filter(d => new Date(d.created_at) >= thisMonth).length || 0;
+      const recentDocuments = documents?.slice(0, 5) || [];
+      const urgentActions = actions?.filter(a => a.priority === 'URGENT').slice(0, 5) || [];
 
       return {
         totalDocuments,
@@ -60,6 +74,9 @@ export const useDashboard = () => {
         pendingActions,
         documentsThisMonth,
         averageCompletionTime: 5, // Valeur mockée pour l'instant
+        recentDocuments,
+        urgentActions,
+        activityLogs: activityLogs || [],
       };
     },
   });
@@ -106,6 +123,9 @@ export const useDashboard = () => {
       pendingActions: 0,
       documentsThisMonth: 0,
       averageCompletionTime: 0,
+      recentDocuments: [],
+      urgentActions: [],
+      activityLogs: [],
     },
     activities: activities || [],
     isLoading: statsLoading || activitiesLoading,

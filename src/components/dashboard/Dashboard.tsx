@@ -16,15 +16,7 @@ import { useDashboard } from '@/hooks/useDashboard';
 import { formatDate } from '@/shared/utils';
 
 export const Dashboard = () => {
-  // ===========================================
-  // DÉBUT INTÉGRATION BACKEND SUPABASE - DASHBOARD
-  // ===========================================
-  
   const { stats, isLoading } = useDashboard();
-
-  // ===========================================
-  // FIN INTÉGRATION BACKEND SUPABASE - DASHBOARD
-  // ===========================================
 
   if (isLoading) {
     return (

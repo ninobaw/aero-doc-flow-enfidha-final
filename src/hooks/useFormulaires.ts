@@ -44,6 +44,8 @@ export const useFormulaires = () => {
   const { data: formulaires = [], isLoading, error } = useQuery({
     queryKey: ['formulaires'],
     queryFn: async () => {
+      console.log('Récupération des formulaires');
+      
       const { data, error } = await supabase
         .from('documents')
         .select(`
@@ -53,7 +55,12 @@ export const useFormulaires = () => {
         .eq('type', 'FORMULAIRE_DOC')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erreur récupération formulaires:', error);
+        throw error;
+      }
+
+      console.log('Formulaires récupérés:', data);
       return data as FormulaireData[];
     },
     enabled: !!user,
@@ -73,28 +80,42 @@ export const useFormulaires = () => {
         throw new Error('Vous devez être connecté pour créer un formulaire');
       }
 
+      console.log('Création du formulaire:', formulaireData);
+      console.log('User ID:', user.id);
+
+      const contentData = {
+        code: formulaireData.code || '',
+        category: formulaireData.category || '',
+        description: formulaireData.description || '',
+        instructions: formulaireData.instructions || '',
+      };
+
+      const documentData = {
+        title: formulaireData.title,
+        content: JSON.stringify(contentData),
+        type: 'FORMULAIRE_DOC' as const,
+        author_id: user.id,
+        airport: formulaireData.airport,
+        status: 'DRAFT' as const,
+      };
+
+      console.log('Données à insérer:', documentData);
+
       const { data, error } = await supabase
         .from('documents')
-        .insert({
-          title: formulaireData.title,
-          content: JSON.stringify({
-            code: formulaireData.code,
-            category: formulaireData.category,
-            description: formulaireData.description,
-            instructions: formulaireData.instructions,
-          }),
-          type: 'FORMULAIRE_DOC',
-          author_id: user.id,
-          airport: formulaireData.airport,
-          status: 'DRAFT',
-        })
+        .insert(documentData)
         .select(`
           *,
           author:profiles(first_name, last_name)
         `)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erreur création formulaire:', error);
+        throw error;
+      }
+
+      console.log('Formulaire créé avec succès:', data);
       return data as FormulaireData;
     },
     onSuccess: () => {
@@ -116,12 +137,19 @@ export const useFormulaires = () => {
 
   const deleteFormulaire = useMutation({
     mutationFn: async (id: string) => {
+      console.log('Suppression du formulaire:', id);
+      
       const { error } = await supabase
         .from('documents')
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erreur suppression formulaire:', error);
+        throw error;
+      }
+
+      console.log('Formulaire supprimé avec succès');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['formulaires'] });
