@@ -13,7 +13,7 @@ export interface Document {
   qr_code: string;
   version: number;
   status: 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
-  type: 'PROCEDURE' | 'MANUAL' | 'REPORT' | 'FORMULAIRE_DOC' | 'OTHER';
+  type: 'FORMULAIRE_DOC' | 'CORRESPONDANCE' | 'PROCES_VERBAL' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL';
   file_path?: string;
   file_type?: string;
   airport: 'ENFIDHA' | 'MONASTIR';
@@ -31,9 +31,9 @@ export const useDocuments = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [airportFilter, setAirportFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'DRAFT' | 'ACTIVE' | 'ARCHIVED'>('all');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'FORMULAIRE_DOC' | 'CORRESPONDANCE' | 'PROCES_VERBAL' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL'>('all');
+  const [airportFilter, setAirportFilter] = useState<'all' | 'ENFIDHA' | 'MONASTIR'>('all');
 
   // ===========================================
   // DÉBUT INTÉGRATION BACKEND SUPABASE - DOCUMENTS
@@ -81,7 +81,7 @@ export const useDocuments = () => {
     mutationFn: async (documentData: {
       title: string;
       content?: string;
-      type: string;
+      type: 'FORMULAIRE_DOC' | 'CORRESPONDANCE' | 'PROCES_VERBAL' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL';
       airport: 'ENFIDHA' | 'MONASTIR';
       category?: string;
       description?: string;
@@ -114,7 +114,7 @@ export const useDocuments = () => {
       const documentToInsert = {
         title: documentData.title,
         content: documentData.content || '',
-        type: documentData.type as any,
+        type: documentData.type,
         author_id: user.id,
         airport: documentData.airport,
         status: 'DRAFT' as const,
@@ -170,7 +170,7 @@ export const useDocuments = () => {
   });
 
   const updateDocument = useMutation({
-    mutationFn: async ({ id, ...updates }: { id: string } & Partial<Document>) => {
+    mutationFn: async ({ id, ...updates }: { id: string } & Partial<Omit<Document, 'id' | 'author'>>) => {
       if (!user?.id) throw new Error('Utilisateur non connecté');
 
       const { data, error } = await supabase

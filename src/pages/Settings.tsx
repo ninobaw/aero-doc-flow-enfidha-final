@@ -1,4 +1,3 @@
-
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,7 +13,7 @@ const Settings = () => {
   const { settings, isLoading, updateSettings, isUpdating } = useSettings();
   const [formData, setFormData] = useState({
     company_name: '',
-    default_airport: 'ENFIDHA' as const,
+    default_airport: 'ENFIDHA' as 'ENFIDHA' | 'MONASTIR',
     language: 'fr',
     theme: 'light',
     email_notifications: true,
@@ -134,7 +133,7 @@ const Settings = () => {
                 <Label htmlFor="defaultAirport">Aéroport par défaut</Label>
                 <Select 
                   value={formData.default_airport} 
-                  onValueChange={(value) => updateSetting('default_airport', value)}
+                  onValueChange={(value: 'ENFIDHA' | 'MONASTIR') => updateSetting('default_airport', value)}
                 >
                   <SelectTrigger>
                     <SelectValue />

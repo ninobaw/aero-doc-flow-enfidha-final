@@ -109,6 +109,78 @@ export type Database = {
           },
         ]
       }
+      app_settings: {
+        Row: {
+          auto_archive: boolean
+          company_name: string
+          created_at: string
+          default_airport: Database["public"]["Enums"]["airport_code"]
+          document_retention: number
+          email_notifications: boolean
+          id: string
+          language: string
+          max_file_size: number
+          password_expiry: number
+          push_notifications: boolean
+          require_two_factor: boolean
+          session_timeout: number
+          sms_notifications: boolean
+          smtp_host: string
+          smtp_port: number
+          smtp_username: string
+          theme: string
+          updated_at: string
+          use_ssl: boolean
+          user_id: string
+        }
+        Insert: {
+          auto_archive?: boolean
+          company_name?: string
+          created_at?: string
+          default_airport?: Database["public"]["Enums"]["airport_code"]
+          document_retention?: number
+          email_notifications?: boolean
+          id?: string
+          language?: string
+          max_file_size?: number
+          password_expiry?: number
+          push_notifications?: boolean
+          require_two_factor?: boolean
+          session_timeout?: number
+          sms_notifications?: boolean
+          smtp_host?: string
+          smtp_port?: number
+          smtp_username?: string
+          theme?: string
+          updated_at?: string
+          use_ssl?: boolean
+          user_id: string
+        }
+        Update: {
+          auto_archive?: boolean
+          company_name?: string
+          created_at?: string
+          default_airport?: Database["public"]["Enums"]["airport_code"]
+          document_retention?: number
+          email_notifications?: boolean
+          id?: string
+          language?: string
+          max_file_size?: number
+          password_expiry?: number
+          push_notifications?: boolean
+          require_two_factor?: boolean
+          session_timeout?: number
+          sms_notifications?: boolean
+          smtp_host?: string
+          smtp_port?: number
+          smtp_username?: string
+          theme?: string
+          updated_at?: string
+          use_ssl?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
       correspondances: {
         Row: {
           airport: Database["public"]["Enums"]["airport_code"]
