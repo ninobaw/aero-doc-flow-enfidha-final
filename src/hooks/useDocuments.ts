@@ -26,6 +26,9 @@ export interface Document {
   };
 }
 
+// Export DocumentData as alias for Document to maintain compatibility
+export type DocumentData = Document;
+
 export const useDocuments = () => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -34,10 +37,6 @@ export const useDocuments = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'DRAFT' | 'ACTIVE' | 'ARCHIVED'>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'FORMULAIRE_DOC' | 'CORRESPONDANCE' | 'PROCES_VERBAL' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL'>('all');
   const [airportFilter, setAirportFilter] = useState<'all' | 'ENFIDHA' | 'MONASTIR'>('all');
-
-  // ===========================================
-  // DÉBUT INTÉGRATION BACKEND SUPABASE - DOCUMENTS
-  // ===========================================
 
   const { data: documents = [], isLoading, error } = useQuery({
     queryKey: ['documents', searchTerm, statusFilter, typeFilter, airportFilter],
@@ -228,10 +227,6 @@ export const useDocuments = () => {
       });
     },
   });
-
-  // ===========================================
-  // FIN INTÉGRATION BACKEND SUPABASE - DOCUMENTS
-  // ===========================================
 
   return {
     documents,

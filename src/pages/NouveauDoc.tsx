@@ -11,10 +11,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FilePlus, Upload, FileText, Save, Eye, X } from 'lucide-react';
 import { useDocuments } from '@/hooks/useDocuments';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const NouveauDoc = () => {
   const { user } = useAuth();
   const { createDocument, isCreating } = useDocuments();
+  const navigate = useNavigate();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
@@ -22,8 +24,8 @@ const NouveauDoc = () => {
   const [formData, setFormData] = useState({
     titre: '',
     reference: '',
-    aeroport: '',
-    categorie: '',
+    aeroport: '' as 'ENFIDHA' | 'MONASTIR' | '',
+    type: '' as 'FORMULAIRE_DOC' | 'CORRESPONDANCE' | 'PROCES_VERBAL' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL' | '',
     version: '1.0',
     responsable: '',
     description: '',
@@ -33,13 +35,10 @@ const NouveauDoc = () => {
   // État pour l'import de fichier
   const [importData, setImportData] = useState({
     titre: '',
-    aeroport: '',
+    aeroport: '' as 'ENFIDHA' | 'MONASTIR' | '',
+    type: '' as 'FORMULAIRE_DOC' | 'CORRESPONDANCE' | 'PROCES_VERBAL' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL' | '',
     description: ''
   });
-
-  // ===========================================
-  // DÉBUT INTÉGRATION BACKEND SUPABASE - NOUVEAU DOCUMENT
-  // ===========================================
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -72,20 +71,24 @@ const NouveauDoc = () => {
       return;
     }
 
-    if (!formData.titre.trim() || !formData.aeroport) {
+    if (!formData.titre.trim() || !formData.aeroport || !formData.type) {
       return;
     }
 
     const documentData = {
       title: formData.titre,
       content: formData.contenu,
-      type: 'OTHER',
+      type: formData.type as 'FORMULAIRE_DOC' | 'CORRESPONDANCE' | 'PROCES_VERBAL' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL',
       airport: formData.aeroport as 'ENFIDHA' | 'MONASTIR',
-      category: formData.categorie,
+      category: formData.reference,
       description: formData.description,
     };
 
-    createDocument(documentData);
+    createDocument(documentData, {
+      onSuccess: () => {
+        navigate('/documents');
+      }
+    });
   };
 
   const handleFileSubmit = (event: React.FormEvent) => {
@@ -95,25 +98,25 @@ const NouveauDoc = () => {
       return;
     }
 
-    if (!importData.titre.trim() || !importData.aeroport || !selectedFile) {
+    if (!importData.titre.trim() || !importData.aeroport || !importData.type || !selectedFile) {
       return;
     }
 
     const documentData = {
       title: importData.titre,
       content: importData.description,
-      type: 'OTHER',
+      type: importData.type as 'FORMULAIRE_DOC' | 'CORRESPONDANCE' | 'PROCES_VERBAL' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL',
       airport: importData.aeroport as 'ENFIDHA' | 'MONASTIR',
       description: importData.description,
       file: selectedFile,
     };
 
-    createDocument(documentData);
+    createDocument(documentData, {
+      onSuccess: () => {
+        navigate('/documents');
+      }
+    });
   };
-
-  // ===========================================
-  // FIN INTÉGRATION BACKEND SUPABASE - NOUVEAU DOCUMENT
-  // ===========================================
 
   return (
     <AppLayout>
@@ -176,7 +179,7 @@ const NouveauDoc = () => {
                       <Label htmlFor="aeroport">Aéroport *</Label>
                       <Select 
                         value={formData.aeroport}
-                        onValueChange={(value) => setFormData(prev => ({ ...prev, aeroport: value }))}
+                        onValueChange={(value: 'ENFIDHA' | 'MONASTIR') => setFormData(prev => ({ ...prev, aeroport: value }))}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner un aéroport" />
@@ -189,20 +192,21 @@ const NouveauDoc = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="categorie">Catégorie</Label>
+                      <Label htmlFor="type">Type de document *</Label>
                       <Select
-                        value={formData.categorie}
-                        onValueChange={(value) => setFormData(prev => ({ ...prev, categorie: value }))}
+                        value={formData.type}
+                        onValueChange={(value: 'FORMULAIRE_DOC' | 'CORRESPONDANCE' | 'PROCES_VERBAL' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL') => setFormData(prev => ({ ...prev, type: value }))}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner une catégorie" />
+                          <SelectValue placeholder="Sélectionner un type" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="technique">Technique</SelectItem>
-                          <SelectItem value="administratif">Administratif</SelectItem>
-                          <SelectItem value="securite">Sécurité</SelectItem>
-                          <SelectItem value="maintenance">Maintenance</SelectItem>
-                          <SelectItem value="formation">Formation</SelectItem>
+                          <SelectItem value="GENERAL">Général</SelectItem>
+                          <SelectItem value="FORMULAIRE_DOC">Formulaire</SelectItem>
+                          <SelectItem value="CORRESPONDANCE">Correspondance</SelectItem>
+                          <SelectItem value="PROCES_VERBAL">Procès-Verbal</SelectItem>
+                          <SelectItem value="QUALITE_DOC">Document Qualité</SelectItem>
+                          <SelectItem value="NOUVEAU_DOC">Nouveau Document</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -251,12 +255,12 @@ const NouveauDoc = () => {
                   </div>
 
                   <div className="flex justify-end space-x-4">
-                    <Button type="button" variant="outline">
+                    <Button type="button" variant="outline" onClick={() => navigate('/documents')}>
                       Annuler
                     </Button>
                     <Button 
                       type="submit" 
-                      disabled={isCreating || !formData.titre.trim() || !formData.aeroport}
+                      disabled={isCreating || !formData.titre.trim() || !formData.aeroport || !formData.type}
                       className="bg-aviation-sky hover:bg-aviation-sky-dark"
                     >
                       <Save className="w-4 h-4 mr-2" />
@@ -284,7 +288,7 @@ const NouveauDoc = () => {
                       <Label htmlFor="aeroport-import">Aéroport *</Label>
                       <Select
                         value={importData.aeroport}
-                        onValueChange={(value) => setImportData(prev => ({ ...prev, aeroport: value }))}
+                        onValueChange={(value: 'ENFIDHA' | 'MONASTIR') => setImportData(prev => ({ ...prev, aeroport: value }))}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner un aéroport" />
@@ -292,6 +296,26 @@ const NouveauDoc = () => {
                         <SelectContent>
                           <SelectItem value="ENFIDHA">Enfidha</SelectItem>
                           <SelectItem value="MONASTIR">Monastir</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="type-import">Type de document *</Label>
+                      <Select
+                        value={importData.type}
+                        onValueChange={(value: 'FORMULAIRE_DOC' | 'CORRESPONDANCE' | 'PROCES_VERBAL' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL') => setImportData(prev => ({ ...prev, type: value }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionner un type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="GENERAL">Général</SelectItem>
+                          <SelectItem value="FORMULAIRE_DOC">Formulaire</SelectItem>
+                          <SelectItem value="CORRESPONDANCE">Correspondance</SelectItem>
+                          <SelectItem value="PROCES_VERBAL">Procès-Verbal</SelectItem>
+                          <SelectItem value="QUALITE_DOC">Document Qualité</SelectItem>
+                          <SelectItem value="NOUVEAU_DOC">Nouveau Document</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -363,12 +387,12 @@ const NouveauDoc = () => {
                   </div>
 
                   <div className="flex justify-end space-x-4">
-                    <Button type="button" variant="outline">
+                    <Button type="button" variant="outline" onClick={() => navigate('/documents')}>
                       Annuler
                     </Button>
                     <Button 
                       type="submit" 
-                      disabled={isCreating || !importData.titre.trim() || !importData.aeroport || !selectedFile}
+                      disabled={isCreating || !importData.titre.trim() || !importData.aeroport || !importData.type || !selectedFile}
                       className="bg-aviation-sky hover:bg-aviation-sky-dark"
                     >
                       <Save className="w-4 h-4 mr-2" />
