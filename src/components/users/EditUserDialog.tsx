@@ -9,6 +9,9 @@ import { Switch } from '@/components/ui/switch';
 import { useUsers } from '@/hooks/useUsers';
 import { useToast } from '@/hooks/use-toast';
 
+type UserRole = 'SUPER_ADMIN' | 'ADMINISTRATOR' | 'APPROVER' | 'USER' | 'VISITOR';
+type Airport = 'ENFIDHA' | 'MONASTIR';
+
 interface EditUserDialogProps {
   user: any;
   open: boolean;
@@ -26,8 +29,8 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, open, onOp
     phone: '',
     department: '',
     position: '',
-    role: 'USER',
-    airport: 'ENFIDHA',
+    role: 'USER' as UserRole,
+    airport: 'ENFIDHA' as Airport,
     is_active: true,
   });
 
@@ -140,7 +143,7 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, open, onOp
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="role">Rôle</Label>
-              <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })}>
+              <Select value={formData.role} onValueChange={(value: UserRole) => setFormData({ ...formData, role: value })}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -155,7 +158,7 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, open, onOp
             </div>
             <div>
               <Label htmlFor="airport">Aéroport</Label>
-              <Select value={formData.airport} onValueChange={(value) => setFormData({ ...formData, airport: value })}>
+              <Select value={formData.airport} onValueChange={(value: Airport) => setFormData({ ...formData, airport: value })}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

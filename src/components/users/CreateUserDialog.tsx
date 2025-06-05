@@ -9,6 +9,9 @@ import { UserPlus } from 'lucide-react';
 import { useUsers } from '@/hooks/useUsers';
 import { useToast } from '@/hooks/use-toast';
 
+type UserRole = 'SUPER_ADMIN' | 'ADMINISTRATOR' | 'APPROVER' | 'USER' | 'VISITOR';
+type Airport = 'ENFIDHA' | 'MONASTIR';
+
 export const CreateUserDialog: React.FC = () => {
   const [open, setOpen] = useState(false);
   const { createUser, isCreating } = useUsers();
@@ -18,8 +21,8 @@ export const CreateUserDialog: React.FC = () => {
     email: '',
     first_name: '',
     last_name: '',
-    role: 'USER' as const,
-    airport: 'ENFIDHA' as const,
+    role: 'USER' as UserRole,
+    airport: 'ENFIDHA' as Airport,
     phone: '',
     department: '',
     password: ''
@@ -74,6 +77,23 @@ export const CreateUserDialog: React.FC = () => {
         setOpen(false);
       }
     });
+  };
+
+  const getRoleDescription = (role: UserRole): string => {
+    switch (role) {
+      case 'SUPER_ADMIN':
+        return "Accès complet à toutes les fonctionnalités";
+      case 'ADMINISTRATOR':
+        return "Gestion des utilisateurs, documents, rapports et paramètres";
+      case 'APPROVER':
+        return "Approbation des documents, création et consultation";
+      case 'USER':
+        return "Consultation et création de documents, gestion du profil";
+      case 'VISITOR':
+        return "Consultation des documents uniquement";
+      default:
+        return "Consultation et création de documents, gestion du profil";
+    }
   };
 
   return (
@@ -160,7 +180,7 @@ export const CreateUserDialog: React.FC = () => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="role">Rôle</Label>
-              <Select value={formData.role} onValueChange={(value: any) => setFormData({ ...formData, role: value })}>
+              <Select value={formData.role} onValueChange={(value: UserRole) => setFormData({ ...formData, role: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Sélectionner le rôle" />
                 </SelectTrigger>
@@ -175,7 +195,7 @@ export const CreateUserDialog: React.FC = () => {
             </div>
             <div>
               <Label htmlFor="airport">Aéroport</Label>
-              <Select value={formData.airport} onValueChange={(value: any) => setFormData({ ...formData, airport: value })}>
+              <Select value={formData.airport} onValueChange={(value: Airport) => setFormData({ ...formData, airport: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Sélectionner l'aéroport" />
                 </SelectTrigger>
@@ -190,11 +210,7 @@ export const CreateUserDialog: React.FC = () => {
           <div className="bg-blue-50 p-4 rounded-lg">
             <h4 className="font-medium text-blue-900 mb-2">Permissions du rôle sélectionné:</h4>
             <div className="text-sm text-blue-800">
-              {formData.role === 'SUPER_ADMIN' && "Accès complet à toutes les fonctionnalités"}
-              {formData.role === 'ADMINISTRATOR' && "Gestion des utilisateurs, documents, rapports et paramètres"}
-              {formData.role === 'APPROVER' && "Approbation des documents, création et consultation"}
-              {formData.role === 'USER' && "Consultation et création de documents, gestion du profil"}
-              {formData.role === 'VISITOR' && "Consultation des documents uniquement"}
+              {getRoleDescription(formData.role)}
             </div>
           </div>
 
