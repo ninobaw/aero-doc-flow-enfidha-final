@@ -1,34 +1,56 @@
 
-import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import React, { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { UserPlus } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { useUsers } from '@/hooks/useUsers';
 import { useToast } from '@/hooks/use-toast';
 
-export const CreateUserDialog: React.FC = () => {
-  const [open, setOpen] = useState(false);
-  const { createUser, isCreating } = useUsers();
+interface EditUserDialogProps {
+  user: any;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, open, onOpenChange }) => {
+  const { updateUser, isUpdating } = useUsers();
   const { toast } = useToast();
   
   const [formData, setFormData] = useState({
-    email: '',
     first_name: '',
     last_name: '',
-    role: 'USER' as const,
-    airport: 'ENFIDHA' as const,
+    email: '',
     phone: '',
     department: '',
-    password: ''
+    position: '',
+    role: 'USER',
+    airport: 'ENFIDHA',
+    is_active: true,
   });
+
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        first_name: user.first_name || '',
+        last_name: user.last_name || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        department: user.department || '',
+        position: user.position || '',
+        role: user.role || 'USER',
+        airport: user.airport || 'ENFIDHA',
+        is_active: user.is_active ?? true,
+      });
+    }
+  }, [user]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.email || !formData.first_name || !formData.last_name || !formData.password) {
+    if (!formData.first_name || !formData.last_name || !formData.email) {
       toast({
         title: "Erreur",
         description: "Veuillez remplir tous les champs obligatoires",
@@ -37,56 +59,22 @@ export const CreateUserDialog: React.FC = () => {
       return;
     }
 
-    // Validation de l'email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      toast({
-        title: "Erreur",
-        description: "Veuillez entrer une adresse email valide",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Validation du mot de passe
-    if (formData.password.length < 6) {
-      toast({
-        title: "Erreur",
-        description: "Le mot de passe doit contenir au moins 6 caractères",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    createUser(formData, {
+    updateUser({ id: user.id, ...formData }, {
       onSuccess: () => {
-        // Reset form
-        setFormData({
-          email: '',
-          first_name: '',
-          last_name: '',
-          role: 'USER',
-          airport: 'ENFIDHA',
-          phone: '',
-          department: '',
-          password: ''
+        onOpenChange(false);
+        toast({
+          title: "Utilisateur modifié",
+          description: "L'utilisateur a été modifié avec succès"
         });
-        setOpen(false);
       }
     });
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="bg-aviation-sky hover:bg-aviation-sky-dark">
-          <UserPlus className="w-4 h-4 mr-2" />
-          Nouvel Utilisateur
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Créer un nouvel utilisateur</DialogTitle>
+          <DialogTitle>Modifier l'utilisateur</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -96,7 +84,6 @@ export const CreateUserDialog: React.FC = () => {
                 id="first_name"
                 value={formData.first_name}
                 onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-                placeholder="Prénom"
                 required
               />
             </div>
@@ -106,7 +93,6 @@ export const CreateUserDialog: React.FC = () => {
                 id="last_name"
                 value={formData.last_name}
                 onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-                placeholder="Nom"
                 required
               />
             </div>
@@ -119,19 +105,6 @@ export const CreateUserDialog: React.FC = () => {
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              placeholder="exemple@aerodoc.tn"
-              required
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="password">Mot de passe *</Label>
-            <Input
-              id="password"
-              type="password"
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              placeholder="Minimum 6 caractères"
               required
             />
           </div>
@@ -143,7 +116,6 @@ export const CreateUserDialog: React.FC = () => {
                 id="phone"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                placeholder="+216 XX XXX XXX"
               />
             </div>
             <div>
@@ -152,17 +124,25 @@ export const CreateUserDialog: React.FC = () => {
                 id="department"
                 value={formData.department}
                 onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                placeholder="Ex: Opérations"
               />
             </div>
+          </div>
+
+          <div>
+            <Label htmlFor="position">Poste</Label>
+            <Input
+              id="position"
+              value={formData.position}
+              onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="role">Rôle</Label>
-              <Select value={formData.role} onValueChange={(value: any) => setFormData({ ...formData, role: value })}>
+              <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner le rôle" />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="SUPER_ADMIN">Super Administrateur</SelectItem>
@@ -175,9 +155,9 @@ export const CreateUserDialog: React.FC = () => {
             </div>
             <div>
               <Label htmlFor="airport">Aéroport</Label>
-              <Select value={formData.airport} onValueChange={(value: any) => setFormData({ ...formData, airport: value })}>
+              <Select value={formData.airport} onValueChange={(value) => setFormData({ ...formData, airport: value })}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner l'aéroport" />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ENFIDHA">Enfidha</SelectItem>
@@ -187,23 +167,21 @@ export const CreateUserDialog: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <h4 className="font-medium text-blue-900 mb-2">Permissions du rôle sélectionné:</h4>
-            <div className="text-sm text-blue-800">
-              {formData.role === 'SUPER_ADMIN' && "Accès complet à toutes les fonctionnalités"}
-              {formData.role === 'ADMINISTRATOR' && "Gestion des utilisateurs, documents, rapports et paramètres"}
-              {formData.role === 'APPROVER' && "Approbation des documents, création et consultation"}
-              {formData.role === 'USER' && "Consultation et création de documents, gestion du profil"}
-              {formData.role === 'VISITOR' && "Consultation des documents uniquement"}
-            </div>
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="is_active"
+              checked={formData.is_active}
+              onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+            />
+            <Label htmlFor="is_active">Compte actif</Label>
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Annuler
             </Button>
-            <Button type="submit" disabled={isCreating}>
-              {isCreating ? 'Création...' : 'Créer l\'utilisateur'}
+            <Button type="submit" disabled={isUpdating}>
+              {isUpdating ? 'Modification...' : 'Modifier'}
             </Button>
           </div>
         </form>

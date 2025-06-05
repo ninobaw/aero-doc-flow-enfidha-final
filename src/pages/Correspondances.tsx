@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Mail, Plus, Search, Filter } from 'lucide-react';
 import { CorrespondancesList } from '@/components/correspondances/CorrespondancesList';
+import { CreateCorrespondanceDialog } from '@/components/correspondances/CreateCorrespondanceDialog';
 import { useCorrespondances } from '@/hooks/useCorrespondances';
 
 const Correspondances = () => {
@@ -14,10 +16,6 @@ const Correspondances = () => {
   const [filterPriority, setFilterPriority] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
 
-  // ===========================================
-  // DÉBUT INTÉGRATION BACKEND SUPABASE - PAGE CORRESPONDANCES
-  // ===========================================
-  
   const filteredCorrespondances = correspondances.filter(corr => {
     const matchesSearch = corr.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          corr.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -29,10 +27,6 @@ const Correspondances = () => {
     return matchesSearch && matchesPriority && matchesStatus;
   });
 
-  // ===========================================
-  // FIN INTÉGRATION BACKEND SUPABASE - PAGE CORRESPONDANCES
-  // ===========================================
-
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -43,10 +37,7 @@ const Correspondances = () => {
               Gérer les correspondances officielles
             </p>
           </div>
-          <Button className="bg-aviation-sky hover:bg-aviation-sky-dark">
-            <Plus className="w-4 h-4 mr-2" />
-            Nouvelle Correspondance
-          </Button>
+          <CreateCorrespondanceDialog />
         </div>
 
         {/* Filtres et recherche */}

@@ -22,103 +22,69 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Users as UsersIcon, Settings, Shield, Search, Eye, Edit, MoreHorizontal, Trash2 } from 'lucide-react';
 import { CreateUserDialog } from '@/components/users/CreateUserDialog';
-import { User, UserRole } from '@/shared/types';
-import { toast } from '@/hooks/use-toast';
+import { EditUserDialog } from '@/components/users/EditUserDialog';
+import { ViewUserDialog } from '@/components/users/ViewUserDialog';
+import { useUsers } from '@/hooks/useUsers';
+import { useAuth } from '@/contexts/AuthContext';
+import { UserRole } from '@/shared/types';
 
 const Users = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [users, setUsers] = useState<User[]>([
-    {
-      id: '1',
-      firstName: 'Ahmed',
-      lastName: 'Ben Ali',
-      email: 'ahmed.benali@enfidha-airport.tn',
-      role: UserRole.SUPER_ADMIN,
-      airport: 'ENFIDHA',
-      isActive: true,
-      createdAt: new Date('2025-01-20'),
-      updatedAt: new Date(),
-      phone: '+216 20 123 456',
-      department: 'Administration'
-    },
-    {
-      id: '2',
-      firstName: 'Fatma',
-      lastName: 'Trabelsi',
-      email: 'fatma.trabelsi@monastir-airport.tn',
-      role: UserRole.ADMINISTRATOR,
-      airport: 'MONASTIR',
-      isActive: true,
-      createdAt: new Date('2025-01-18'),
-      updatedAt: new Date(),
-      phone: '+216 25 789 012',
-      department: 'Opérations'
-    },
-    {
-      id: '3',
-      firstName: 'Mohamed',
-      lastName: 'Sassi',
-      email: 'mohamed.sassi@enfidha-airport.tn',
-      role: UserRole.USER,
-      airport: 'ENFIDHA',
-      isActive: true,
-      createdAt: new Date('2025-01-15'),
-      updatedAt: new Date(),
-      phone: '+216 22 456 789',
-      department: 'Maintenance'
-    },
-    {
-      id: '4',
-      firstName: 'Leila',
-      lastName: 'Hamdi',
-      email: 'leila.hamdi@monastir-airport.tn',
-      role: UserRole.APPROVER,
-      airport: 'MONASTIR',
-      isActive: false,
-      createdAt: new Date('2025-01-10'),
-      updatedAt: new Date(),
-      phone: '+216 24 321 654',
-      department: 'Qualité'
-    }
-  ]);
-
-  const handleUserCreated = (newUser: User) => {
-    setUsers([...users, newUser]);
-  };
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  
+  const { users, isLoading, updateUser, deleteUser } = useUsers();
+  const { user: currentUser, hasPermission } = useAuth();
 
   const handleToggleUserStatus = (userId: string) => {
-    setUsers(users.map(user => 
-      user.id === userId 
-        ? { ...user, isActive: !user.isActive, updatedAt: new Date() }
-        : user
-    ));
-    
     const user = users.find(u => u.id === userId);
-    toast({
-      title: user?.isActive ? "Utilisateur désactivé" : "Utilisateur activé",
-      description: `${user?.firstName} ${user?.lastName} a été ${user?.isActive ? 'désactivé' : 'activé'}`
-    });
+    if (user) {
+      updateUser({ id: userId, is_active: !user.is_active });
+    }
   };
 
-  const getRoleBadge = (role: UserRole) => {
+  const handleViewUser = (user: any) => {
+    setSelectedUser(user);
+    setViewDialogOpen(true);
+  };
+
+  const handleEditUser = (user: any) => {
+    setSelectedUser(user);
+    setEditDialogOpen(true);
+  };
+
+  const getRoleBadge = (role: string) => {
     const roleConfig = {
-      [UserRole.SUPER_ADMIN]: { label: 'Super Admin', color: 'bg-red-100 text-red-800' },
-      [UserRole.ADMINISTRATOR]: { label: 'Administrateur', color: 'bg-blue-100 text-blue-800' },
-      [UserRole.APPROVER]: { label: 'Approbateur', color: 'bg-green-100 text-green-800' },
-      [UserRole.USER]: { label: 'Utilisateur', color: 'bg-gray-100 text-gray-800' },
-      [UserRole.VISITOR]: { label: 'Visiteur', color: 'bg-yellow-100 text-yellow-800' }
+      'SUPER_ADMIN': { label: 'Super Admin', color: 'bg-red-100 text-red-800' },
+      'ADMINISTRATOR': { label: 'Administrateur', color: 'bg-blue-100 text-blue-800' },
+      'APPROVER': { label: 'Approbateur', color: 'bg-green-100 text-green-800' },
+      'USER': { label: 'Utilisateur', color: 'bg-gray-100 text-gray-800' },
+      'VISITOR': { label: 'Visiteur', color: 'bg-yellow-100 text-yellow-800' }
     };
 
-    const config = roleConfig[role];
+    const config = roleConfig[role as keyof typeof roleConfig] || roleConfig.USER;
     return <Badge className={config.color}>{config.label}</Badge>;
   };
 
   const filteredUsers = users.filter(user =>
-    user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.department?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const canManageUsers = hasPermission('manage_users');
+
+  if (isLoading) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg">Chargement des utilisateurs...</div>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
@@ -131,14 +97,14 @@ const Users = () => {
               Gérez les utilisateurs et leurs permissions
             </p>
           </div>
-          <CreateUserDialog onUserCreated={handleUserCreated} />
+          {canManageUsers && <CreateUserDialog />}
         </div>
 
         {/* Statistiques utilisateurs */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {[
             { title: 'Total Utilisateurs', value: users.length, icon: UsersIcon, color: 'text-aviation-sky' },
-            { title: 'Actifs', value: users.filter(u => u.isActive).length, icon: Shield, color: 'text-green-600' },
+            { title: 'Actifs', value: users.filter(u => u.is_active).length, icon: Shield, color: 'text-green-600' },
             { title: 'Enfidha', value: users.filter(u => u.airport === 'ENFIDHA').length, icon: Shield, color: 'text-blue-600' },
             { title: 'Monastir', value: users.filter(u => u.airport === 'MONASTIR').length, icon: Shield, color: 'text-purple-600' }
           ].map((stat, index) => (
@@ -205,14 +171,14 @@ const Users = () => {
                     <TableCell>
                       <div className="flex items-center space-x-3">
                         <Avatar className="h-8 w-8">
-                          <AvatarImage src={user.profilePhoto} />
+                          <AvatarImage src={user.profile_photo} />
                           <AvatarFallback className="bg-aviation-sky text-white text-xs">
-                            {user.firstName[0]}{user.lastName[0]}
+                            {user.first_name[0]}{user.last_name[0]}
                           </AvatarFallback>
                         </Avatar>
                         <div>
                           <div className="font-medium text-gray-900">
-                            {user.firstName} {user.lastName}
+                            {user.first_name} {user.last_name}
                           </div>
                           {user.phone && (
                             <div className="text-sm text-gray-500">{user.phone}</div>
@@ -230,15 +196,15 @@ const Users = () => {
                     </TableCell>
                     <TableCell>
                       <Badge 
-                        className={user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}
-                        onClick={() => handleToggleUserStatus(user.id)}
-                        style={{ cursor: 'pointer' }}
+                        className={user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}
+                        onClick={() => canManageUsers && handleToggleUserStatus(user.id)}
+                        style={{ cursor: canManageUsers ? 'pointer' : 'default' }}
                       >
-                        {user.isActive ? 'Actif' : 'Inactif'}
+                        {user.is_active ? 'Actif' : 'Inactif'}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-sm text-gray-500">
-                      {user.createdAt.toLocaleDateString('fr-FR')}
+                      {new Date(user.created_at).toLocaleDateString('fr-FR')}
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
@@ -248,25 +214,29 @@ const Users = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="bg-white">
-                          <DropdownMenuItem className="cursor-pointer">
+                          <DropdownMenuItem className="cursor-pointer" onClick={() => handleViewUser(user)}>
                             <Eye className="mr-2 h-4 w-4" />
                             Voir profil
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="cursor-pointer">
-                            <Edit className="mr-2 h-4 w-4" />
-                            Modifier
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="cursor-pointer">
-                            <Settings className="mr-2 h-4 w-4" />
-                            Permissions
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            className="cursor-pointer text-red-600"
-                            onClick={() => handleToggleUserStatus(user.id)}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            {user.isActive ? 'Désactiver' : 'Activer'}
-                          </DropdownMenuItem>
+                          {canManageUsers && (
+                            <>
+                              <DropdownMenuItem className="cursor-pointer" onClick={() => handleEditUser(user)}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                Modifier
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="cursor-pointer">
+                                <Settings className="mr-2 h-4 w-4" />
+                                Permissions
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                className="cursor-pointer text-red-600"
+                                onClick={() => handleToggleUserStatus(user.id)}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                {user.is_active ? 'Désactiver' : 'Activer'}
+                              </DropdownMenuItem>
+                            </>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -276,6 +246,22 @@ const Users = () => {
             </Table>
           </CardContent>
         </Card>
+
+        {/* Dialogs */}
+        {selectedUser && (
+          <>
+            <ViewUserDialog 
+              user={selectedUser} 
+              open={viewDialogOpen} 
+              onOpenChange={setViewDialogOpen} 
+            />
+            <EditUserDialog 
+              user={selectedUser} 
+              open={editDialogOpen} 
+              onOpenChange={setEditDialogOpen} 
+            />
+          </>
+        )}
       </div>
     </AppLayout>
   );
