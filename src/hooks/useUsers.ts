@@ -11,6 +11,7 @@ export interface UserData {
   last_name: string;
   phone?: string;
   department?: string;
+  position?: string;
   profile_photo?: string;
   airport: 'ENFIDHA' | 'MONASTIR';
   role: 'SUPER_ADMIN' | 'ADMINISTRATOR' | 'APPROVER' | 'USER' | 'VISITOR';
@@ -45,28 +46,40 @@ export const useUsers = () => {
       last_name: string;
       phone?: string;
       department?: string;
+      position?: string;
       airport: 'ENFIDHA' | 'MONASTIR';
       role: 'SUPER_ADMIN' | 'ADMINISTRATOR' | 'APPROVER' | 'USER' | 'VISITOR';
       password: string;
     }) => {
+      console.log('Création utilisateur avec données:', userData);
+      
+      // Créer l'utilisateur dans auth.users
       const { data: authData, error: authError } = await supabase.auth.admin.createUser({
         email: userData.email,
         password: userData.password,
+        email_confirm: true,
         user_metadata: {
           first_name: userData.first_name,
           last_name: userData.last_name,
         }
       });
 
-      if (authError) throw authError;
+      if (authError) {
+        console.error('Erreur création auth:', authError);
+        throw authError;
+      }
 
-      const { data, error } = await supabase
+      console.log('Utilisateur auth créé:', authData.user);
+
+      // Mettre à jour le profil créé automatiquement par le trigger
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .update({
           first_name: userData.first_name,
           last_name: userData.last_name,
           phone: userData.phone,
           department: userData.department,
+          position: userData.position,
           airport: userData.airport,
           role: userData.role,
         })
@@ -74,21 +87,26 @@ export const useUsers = () => {
         .select()
         .single();
 
-      if (error) throw error;
-      return data;
+      if (profileError) {
+        console.error('Erreur mise à jour profil:', profileError);
+        throw profileError;
+      }
+
+      console.log('Profil mis à jour:', profileData);
+      return profileData;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       toast({
         title: 'Utilisateur créé',
-        description: 'L\'utilisateur a été créé avec succès.',
+        description: `L'utilisateur ${data.first_name} ${data.last_name} a été créé avec succès. Les admins ont été notifiés.`,
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Erreur création utilisateur:', error);
       toast({
         title: 'Erreur',
-        description: 'Impossible de créer l\'utilisateur.',
+        description: error.message || 'Impossible de créer l\'utilisateur.',
         variant: 'destructive',
       });
     },
