@@ -26,7 +26,6 @@ export interface Document {
   };
 }
 
-// Export DocumentData as alias for Document to maintain compatibility
 export type DocumentData = Document;
 
 export const useDocuments = () => {
@@ -41,6 +40,8 @@ export const useDocuments = () => {
   const { data: documents = [], isLoading, error } = useQuery({
     queryKey: ['documents', searchTerm, statusFilter, typeFilter, airportFilter],
     queryFn: async () => {
+      console.log('Récupération des documents avec filtres:', { searchTerm, statusFilter, typeFilter, airportFilter });
+
       let query = supabase
         .from('documents')
         .select(`
@@ -50,7 +51,7 @@ export const useDocuments = () => {
         .order('created_at', { ascending: false });
 
       if (searchTerm) {
-        query = query.ilike('title', `%${searchTerm}%`);
+        query = query.or(`title.ilike.%${searchTerm}%,content.ilike.%${searchTerm}%`);
       }
 
       if (statusFilter !== 'all') {
@@ -71,6 +72,8 @@ export const useDocuments = () => {
         console.error('Erreur récupération documents:', error);
         throw error;
       }
+
+      console.log('Documents récupérés:', data?.length || 0);
       return data as Document[];
     },
     enabled: true,
@@ -90,29 +93,49 @@ export const useDocuments = () => {
         throw new Error('Vous devez être connecté pour créer un document');
       }
 
+      console.log('Création document avec données:', documentData);
+
       let file_path = null;
       let file_type = null;
 
       // Upload du fichier si présent
       if (documentData.file) {
+        console.log('Upload du fichier:', documentData.file.name);
+        
         const fileExt = documentData.file.name.split('.').pop();
-        const fileName = `${Math.random()}.${fileExt}`;
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+        
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('documents')
           .upload(fileName, documentData.file);
 
         if (uploadError) {
           console.error('Erreur upload fichier:', uploadError);
-          throw new Error('Erreur lors de l\'upload du fichier');
+          // Créer le bucket s'il n'existe pas
+          const { error: bucketError } = await supabase.storage.createBucket('documents', { public: true });
+          if (!bucketError || bucketError.message.includes('already exists')) {
+            // Réessayer l'upload
+            const { data: retryUploadData, error: retryUploadError } = await supabase.storage
+              .from('documents')
+              .upload(fileName, documentData.file);
+            
+            if (retryUploadError) {
+              throw new Error('Erreur lors de l\'upload du fichier');
+            }
+            file_path = retryUploadData.path;
+          } else {
+            throw new Error('Erreur lors de l\'upload du fichier');
+          }
+        } else {
+          file_path = uploadData.path;
         }
 
-        file_path = uploadData.path;
         file_type = documentData.file.type;
       }
 
       const documentToInsert = {
         title: documentData.title,
-        content: documentData.content || '',
+        content: documentData.content || documentData.description || '',
         type: documentData.type,
         author_id: user.id,
         airport: documentData.airport,
@@ -138,10 +161,25 @@ export const useDocuments = () => {
       }
 
       console.log('Document créé avec succès:', data);
+
+      // Log de l'activité
+      await supabase
+        .from('activity_logs')
+        .insert({
+          user_id: user.id,
+          action: 'document_created',
+          entity_type: 'DOCUMENT',
+          entity_id: data.id,
+          details: `Document "${data.title}" créé`,
+        });
+
       return data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['documents'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-activities'] });
+      
       toast({
         title: 'Document créé',
         description: `Le document "${data.title}" a été créé avec succès.`,
@@ -174,7 +212,10 @@ export const useDocuments = () => {
 
       const { data, error } = await supabase
         .from('documents')
-        .update(updates)
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString(),
+        })
         .eq('id', id)
         .select(`
           *,
@@ -183,20 +224,35 @@ export const useDocuments = () => {
         .single();
 
       if (error) throw error;
+
+      // Log de l'activité
+      await supabase
+        .from('activity_logs')
+        .insert({
+          user_id: user.id,
+          action: 'document_updated',
+          entity_type: 'DOCUMENT',
+          entity_id: data.id,
+          details: `Document "${data.title}" mis à jour`,
+        });
+
       return data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['documents'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-activities'] });
+      
       toast({
         title: 'Document mis à jour',
         description: `Le document "${data.title}" a été mis à jour.`,
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Erreur mise à jour document:', error);
       toast({
         title: 'Erreur',
-        description: 'Impossible de mettre à jour le document.',
+        description: error.message || 'Impossible de mettre à jour le document.',
         variant: 'destructive',
       });
     },
@@ -204,25 +260,57 @@ export const useDocuments = () => {
 
   const deleteDocument = useMutation({
     mutationFn: async (id: string) => {
+      if (!user?.id) throw new Error('Utilisateur non connecté');
+
+      // Récupérer le document pour le nom
+      const { data: doc } = await supabase
+        .from('documents')
+        .select('title, file_path')
+        .eq('id', id)
+        .single();
+
+      // Supprimer le fichier associé si il existe
+      if (doc?.file_path) {
+        await supabase.storage
+          .from('documents')
+          .remove([doc.file_path]);
+      }
+
       const { error } = await supabase
         .from('documents')
         .delete()
         .eq('id', id);
 
       if (error) throw error;
+
+      // Log de l'activité
+      await supabase
+        .from('activity_logs')
+        .insert({
+          user_id: user.id,
+          action: 'document_deleted',
+          entity_type: 'DOCUMENT',
+          entity_id: id,
+          details: `Document "${doc?.title || 'Inconnu'}" supprimé`,
+        });
+
+      return doc?.title;
     },
-    onSuccess: () => {
+    onSuccess: (title) => {
       queryClient.invalidateQueries({ queryKey: ['documents'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-activities'] });
+      
       toast({
         title: 'Document supprimé',
-        description: 'Le document a été supprimé avec succès.',
+        description: `Le document "${title}" a été supprimé avec succès.`,
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Erreur suppression document:', error);
       toast({
         title: 'Erreur',
-        description: 'Impossible de supprimer le document.',
+        description: error.message || 'Impossible de supprimer le document.',
         variant: 'destructive',
       });
     },

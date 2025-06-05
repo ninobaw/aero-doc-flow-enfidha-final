@@ -231,6 +231,39 @@ export type Database = {
           },
         ]
       }
+      dashboard_stats: {
+        Row: {
+          active_users: number | null
+          completed_actions: number | null
+          created_at: string
+          date: string
+          documents_this_month: number | null
+          id: string
+          pending_actions: number | null
+          total_documents: number | null
+        }
+        Insert: {
+          active_users?: number | null
+          completed_actions?: number | null
+          created_at?: string
+          date?: string
+          documents_this_month?: number | null
+          id?: string
+          pending_actions?: number | null
+          total_documents?: number | null
+        }
+        Update: {
+          active_users?: number | null
+          completed_actions?: number | null
+          created_at?: string
+          date?: string
+          documents_this_month?: number | null
+          id?: string
+          pending_actions?: number | null
+          total_documents?: number | null
+        }
+        Relationships: []
+      }
       document_history: {
         Row: {
           action: string
@@ -285,6 +318,7 @@ export type Database = {
           author_id: string
           content: string | null
           created_at: string
+          downloads_count: number | null
           file_path: string | null
           file_type: string | null
           id: string
@@ -294,12 +328,14 @@ export type Database = {
           type: Database["public"]["Enums"]["document_type"]
           updated_at: string
           version: number
+          views_count: number | null
         }
         Insert: {
           airport: Database["public"]["Enums"]["airport_code"]
           author_id: string
           content?: string | null
           created_at?: string
+          downloads_count?: number | null
           file_path?: string | null
           file_type?: string | null
           id?: string
@@ -309,12 +345,14 @@ export type Database = {
           type: Database["public"]["Enums"]["document_type"]
           updated_at?: string
           version?: number
+          views_count?: number | null
         }
         Update: {
           airport?: Database["public"]["Enums"]["airport_code"]
           author_id?: string
           content?: string | null
           created_at?: string
+          downloads_count?: number | null
           file_path?: string | null
           file_type?: string | null
           id?: string
@@ -324,6 +362,7 @@ export type Database = {
           type?: Database["public"]["Enums"]["document_type"]
           updated_at?: string
           version?: number
+          views_count?: number | null
         }
         Relationships: [
           {
@@ -394,8 +433,10 @@ export type Database = {
           first_name: string
           id: string
           is_active: boolean
+          last_login: string | null
           last_name: string
           phone: string | null
+          position: string | null
           profile_photo: string | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
@@ -408,8 +449,10 @@ export type Database = {
           first_name: string
           id: string
           is_active?: boolean
+          last_login?: string | null
           last_name: string
           phone?: string | null
+          position?: string | null
           profile_photo?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
@@ -422,10 +465,54 @@ export type Database = {
           first_name?: string
           id?: string
           is_active?: boolean
+          last_login?: string | null
           last_name?: string
           phone?: string | null
+          position?: string | null
           profile_photo?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      reports: {
+        Row: {
+          config: Json
+          content: Json | null
+          created_at: string
+          created_by: string
+          frequency: string | null
+          id: string
+          last_generated: string | null
+          name: string
+          status: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          config?: Json
+          content?: Json | null
+          created_at?: string
+          created_by: string
+          frequency?: string | null
+          id?: string
+          last_generated?: string | null
+          name: string
+          status?: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          config?: Json
+          content?: Json | null
+          created_at?: string
+          created_by?: string
+          frequency?: string | null
+          id?: string
+          last_generated?: string | null
+          name?: string
+          status?: string
+          type?: string
           updated_at?: string
         }
         Relationships: []

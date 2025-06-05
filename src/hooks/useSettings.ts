@@ -56,8 +56,9 @@ export const useSettings = () => {
 
       // Si aucuns paramètres trouvés, retourner les valeurs par défaut
       if (!data) {
-        console.log('Aucuns paramètres trouvés, retour des valeurs par défaut');
-        return {
+        console.log('Aucuns paramètres trouvés, création des valeurs par défaut');
+        
+        const defaultSettings = {
           user_id: user.id,
           company_name: 'AeroDoc - Gestion Documentaire',
           default_airport: 'ENFIDHA' as const,
@@ -77,6 +78,20 @@ export const useSettings = () => {
           smtp_username: '',
           use_ssl: true,
         };
+
+        // Créer les paramètres par défaut dans la base
+        const { data: createdSettings, error: createError } = await supabase
+          .from('app_settings')
+          .insert(defaultSettings)
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('Erreur création paramètres par défaut:', createError);
+          return defaultSettings; // Retourner quand même les valeurs par défaut
+        }
+
+        return createdSettings as AppSettings;
       }
 
       return data as AppSettings;
@@ -94,6 +109,7 @@ export const useSettings = () => {
       const dataToSave = {
         ...settingsData,
         user_id: user.id,
+        updated_at: new Date().toISOString(),
       };
 
       // Essayer d'abord une mise à jour
@@ -115,7 +131,10 @@ export const useSettings = () => {
           .select()
           .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Erreur mise à jour:', error);
+          throw error;
+        }
         result = data;
       } else {
         // Insertion
@@ -126,7 +145,10 @@ export const useSettings = () => {
           .select()
           .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Erreur insertion:', error);
+          throw error;
+        }
         result = data;
       }
 
@@ -140,11 +162,11 @@ export const useSettings = () => {
         description: 'Vos paramètres ont été mis à jour avec succès.',
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Erreur sauvegarde paramètres:', error);
       toast({
         title: 'Erreur',
-        description: 'Impossible de sauvegarder les paramètres.',
+        description: error.message || 'Impossible de sauvegarder les paramètres.',
         variant: 'destructive',
       });
     },

@@ -4,13 +4,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { User, Mail, Phone, Building2, Calendar, Save, Camera } from 'lucide-react';
+import { User, Mail, Phone, Building2, Calendar, Save } from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/contexts/AuthContext';
 import { useState, useEffect } from 'react';
 import { formatDate } from '@/shared/utils';
+import { ProfilePhotoUpload } from '@/components/profile/ProfilePhotoUpload';
 
 const Profile = () => {
   const { user } = useAuth();
@@ -22,10 +22,6 @@ const Profile = () => {
     phone: '',
     department: '',
   });
-
-  // ===========================================
-  // DÉBUT INTÉGRATION BACKEND SUPABASE - PAGE PROFIL
-  // ===========================================
 
   useEffect(() => {
     if (profile) {
@@ -47,10 +43,6 @@ const Profile = () => {
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
-
-  // ===========================================
-  // FIN INTÉGRATION BACKEND SUPABASE - PAGE PROFIL
-  // ===========================================
 
   if (isLoading) {
     return (
@@ -91,21 +83,7 @@ const Profile = () => {
           <Card>
             <CardContent className="p-6">
               <div className="flex flex-col items-center space-y-4">
-                <div className="relative">
-                  <Avatar className="w-24 h-24">
-                    <AvatarImage src={profile?.profile_photo} />
-                    <AvatarFallback className="bg-aviation-sky text-white text-xl">
-                      {profile?.first_name?.[0]}{profile?.last_name?.[0]}
-                    </AvatarFallback>
-                  </Avatar>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="absolute -bottom-2 -right-2 rounded-full w-8 h-8 p-0"
-                  >
-                    <Camera className="w-4 h-4" />
-                  </Button>
-                </div>
+                <ProfilePhotoUpload profile={profile} />
                 <div className="text-center">
                   <h3 className="text-xl font-semibold">
                     {profile?.first_name} {profile?.last_name}
