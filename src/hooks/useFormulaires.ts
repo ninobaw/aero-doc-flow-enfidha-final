@@ -83,6 +83,34 @@ export const useFormulaires = () => {
       console.log('Création du formulaire:', formulaireData);
       console.log('User ID:', user.id);
 
+      // Vérifier que l'user.id est un UUID valide ou générer un UUID si nécessaire
+      let authorId = user.id;
+      
+      // Si l'ID utilisateur n'est pas un UUID valide, utiliser l'ID du profil utilisateur
+      if (!authorId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+        console.log('ID utilisateur non-UUID détecté, récupération du profil...');
+        
+        // Récupérer le profil utilisateur pour obtenir l'UUID correct
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('email', user.email)
+          .maybeSingle();
+
+        if (profileError) {
+          console.error('Erreur récupération profil:', profileError);
+          throw new Error('Impossible de récupérer le profil utilisateur');
+        }
+
+        if (!profile) {
+          console.error('Profil utilisateur non trouvé pour:', user.email);
+          throw new Error('Profil utilisateur non trouvé');
+        }
+
+        authorId = profile.id;
+        console.log('UUID du profil récupéré:', authorId);
+      }
+
       const contentData = {
         code: formulaireData.code || '',
         category: formulaireData.category || '',
@@ -94,7 +122,7 @@ export const useFormulaires = () => {
         title: formulaireData.title,
         content: JSON.stringify(contentData),
         type: 'FORMULAIRE_DOC' as const,
-        author_id: user.id,
+        author_id: authorId,
         airport: formulaireData.airport,
         status: 'DRAFT' as const,
       };
@@ -129,7 +157,7 @@ export const useFormulaires = () => {
       console.error('Erreur création formulaire:', error);
       toast({
         title: 'Erreur',
-        description: 'Impossible de créer le formulaire.',
+        description: error.message || 'Impossible de créer le formulaire.',
         variant: 'destructive',
       });
     },
