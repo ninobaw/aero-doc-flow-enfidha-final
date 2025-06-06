@@ -1,316 +1,116 @@
 
-import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 
-export interface Document {
+export interface DocumentData {
   id: string;
   title: string;
+  type: string;
   content?: string;
   author_id: string;
-  qr_code: string;
   version: number;
-  status: 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
-  type: 'FORMULAIRE_DOC' | 'CORRESPONDANCE' | 'PROCES_VERBAL' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL';
+  status: string;
+  airport: 'ENFIDHA' | 'MONASTIR';
   file_path?: string;
   file_type?: string;
-  airport: 'ENFIDHA' | 'MONASTIR';
+  qr_code: string;
+  views_count: number;
+  downloads_count: number;
   created_at: string;
   updated_at: string;
   author?: {
     first_name: string;
     last_name: string;
-    email: string;
   };
 }
-
-export type DocumentData = Document;
 
 export const useDocuments = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'DRAFT' | 'ACTIVE' | 'ARCHIVED'>('all');
-  const [typeFilter, setTypeFilter] = useState<'all' | 'FORMULAIRE_DOC' | 'CORRESPONDANCE' | 'PROCES_VERBAL' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL'>('all');
-  const [airportFilter, setAirportFilter] = useState<'all' | 'ENFIDHA' | 'MONASTIR'>('all');
 
   const { data: documents = [], isLoading, error } = useQuery({
-    queryKey: ['documents', searchTerm, statusFilter, typeFilter, airportFilter],
+    queryKey: ['documents'],
     queryFn: async () => {
-      console.log('Récupération des documents avec filtres:', { searchTerm, statusFilter, typeFilter, airportFilter });
-
-      let query = supabase
+      const { data, error } = await supabase
         .from('documents')
         .select(`
           *,
-          author:profiles(first_name, last_name, email)
+          author:profiles(first_name, last_name)
         `)
         .order('created_at', { ascending: false });
 
-      if (searchTerm) {
-        query = query.or(`title.ilike.%${searchTerm}%,content.ilike.%${searchTerm}%`);
-      }
-
-      if (statusFilter !== 'all') {
-        query = query.eq('status', statusFilter);
-      }
-
-      if (typeFilter !== 'all') {
-        query = query.eq('type', typeFilter);
-      }
-
-      if (airportFilter !== 'all') {
-        query = query.eq('airport', airportFilter);
-      }
-
-      const { data, error } = await query;
-
-      if (error) {
-        console.error('Erreur récupération documents:', error);
-        throw error;
-      }
-
-      console.log('Documents récupérés:', data?.length || 0);
-      return data as Document[];
+      if (error) throw error;
+      return data as DocumentData[];
     },
-    enabled: true,
   });
 
   const createDocument = useMutation({
     mutationFn: async (documentData: {
       title: string;
+      type: string;
       content?: string;
-      type: 'FORMULAIRE_DOC' | 'CORRESPONDANCE' | 'PROCES_VERBAL' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL';
       airport: 'ENFIDHA' | 'MONASTIR';
-      category?: string;
-      description?: string;
-      file?: File;
+      file_path?: string;
+      file_type?: string;
     }) => {
-      if (!user?.id) {
-        throw new Error('Vous devez être connecté pour créer un document');
-      }
-
-      console.log('Création document avec données:', documentData);
-
-      let file_path = null;
-      let file_type = null;
-
-      // Upload du fichier si présent
-      if (documentData.file) {
-        console.log('Upload du fichier:', documentData.file.name);
-        
-        const fileExt = documentData.file.name.split('.').pop();
-        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
-        
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('documents')
-          .upload(fileName, documentData.file);
-
-        if (uploadError) {
-          console.error('Erreur upload fichier:', uploadError);
-          // Créer le bucket s'il n'existe pas
-          const { error: bucketError } = await supabase.storage.createBucket('documents', { public: true });
-          if (!bucketError || bucketError.message.includes('already exists')) {
-            // Réessayer l'upload
-            const { data: retryUploadData, error: retryUploadError } = await supabase.storage
-              .from('documents')
-              .upload(fileName, documentData.file);
-            
-            if (retryUploadError) {
-              throw new Error('Erreur lors de l\'upload du fichier');
-            }
-            file_path = retryUploadData.path;
-          } else {
-            throw new Error('Erreur lors de l\'upload du fichier');
-          }
-        } else {
-          file_path = uploadData.path;
-        }
-
-        file_type = documentData.file.type;
-      }
-
-      const documentToInsert = {
-        title: documentData.title,
-        content: documentData.content || documentData.description || '',
-        type: documentData.type,
-        author_id: user.id,
-        airport: documentData.airport,
-        status: 'DRAFT' as const,
-        file_path,
-        file_type,
-      };
-
-      console.log('Données à insérer:', documentToInsert);
+      if (!user?.id) throw new Error('Utilisateur non connecté');
 
       const { data, error } = await supabase
         .from('documents')
-        .insert(documentToInsert)
-        .select(`
-          *,
-          author:profiles(first_name, last_name, email)
-        `)
+        .insert({
+          ...documentData,
+          author_id: user.id,
+        })
+        .select()
         .single();
 
-      if (error) {
-        console.error('Erreur création document:', error);
-        throw error;
-      }
-
-      console.log('Document créé avec succès:', data);
-
-      // Log de l'activité
-      await supabase
-        .from('activity_logs')
-        .insert({
-          user_id: user.id,
-          action: 'document_created',
-          entity_type: 'DOCUMENT',
-          entity_id: data.id,
-          details: `Document "${data.title}" créé`,
-        });
-
+      if (error) throw error;
       return data;
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['documents'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard-activities'] });
-      
       toast({
         title: 'Document créé',
-        description: `Le document "${data.title}" a été créé avec succès.`,
+        description: 'Le document a été créé avec succès.',
       });
     },
-    onError: (error: any) => {
+    onError: (error) => {
       console.error('Erreur création document:', error);
-      
-      let errorMessage = 'Impossible de créer le document.';
-      
-      if (error.message?.includes('Vous devez être connecté')) {
-        errorMessage = error.message;
-      } else if (error.code === '23505') {
-        errorMessage = 'Un document avec ce titre existe déjà.';
-      } else if (error.code === '42501') {
-        errorMessage = 'Permissions insuffisantes pour créer un document.';
-      }
-
       toast({
         title: 'Erreur',
-        description: errorMessage,
+        description: 'Impossible de créer le document.',
         variant: 'destructive',
       });
     },
   });
 
   const updateDocument = useMutation({
-    mutationFn: async ({ id, ...updates }: { id: string } & Partial<Omit<Document, 'id' | 'author'>>) => {
-      if (!user?.id) throw new Error('Utilisateur non connecté');
-
+    mutationFn: async ({ id, ...updates }: Partial<DocumentData> & { id: string }) => {
       const { data, error } = await supabase
         .from('documents')
-        .update({
-          ...updates,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updates)
         .eq('id', id)
-        .select(`
-          *,
-          author:profiles(first_name, last_name, email)
-        `)
+        .select()
         .single();
 
       if (error) throw error;
-
-      // Log de l'activité
-      await supabase
-        .from('activity_logs')
-        .insert({
-          user_id: user.id,
-          action: 'document_updated',
-          entity_type: 'DOCUMENT',
-          entity_id: data.id,
-          details: `Document "${data.title}" mis à jour`,
-        });
-
       return data;
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['documents'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard-activities'] });
-      
       toast({
         title: 'Document mis à jour',
-        description: `Le document "${data.title}" a été mis à jour.`,
+        description: 'Le document a été mis à jour avec succès.',
       });
     },
-    onError: (error: any) => {
+    onError: (error) => {
       console.error('Erreur mise à jour document:', error);
       toast({
         title: 'Erreur',
-        description: error.message || 'Impossible de mettre à jour le document.',
-        variant: 'destructive',
-      });
-    },
-  });
-
-  const deleteDocument = useMutation({
-    mutationFn: async (id: string) => {
-      if (!user?.id) throw new Error('Utilisateur non connecté');
-
-      // Récupérer le document pour le nom
-      const { data: doc } = await supabase
-        .from('documents')
-        .select('title, file_path')
-        .eq('id', id)
-        .single();
-
-      // Supprimer le fichier associé si il existe
-      if (doc?.file_path) {
-        await supabase.storage
-          .from('documents')
-          .remove([doc.file_path]);
-      }
-
-      const { error } = await supabase
-        .from('documents')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
-      // Log de l'activité
-      await supabase
-        .from('activity_logs')
-        .insert({
-          user_id: user.id,
-          action: 'document_deleted',
-          entity_type: 'DOCUMENT',
-          entity_id: id,
-          details: `Document "${doc?.title || 'Inconnu'}" supprimé`,
-        });
-
-      return doc?.title;
-    },
-    onSuccess: (title) => {
-      queryClient.invalidateQueries({ queryKey: ['documents'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard-activities'] });
-      
-      toast({
-        title: 'Document supprimé',
-        description: `Le document "${title}" a été supprimé avec succès.`,
-      });
-    },
-    onError: (error: any) => {
-      console.error('Erreur suppression document:', error);
-      toast({
-        title: 'Erreur',
-        description: error.message || 'Impossible de supprimer le document.',
+        description: 'Impossible de mettre à jour le document.',
         variant: 'destructive',
       });
     },
@@ -320,19 +120,9 @@ export const useDocuments = () => {
     documents,
     isLoading,
     error,
-    searchTerm,
-    setSearchTerm,
-    statusFilter,
-    setStatusFilter,
-    typeFilter,
-    setTypeFilter,
-    airportFilter,
-    setAirportFilter,
     createDocument: createDocument.mutate,
-    isCreating: createDocument.isPending,
     updateDocument: updateDocument.mutate,
+    isCreating: createDocument.isPending,
     isUpdating: updateDocument.isPending,
-    deleteDocument: deleteDocument.mutate,
-    isDeleting: deleteDocument.isPending,
   };
 };

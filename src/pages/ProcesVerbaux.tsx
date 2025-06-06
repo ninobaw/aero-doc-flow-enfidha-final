@@ -1,4 +1,5 @@
 
+import { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,9 +7,122 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ClipboardList, Save, Plus, UserPlus, Users } from 'lucide-react';
+import { ClipboardList, Save, Plus, Users } from 'lucide-react';
+import { ActionsDecideesField, ActionDecidee } from '@/components/actions/ActionsDecideesField';
+import { useProcesVerbaux } from '@/hooks/useProcesVerbaux';
+import { useDocuments } from '@/hooks/useDocuments';
+import { useToast } from '@/hooks/use-toast';
 
 const ProcesVerbaux = () => {
+  const { toast } = useToast();
+  const { createProcesVerbal, isCreating } = useProcesVerbaux();
+  const { createDocument, isCreating: isCreatingDocument } = useDocuments();
+  
+  const [formData, setFormData] = useState({
+    titreReunion: '',
+    numeroPV: '',
+    dateReunion: '',
+    duree: '',
+    lieu: '',
+    aeroport: '',
+    president: '',
+    secretaire: '',
+    ordreJour: '',
+    discussions: '',
+    prochaineReunion: '',
+  });
+
+  const [participants, setParticipants] = useState([
+    { nom: '', fonction: '', statut: 'present' }
+  ]);
+
+  const [actionsDecidees, setActionsDecidees] = useState<ActionDecidee[]>([]);
+
+  const addParticipant = () => {
+    setParticipants([...participants, { nom: '', fonction: '', statut: 'present' }]);
+  };
+
+  const updateParticipant = (index: number, field: string, value: string) => {
+    const updatedParticipants = participants.map((participant, i) => 
+      i === index ? { ...participant, [field]: value } : participant
+    );
+    setParticipants(updatedParticipants);
+  };
+
+  const removeParticipant = (index: number) => {
+    if (participants.length > 1) {
+      setParticipants(participants.filter((_, i) => i !== index));
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.titreReunion || !formData.dateReunion) {
+      toast({
+        title: 'Erreur',
+        description: 'Veuillez remplir tous les champs obligatoires.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      // Créer d'abord le document
+      const documentData = {
+        title: formData.titreReunion,
+        type: 'PROCES_VERBAL',
+        content: JSON.stringify({
+          ordreJour: formData.ordreJour,
+          discussions: formData.discussions,
+          participants,
+          actionsDecidees,
+        }),
+        airport: (formData.aeroport as 'ENFIDHA' | 'MONASTIR') || 'ENFIDHA',
+      };
+
+      createDocument(documentData, {
+        onSuccess: (document) => {
+          // Puis créer le procès-verbal
+          const pvData = {
+            document_id: document.id,
+            meeting_date: formData.dateReunion,
+            participants: participants.map(p => `${p.nom} (${p.fonction}) - ${p.statut}`),
+            agenda: formData.ordreJour,
+            decisions: formData.discussions,
+            location: formData.lieu,
+            meeting_type: 'Réunion de travail',
+            airport: (formData.aeroport as 'ENFIDHA' | 'MONASTIR') || 'ENFIDHA',
+            next_meeting_date: formData.prochaineReunion || undefined,
+          };
+
+          createProcesVerbal(pvData, {
+            onSuccess: () => {
+              // Réinitialiser le formulaire
+              setFormData({
+                titreReunion: '',
+                numeroPV: '',
+                dateReunion: '',
+                duree: '',
+                lieu: '',
+                aeroport: '',
+                president: '',
+                secretaire: '',
+                ordreJour: '',
+                discussions: '',
+                prochaineReunion: '',
+              });
+              setParticipants([{ nom: '', fonction: '', statut: 'present' }]);
+              setActionsDecidees([]);
+            }
+          });
+        }
+      });
+    } catch (error) {
+      console.error('Erreur sauvegarde PV:', error);
+    }
+  };
+
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -30,12 +144,14 @@ const ProcesVerbaux = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="titre-reunion">Titre de la réunion *</Label>
                   <Input
                     id="titre-reunion"
+                    value={formData.titreReunion}
+                    onChange={(e) => setFormData({ ...formData, titreReunion: e.target.value })}
                     placeholder="Titre de la réunion"
                     required
                   />
@@ -45,6 +161,8 @@ const ProcesVerbaux = () => {
                   <Label htmlFor="numero-pv">Numéro PV</Label>
                   <Input
                     id="numero-pv"
+                    value={formData.numeroPV}
+                    onChange={(e) => setFormData({ ...formData, numeroPV: e.target.value })}
                     placeholder="PV-2025-001"
                   />
                 </div>
@@ -54,6 +172,8 @@ const ProcesVerbaux = () => {
                   <Input
                     id="date-reunion"
                     type="datetime-local"
+                    value={formData.dateReunion}
+                    onChange={(e) => setFormData({ ...formData, dateReunion: e.target.value })}
                     required
                   />
                 </div>
@@ -63,6 +183,8 @@ const ProcesVerbaux = () => {
                   <Input
                     id="duree"
                     type="number"
+                    value={formData.duree}
+                    onChange={(e) => setFormData({ ...formData, duree: e.target.value })}
                     placeholder="2"
                     step="0.5"
                   />
@@ -72,19 +194,21 @@ const ProcesVerbaux = () => {
                   <Label htmlFor="lieu">Lieu de la réunion</Label>
                   <Input
                     id="lieu"
+                    value={formData.lieu}
+                    onChange={(e) => setFormData({ ...formData, lieu: e.target.value })}
                     placeholder="Salle de réunion A1"
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="aeroport">Aéroport</Label>
-                  <Select>
+                  <Select value={formData.aeroport} onValueChange={(value) => setFormData({ ...formData, aeroport: value })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Sélectionner un aéroport" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="enfidha">Enfidha</SelectItem>
-                      <SelectItem value="monastir">Monastir</SelectItem>
+                      <SelectItem value="ENFIDHA">Enfidha</SelectItem>
+                      <SelectItem value="MONASTIR">Monastir</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -93,6 +217,8 @@ const ProcesVerbaux = () => {
                   <Label htmlFor="president">Président de séance</Label>
                   <Input
                     id="president"
+                    value={formData.president}
+                    onChange={(e) => setFormData({ ...formData, president: e.target.value })}
                     placeholder="Nom du président"
                   />
                 </div>
@@ -101,6 +227,8 @@ const ProcesVerbaux = () => {
                   <Label htmlFor="secretaire">Secrétaire de séance</Label>
                   <Input
                     id="secretaire"
+                    value={formData.secretaire}
+                    onChange={(e) => setFormData({ ...formData, secretaire: e.target.value })}
                     placeholder="Nom du secrétaire"
                   />
                 </div>
@@ -114,7 +242,7 @@ const ProcesVerbaux = () => {
                       <Users className="w-5 h-5 mr-2" />
                       Participants
                     </div>
-                    <Button type="button" variant="outline" size="sm">
+                    <Button type="button" variant="outline" size="sm" onClick={addParticipant}>
                       <Plus className="w-4 h-4 mr-1" />
                       Ajouter un participant
                     </Button>
@@ -122,22 +250,43 @@ const ProcesVerbaux = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    <div className="flex items-center space-x-4 p-3 border border-gray-200 rounded-lg">
-                      <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <Input placeholder="Nom du participant" />
-                        <Input placeholder="Fonction" />
-                        <Select>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Statut" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="present">Présent</SelectItem>
-                            <SelectItem value="absent">Absent</SelectItem>
-                            <SelectItem value="excuse">Excusé</SelectItem>
-                          </SelectContent>
-                        </Select>
+                    {participants.map((participant, index) => (
+                      <div key={index} className="flex items-center space-x-4 p-3 border border-gray-200 rounded-lg">
+                        <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <Input 
+                            placeholder="Nom du participant" 
+                            value={participant.nom}
+                            onChange={(e) => updateParticipant(index, 'nom', e.target.value)}
+                          />
+                          <Input 
+                            placeholder="Fonction" 
+                            value={participant.fonction}
+                            onChange={(e) => updateParticipant(index, 'fonction', e.target.value)}
+                          />
+                          <Select value={participant.statut} onValueChange={(value) => updateParticipant(index, 'statut', value)}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Statut" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="present">Présent</SelectItem>
+                              <SelectItem value="absent">Absent</SelectItem>
+                              <SelectItem value="excuse">Excusé</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        {participants.length > 1 && (
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => removeParticipant(index)}
+                            className="text-red-600"
+                          >
+                            <Plus className="w-4 h-4 rotate-45" />
+                          </Button>
+                        )}
                       </div>
-                    </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
@@ -146,6 +295,8 @@ const ProcesVerbaux = () => {
                 <Label htmlFor="ordre-jour">Ordre du jour</Label>
                 <Textarea
                   id="ordre-jour"
+                  value={formData.ordreJour}
+                  onChange={(e) => setFormData({ ...formData, ordreJour: e.target.value })}
                   placeholder="1. Point 1&#10;2. Point 2&#10;3. Point 3..."
                   rows={4}
                 />
@@ -155,128 +306,41 @@ const ProcesVerbaux = () => {
                 <Label htmlFor="discussions">Discussions et décisions</Label>
                 <Textarea
                   id="discussions"
+                  value={formData.discussions}
+                  onChange={(e) => setFormData({ ...formData, discussions: e.target.value })}
                   placeholder="Détailler les discussions, décisions prises et points importants..."
                   rows={6}
                 />
               </div>
 
-              {/* Section Actions */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center justify-between">
-                    Actions décidées
-                    <Button type="button" variant="outline" size="sm">
-                      <Plus className="w-4 h-4 mr-1" />
-                      Ajouter une action
-                    </Button>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="border border-gray-200 rounded-lg p-4 space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="action-titre">Action à réaliser</Label>
-                        <Input
-                          id="action-titre"
-                          placeholder="Titre de l'action"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="action-priorite">Priorité</Label>
-                        <Select>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Priorité" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="basse">Basse</SelectItem>
-                            <SelectItem value="moyenne">Moyenne</SelectItem>
-                            <SelectItem value="haute">Haute</SelectItem>
-                            <SelectItem value="critique">Critique</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="action-description">Description détaillée</Label>
-                      <Textarea
-                        id="action-description"
-                        placeholder="Description de l'action à réaliser..."
-                        rows={3}
-                      />
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="action-responsable">Responsable principal</Label>
-                        <Select>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Assigner à..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="user1">Ahmed Ben Ali</SelectItem>
-                            <SelectItem value="user2">Fatma Trabelsi</SelectItem>
-                            <SelectItem value="user3">Mohamed Sassi</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="action-echeance">Échéance</Label>
-                        <Input
-                          id="action-echeance"
-                          type="date"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="action-statut">Statut initial</Label>
-                        <Select>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Statut" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="a-faire">À faire</SelectItem>
-                            <SelectItem value="en-cours">En cours</SelectItem>
-                            <SelectItem value="termine">Terminé</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    <div className="flex justify-end">
-                      <Button type="button" variant="outline" size="sm">
-                        <UserPlus className="w-4 h-4 mr-1" />
-                        Ajouter des collaborateurs
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              {/* Actions décidées */}
+              <ActionsDecideesField
+                actions={actionsDecidees}
+                onChange={setActionsDecidees}
+                disabled={isCreating || isCreatingDocument}
+              />
 
               <div className="space-y-2">
                 <Label htmlFor="prochaine-reunion">Prochaine réunion</Label>
                 <Input
                   id="prochaine-reunion"
                   type="datetime-local"
+                  value={formData.prochaineReunion}
+                  onChange={(e) => setFormData({ ...formData, prochaineReunion: e.target.value })}
                 />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="annexes">Annexes</Label>
-                <Input
-                  id="annexes"
-                  type="file"
-                  multiple
-                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
-                />
-                <p className="text-sm text-gray-500">
-                  Joindre les documents de support (présentations, rapports, etc.)
-                </p>
               </div>
 
               <div className="flex justify-end space-x-4">
-                <Button variant="outline">
+                <Button variant="outline" type="button">
                   Annuler
                 </Button>
-                <Button className="bg-aviation-sky hover:bg-aviation-sky-dark">
+                <Button 
+                  type="submit"
+                  disabled={isCreating || isCreatingDocument}
+                  className="bg-aviation-sky hover:bg-aviation-sky-dark"
+                >
                   <Save className="w-4 h-4 mr-2" />
-                  Enregistrer le PV
+                  {isCreating || isCreatingDocument ? 'Enregistrement...' : 'Enregistrer le PV'}
                 </Button>
               </div>
             </form>

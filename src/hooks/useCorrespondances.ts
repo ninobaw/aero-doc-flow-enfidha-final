@@ -30,10 +30,6 @@ export const useCorrespondances = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // ===========================================
-  // DÉBUT INTÉGRATION BACKEND SUPABASE - CORRESPONDANCES
-  // ===========================================
-
   const { data: correspondances = [], isLoading, error } = useQuery({
     queryKey: ['correspondances'],
     queryFn: async () => {
@@ -53,9 +49,9 @@ export const useCorrespondances = () => {
     },
   });
 
-  const createCorrespondance = useMutation({
-    mutationFn: async (correspondanceData: {
-      document_id: string;
+  const createCorrespondanceWithDocument = useMutation({
+    mutationFn: async (data: {
+      title: string;
       from_address: string;
       to_address: string;
       subject: string;
@@ -64,17 +60,46 @@ export const useCorrespondances = () => {
       airport: 'ENFIDHA' | 'MONASTIR';
       attachments?: string[];
     }) => {
-      const { data, error } = await supabase
-        .from('correspondances')
-        .insert(correspondanceData)
+      if (!user?.id) throw new Error('Utilisateur non connecté');
+
+      // Créer d'abord le document
+      const { data: document, error: docError } = await supabase
+        .from('documents')
+        .insert({
+          title: data.title,
+          type: 'CORRESPONDANCE',
+          content: data.content,
+          author_id: user.id,
+          airport: data.airport,
+        })
         .select()
         .single();
 
-      if (error) throw error;
-      return data;
+      if (docError) throw docError;
+
+      // Puis créer la correspondance
+      const { data: correspondance, error: corrError } = await supabase
+        .from('correspondances')
+        .insert({
+          document_id: document.id,
+          from_address: data.from_address,
+          to_address: data.to_address,
+          subject: data.subject,
+          content: data.content,
+          priority: data.priority,
+          status: 'DRAFT',
+          airport: data.airport,
+          attachments: data.attachments || [],
+        })
+        .select()
+        .single();
+
+      if (corrError) throw corrError;
+      return correspondance;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['correspondances'] });
+      queryClient.invalidateQueries({ queryKey: ['documents'] });
       toast({
         title: 'Correspondance créée',
         description: 'La correspondance a été créée avec succès.',
@@ -90,15 +115,42 @@ export const useCorrespondances = () => {
     },
   });
 
-  // ===========================================
-  // FIN INTÉGRATION BACKEND SUPABASE - CORRESPONDANCES
-  // ===========================================
+  const updateCorrespondance = useMutation({
+    mutationFn: async ({ id, ...updates }: Partial<CorrespondanceData> & { id: string }) => {
+      const { data, error } = await supabase
+        .from('correspondances')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['correspondances'] });
+      toast({
+        title: 'Correspondance mise à jour',
+        description: 'La correspondance a été mise à jour avec succès.',
+      });
+    },
+    onError: (error) => {
+      console.error('Erreur mise à jour correspondance:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de mettre à jour la correspondance.',
+        variant: 'destructive',
+      });
+    },
+  });
 
   return {
     correspondances,
     isLoading,
     error,
-    createCorrespondance: createCorrespondance.mutate,
-    isCreating: createCorrespondance.isPending,
+    createCorrespondance: createCorrespondanceWithDocument.mutate,
+    updateCorrespondance: updateCorrespondance.mutate,
+    isCreating: createCorrespondanceWithDocument.isPending,
+    isUpdating: updateCorrespondance.isPending,
   };
 };
