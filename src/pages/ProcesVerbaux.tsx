@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -68,56 +67,37 @@ const ProcesVerbaux = () => {
     }
 
     try {
-      // Créer d'abord le document
-      const documentData = {
+      const pvData = {
         title: formData.titreReunion,
-        type: 'PROCES_VERBAL',
-        content: JSON.stringify({
-          ordreJour: formData.ordreJour,
-          discussions: formData.discussions,
-          participants,
-          actionsDecidees,
-        }),
+        meeting_date: formData.dateReunion,
+        participants: participants.map(p => `${p.nom} (${p.fonction}) - ${p.statut}`),
+        agenda: formData.ordreJour,
+        decisions: formData.discussions,
+        location: formData.lieu,
+        meeting_type: 'Réunion de travail',
         airport: (formData.aeroport as 'ENFIDHA' | 'MONASTIR') || 'ENFIDHA',
+        next_meeting_date: formData.prochaineReunion || undefined,
+        actions_decidees: actionsDecidees,
       };
 
-      createDocument(documentData, {
-        onSuccess: (document) => {
-          // Puis créer le procès-verbal
-          const pvData = {
-            document_id: document.id,
-            meeting_date: formData.dateReunion,
-            participants: participants.map(p => `${p.nom} (${p.fonction}) - ${p.statut}`),
-            agenda: formData.ordreJour,
-            decisions: formData.discussions,
-            location: formData.lieu,
-            meeting_type: 'Réunion de travail',
-            airport: (formData.aeroport as 'ENFIDHA' | 'MONASTIR') || 'ENFIDHA',
-            next_meeting_date: formData.prochaineReunion || undefined,
-          };
+      createProcesVerbal(pvData);
 
-          createProcesVerbal(pvData, {
-            onSuccess: () => {
-              // Réinitialiser le formulaire
-              setFormData({
-                titreReunion: '',
-                numeroPV: '',
-                dateReunion: '',
-                duree: '',
-                lieu: '',
-                aeroport: '',
-                president: '',
-                secretaire: '',
-                ordreJour: '',
-                discussions: '',
-                prochaineReunion: '',
-              });
-              setParticipants([{ nom: '', fonction: '', statut: 'present' }]);
-              setActionsDecidees([]);
-            }
-          });
-        }
+      // Réinitialiser le formulaire
+      setFormData({
+        titreReunion: '',
+        numeroPV: '',
+        dateReunion: '',
+        duree: '',
+        lieu: '',
+        aeroport: '',
+        president: '',
+        secretaire: '',
+        ordreJour: '',
+        discussions: '',
+        prochaineReunion: '',
       });
+      setParticipants([{ nom: '', fonction: '', statut: 'present' }]);
+      setActionsDecidees([]);
     } catch (error) {
       console.error('Erreur sauvegarde PV:', error);
     }

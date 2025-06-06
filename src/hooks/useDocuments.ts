@@ -11,7 +11,7 @@ export interface DocumentData {
   content?: string;
   author_id: string;
   version: number;
-  status: string;
+  status: 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
   airport: 'ENFIDHA' | 'MONASTIR';
   file_path?: string;
   file_type?: string;
