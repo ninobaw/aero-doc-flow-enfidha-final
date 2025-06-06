@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 export interface DocumentData {
   id: string;
   title: string;
-  type: string;
+  type: 'FORMULAIRE_DOC' | 'CORRESPONDANCE' | 'PROCES_VERBAL' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL';
   content?: string;
   author_id: string;
   version: number;
@@ -88,7 +88,19 @@ export const useDocuments = () => {
   });
 
   const updateDocument = useMutation({
-    mutationFn: async ({ id, ...updates }: Partial<DocumentData> & { id: string }) => {
+    mutationFn: async ({ id, ...updates }: { 
+      id: string;
+      title?: string;
+      type?: 'FORMULAIRE_DOC' | 'CORRESPONDANCE' | 'PROCES_VERBAL' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL';
+      content?: string;
+      status?: 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
+      airport?: 'ENFIDHA' | 'MONASTIR';
+      file_path?: string;
+      file_type?: string;
+      version?: number;
+      views_count?: number;
+      downloads_count?: number;
+    }) => {
       const { data, error } = await supabase
         .from('documents')
         .update(updates)
