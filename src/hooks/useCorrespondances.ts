@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { ActionDecidee } from '@/components/actions/ActionsDecideesField';
 
 export interface CorrespondanceData {
   id: string;
@@ -15,6 +16,7 @@ export interface CorrespondanceData {
   status: string;
   airport: 'ENFIDHA' | 'MONASTIR';
   attachments?: string[];
+  actions_decidees?: ActionDecidee[];
   created_at: string;
   document?: {
     title: string;
@@ -59,6 +61,7 @@ export const useCorrespondances = () => {
       priority: CorrespondanceData['priority'];
       airport: 'ENFIDHA' | 'MONASTIR';
       attachments?: string[];
+      actions_decidees?: ActionDecidee[];
     }) => {
       if (!user?.id) throw new Error('Utilisateur non connecté');
 
@@ -90,6 +93,7 @@ export const useCorrespondances = () => {
           status: 'DRAFT',
           airport: data.airport,
           attachments: data.attachments || [],
+          actions_decidees: data.actions_decidees || [],
         })
         .select()
         .single();

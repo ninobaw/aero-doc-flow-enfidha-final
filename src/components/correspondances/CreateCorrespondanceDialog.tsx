@@ -8,40 +8,41 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus } from 'lucide-react';
 import { useCorrespondances } from '@/hooks/useCorrespondances';
-import { useDocuments } from '@/hooks/useDocuments';
+import { ActionsDecideesField, ActionDecidee } from '@/components/actions/ActionsDecideesField';
 
 export const CreateCorrespondanceDialog = () => {
   const [open, setOpen] = useState(false);
   const { createCorrespondance, isCreating } = useCorrespondances();
-  const { documents } = useDocuments();
   
   const [formData, setFormData] = useState({
-    document_id: '',
+    title: '',
     from_address: '',
     to_address: '',
     subject: '',
     content: '',
     priority: 'MEDIUM' as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT',
     airport: 'ENFIDHA' as 'ENFIDHA' | 'MONASTIR',
+    actions_decidees: [] as ActionDecidee[],
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.document_id || !formData.from_address || !formData.to_address || !formData.subject) {
+    if (!formData.title || !formData.from_address || !formData.to_address || !formData.subject) {
       return;
     }
 
     createCorrespondance(formData, {
       onSuccess: () => {
         setFormData({
-          document_id: '',
+          title: '',
           from_address: '',
           to_address: '',
           subject: '',
           content: '',
           priority: 'MEDIUM',
           airport: 'ENFIDHA',
+          actions_decidees: [],
         });
         setOpen(false);
       }
@@ -56,26 +57,21 @@ export const CreateCorrespondanceDialog = () => {
           Nouvelle Correspondance
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Créer une nouvelle correspondance</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="document_id">Document lié *</Label>
-              <Select value={formData.document_id} onValueChange={(value) => setFormData({ ...formData, document_id: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner un document" />
-                </SelectTrigger>
-                <SelectContent>
-                  {documents.map((doc) => (
-                    <SelectItem key={doc.id} value={doc.id}>
-                      {doc.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="title">Titre du document *</Label>
+              <Input
+                id="title"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                placeholder="Titre de la correspondance"
+                required
+              />
             </div>
             <div>
               <Label htmlFor="priority">Priorité</Label>
@@ -150,6 +146,11 @@ export const CreateCorrespondanceDialog = () => {
               rows={6}
             />
           </div>
+
+          <ActionsDecideesField
+            actions={formData.actions_decidees}
+            onChange={(actions) => setFormData({ ...formData, actions_decidees: actions })}
+          />
 
           <div className="flex justify-end space-x-2 pt-4">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>

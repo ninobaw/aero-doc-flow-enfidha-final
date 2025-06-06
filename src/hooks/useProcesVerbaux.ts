@@ -2,6 +2,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { ActionDecidee } from '@/components/actions/ActionsDecideesField';
 
 export interface ProcesVerbalData {
   id: string;
@@ -14,6 +16,7 @@ export interface ProcesVerbalData {
   meeting_type: string;
   airport: 'ENFIDHA' | 'MONASTIR';
   next_meeting_date?: string;
+  actions_decidees?: ActionDecidee[];
   created_at: string;
   document?: {
     title: string;
@@ -26,6 +29,7 @@ export interface ProcesVerbalData {
 
 export const useProcesVerbaux = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
 
   const { data: procesVerbaux = [], isLoading, error } = useQuery({
@@ -47,9 +51,9 @@ export const useProcesVerbaux = () => {
     },
   });
 
-  const createProcesVerbal = useMutation({
-    mutationFn: async (pvData: {
-      document_id: string;
+  const createProcesVerbalWithDocument = useMutation({
+    mutationFn: async (data: {
+      title: string;
       meeting_date: string;
       participants: string[];
       agenda: string;
@@ -58,15 +62,45 @@ export const useProcesVerbaux = () => {
       meeting_type: string;
       airport: 'ENFIDHA' | 'MONASTIR';
       next_meeting_date?: string;
+      actions_decidees?: ActionDecidee[];
     }) => {
-      const { data, error } = await supabase
-        .from('proces_verbaux')
-        .insert(pvData)
+      if (!user?.id) throw new Error('Utilisateur non connecté');
+
+      // Créer d'abord le document
+      const { data: document, error: docError } = await supabase
+        .from('documents')
+        .insert({
+          title: data.title,
+          type: 'PROCES_VERBAL',
+          content: data.agenda + '\n\nDécisions: ' + data.decisions,
+          author_id: user.id,
+          airport: data.airport,
+        })
         .select()
         .single();
 
-      if (error) throw error;
-      return data;
+      if (docError) throw docError;
+
+      // Puis créer le procès-verbal
+      const { data: procesVerbal, error: pvError } = await supabase
+        .from('proces_verbaux')
+        .insert({
+          document_id: document.id,
+          meeting_date: data.meeting_date,
+          participants: data.participants,
+          agenda: data.agenda,
+          decisions: data.decisions,
+          location: data.location,
+          meeting_type: data.meeting_type,
+          airport: data.airport,
+          next_meeting_date: data.next_meeting_date,
+          actions_decidees: data.actions_decidees || [],
+        })
+        .select()
+        .single();
+
+      if (pvError) throw pvError;
+      return procesVerbal;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['proces-verbaux'] });
@@ -119,9 +153,9 @@ export const useProcesVerbaux = () => {
     procesVerbaux,
     isLoading,
     error,
-    createProcesVerbal: createProcesVerbal.mutate,
+    createProcesVerbal: createProcesVerbalWithDocument.mutate,
     updateProcesVerbal: updateProcesVerbal.mutate,
-    isCreating: createProcesVerbal.isPending,
+    isCreating: createProcesVerbalWithDocument.isPending,
     isUpdating: updateProcesVerbal.isPending,
   };
 };

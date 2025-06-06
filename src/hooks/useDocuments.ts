@@ -50,7 +50,7 @@ export const useDocuments = () => {
   const createDocument = useMutation({
     mutationFn: async (documentData: {
       title: string;
-      type: string;
+      type: 'FORMULAIRE_DOC' | 'CORRESPONDANCE' | 'PROCES_VERBAL' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL';
       content?: string;
       airport: 'ENFIDHA' | 'MONASTIR';
       file_path?: string;
@@ -116,13 +116,41 @@ export const useDocuments = () => {
     },
   });
 
+  const deleteDocument = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('documents')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['documents'] });
+      toast({
+        title: 'Document supprimé',
+        description: 'Le document a été supprimé avec succès.',
+      });
+    },
+    onError: (error) => {
+      console.error('Erreur suppression document:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de supprimer le document.',
+        variant: 'destructive',
+      });
+    },
+  });
+
   return {
     documents,
     isLoading,
     error,
     createDocument: createDocument.mutate,
     updateDocument: updateDocument.mutate,
+    deleteDocument: deleteDocument.mutate,
     isCreating: createDocument.isPending,
     isUpdating: updateDocument.isPending,
+    isDeleting: deleteDocument.isPending,
   };
 };
