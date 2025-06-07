@@ -1,6 +1,6 @@
-import { Schema, model, Document } from 'mongoose';
+import { Schema, model, Document as MongooseDocument } from 'mongoose';
 
-export interface IDocument extends Document {
+export interface IDocument extends MongooseDocument {
   _id: string;
   title: string;
   type: 'FORMULAIRE_DOC' | 'CORRESPONDANCE' | 'PROCES_VERBAL' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL';
