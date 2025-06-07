@@ -1,7 +1,9 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import axios from 'axios';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+
+const API_BASE_URL = 'http://localhost:5000/api';
 
 export interface ActionData {
   id: string;
@@ -25,26 +27,16 @@ export interface ActionData {
 
 export const useActions = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
-
-  // ===========================================
-  // DÉBUT INTÉGRATION BACKEND SUPABASE - ACTIONS
-  // ===========================================
 
   const { data: actions = [], isLoading, error } = useQuery({
     queryKey: ['actions'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('actions')
-        .select(`
-          *,
-          document:documents(title, type)
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data as ActionData[];
+      const response = await axios.get(`${API_BASE_URL}/actions`);
+      return response.data as ActionData[];
     },
+    enabled: !!user,
   });
 
   const createAction = useMutation({
@@ -57,18 +49,8 @@ export const useActions = () => {
       parent_document_id?: string;
       estimated_hours?: number;
     }) => {
-      const { data, error } = await supabase
-        .from('actions')
-        .insert({
-          ...actionData,
-          status: 'PENDING' as const,
-          progress: 0,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      const response = await axios.post(`${API_BASE_URL}/actions`, actionData);
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['actions'] });
@@ -77,11 +59,11 @@ export const useActions = () => {
         description: 'L\'action a été créée avec succès.',
       });
     },
-    onError: (error) => {
-      console.error('Erreur création action:', error);
+    onError: (error: any) => {
+      console.error('Erreur création action:', error.response?.data || error.message);
       toast({
         title: 'Erreur',
-        description: 'Impossible de créer l\'action.',
+        description: error.response?.data?.message || error.message || 'Impossible de créer l\'action.',
         variant: 'destructive',
       });
     },
@@ -89,15 +71,8 @@ export const useActions = () => {
 
   const updateAction = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<ActionData> & { id: string }) => {
-      const { data, error } = await supabase
-        .from('actions')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      const response = await axios.put(`${API_BASE_URL}/actions/${id}`, updates);
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['actions'] });
@@ -106,19 +81,15 @@ export const useActions = () => {
         description: 'L\'action a été mise à jour avec succès.',
       });
     },
-    onError: (error) => {
-      console.error('Erreur mise à jour action:', error);
+    onError: (error: any) => {
+      console.error('Erreur mise à jour action:', error.response?.data || error.message);
       toast({
         title: 'Erreur',
-        description: 'Impossible de mettre à jour l\'action.',
+        description: error.response?.data?.message || error.message || 'Impossible de mettre à jour l\'action.',
         variant: 'destructive',
       });
     },
   });
-
-  // ===========================================
-  // FIN INTÉGRATION BACKEND SUPABASE - ACTIONS
-  // ===========================================
 
   return {
     actions,

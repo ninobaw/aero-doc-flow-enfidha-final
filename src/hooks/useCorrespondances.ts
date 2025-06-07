@@ -1,9 +1,10 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import axios from 'axios';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { ActionDecidee } from '@/components/actions/ActionsDecideesField';
+
+const API_BASE_URL = 'http://localhost:5000/api';
 
 export interface CorrespondanceData {
   id: string;
@@ -35,20 +36,10 @@ export const useCorrespondances = () => {
   const { data: correspondances = [], isLoading, error } = useQuery({
     queryKey: ['correspondances'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('correspondances')
-        .select(`
-          *,
-          document:documents(
-            title,
-            author:profiles(first_name, last_name)
-          )
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data as CorrespondanceData[];
+      const response = await axios.get(`${API_BASE_URL}/correspondances`);
+      return response.data as CorrespondanceData[];
     },
+    enabled: !!user,
   });
 
   const createCorrespondanceWithDocument = useMutation({
@@ -65,55 +56,26 @@ export const useCorrespondances = () => {
     }) => {
       if (!user?.id) throw new Error('Utilisateur non connecté');
 
-      // Créer d'abord le document
-      const { data: document, error: docError } = await supabase
-        .from('documents')
-        .insert({
-          title: data.title,
-          type: 'CORRESPONDANCE',
-          content: data.content,
-          author_id: user.id,
-          airport: data.airport,
-        })
-        .select()
-        .single();
-
-      if (docError) throw docError;
-
-      // Puis créer la correspondance
-      const { data: correspondance, error: corrError } = await supabase
-        .from('correspondances')
-        .insert({
-          document_id: document.id,
-          from_address: data.from_address,
-          to_address: data.to_address,
-          subject: data.subject,
-          content: data.content,
-          priority: data.priority,
-          status: 'DRAFT',
-          airport: data.airport,
-          attachments: data.attachments || [],
-          actions_decidees: data.actions_decidees || [],
-        })
-        .select()
-        .single();
-
-      if (corrError) throw corrError;
-      return correspondance;
+      // The backend handles document creation internally
+      const response = await axios.post(`${API_BASE_URL}/correspondances`, {
+        ...data,
+        author_id: user.id, // Pass author_id to backend
+      });
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['correspondances'] });
-      queryClient.invalidateQueries({ queryKey: ['documents'] });
+      queryClient.invalidateQueries({ queryKey: ['documents'] }); // Invalidate documents as a new one is created
       toast({
         title: 'Correspondance créée',
         description: 'La correspondance a été créée avec succès.',
       });
     },
-    onError: (error) => {
-      console.error('Erreur création correspondance:', error);
+    onError: (error: any) => {
+      console.error('Erreur création correspondance:', error.response?.data || error.message);
       toast({
         title: 'Erreur',
-        description: 'Impossible de créer la correspondance.',
+        description: error.response?.data?.message || error.message || 'Impossible de créer la correspondance.',
         variant: 'destructive',
       });
     },
@@ -121,15 +83,8 @@ export const useCorrespondances = () => {
 
   const updateCorrespondance = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<CorrespondanceData> & { id: string }) => {
-      const { data, error } = await supabase
-        .from('correspondances')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      const response = await axios.put(`${API_BASE_URL}/correspondances/${id}`, updates);
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['correspondances'] });
@@ -138,11 +93,11 @@ export const useCorrespondances = () => {
         description: 'La correspondance a été mise à jour avec succès.',
       });
     },
-    onError: (error) => {
-      console.error('Erreur mise à jour correspondance:', error);
+    onError: (error: any) => {
+      console.error('Erreur mise à jour correspondance:', error.response?.data || error.message);
       toast({
         title: 'Erreur',
-        description: 'Impossible de mettre à jour la correspondance.',
+        description: error.response?.data?.message || error.message || 'Impossible de mettre à jour la correspondance.',
         variant: 'destructive',
       });
     },
