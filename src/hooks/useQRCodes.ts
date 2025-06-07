@@ -1,7 +1,8 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import axios from 'axios';
 import { useToast } from '@/hooks/use-toast';
+
+const API_BASE_URL = 'http://localhost:5000/api';
 
 export interface QRCodeData {
   id: string;
@@ -27,26 +28,17 @@ export const useQRCodes = () => {
   const { data: qrCodes = [], isLoading, error } = useQuery({
     queryKey: ['qr-codes'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('documents')
-        .select(`
-          id,
-          title,
-          type,
-          qr_code,
-          created_at,
-          author:profiles(first_name, last_name)
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      // Fetch documents that have a QR code
+      const response = await axios.get(`${API_BASE_URL}/documents`);
+      const documentsWithQRCodes = response.data.filter((doc: any) => doc.qr_code) as any[];
       
-      return data.map(doc => ({
+      return documentsWithQRCodes.map(doc => ({
         id: doc.id,
         document_id: doc.id,
         qr_code: doc.qr_code,
-        generated_at: doc.created_at,
-        download_count: 0,
+        generated_at: doc.created_at, // Assuming generated_at is document creation date for now
+        download_count: doc.downloads_count || 0, // Use document's download count
+        last_accessed: doc.updated_at, // Use document's last updated date for last accessed
         document: {
           title: doc.title,
           type: doc.type,
@@ -58,30 +50,25 @@ export const useQRCodes = () => {
 
   const generateQRCode = useMutation({
     mutationFn: async (documentId: string) => {
-      const newQRCode = `QR-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const newQRCodeValue = `QR-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       
-      const { data, error } = await supabase
-        .from('documents')
-        .update({ qr_code: newQRCode })
-        .eq('id', documentId)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      // Update the document with the new QR code value
+      const response = await axios.put(`${API_BASE_URL}/documents/${documentId}`, { qr_code: newQRCodeValue });
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['qr-codes'] });
+      queryClient.invalidateQueries({ queryKey: ['documents'] }); // Invalidate documents as well
       toast({
         title: 'QR Code généré',
         description: 'Le QR Code a été généré avec succès.',
       });
     },
-    onError: (error) => {
-      console.error('Erreur génération QR Code:', error);
+    onError: (error: any) => {
+      console.error('Erreur génération QR Code:', error.response?.data || error.message);
       toast({
         title: 'Erreur',
-        description: 'Impossible de générer le QR Code.',
+        description: error.response?.data?.message || error.message || 'Impossible de générer le QR Code.',
         variant: 'destructive',
       });
     },

@@ -1,10 +1,9 @@
-
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+// import { supabase } from '@/integrations/supabase/client'; // Supabase client removed
 import { useToast } from '@/hooks/use-toast';
 
 export interface UploadOptions {
-  bucket: string;
+  bucket: string; // This will be a logical bucket name, not a real Supabase bucket
   folder?: string;
   allowedTypes?: string[];
   maxSize?: number; // en MB
@@ -23,7 +22,7 @@ export const useFileUpload = () => {
       setUploading(true);
       setProgress(0);
 
-      // Vérifications de validation
+      // Simulate file validation
       if (options.allowedTypes && options.allowedTypes.length > 0) {
         const isValidType = options.allowedTypes.some(type => 
           file.type.startsWith(type) || file.name.toLowerCase().endsWith(type)
@@ -37,46 +36,31 @@ export const useFileUpload = () => {
         throw new Error(`Fichier trop volumineux. Taille maximum: ${options.maxSize}MB`);
       }
 
-      // Générer un nom de fichier unique
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const filePath = options.folder ? `${options.folder}/${fileName}` : fileName;
-
-      setProgress(50);
-
-      // Upload vers Supabase Storage
-      const { data, error } = await supabase.storage
-        .from(options.bucket)
-        .upload(filePath, file);
-
-      if (error) {
-        throw error;
+      // Simulate upload progress
+      for (let i = 0; i <= 100; i += 10) {
+        await new Promise(resolve => setTimeout(resolve, 50));
+        setProgress(i);
       }
 
-      setProgress(90);
-
-      // Obtenir l'URL publique
-      const { data: urlData } = supabase.storage
-        .from(options.bucket)
-        .getPublicUrl(filePath);
-
-      setProgress(100);
+      // Simulate a successful upload
+      const simulatedPath = `${options.folder || 'uploads'}/${file.name}`;
+      const simulatedUrl = `http://localhost:5000/files/${simulatedPath}`; // Placeholder URL
 
       toast({
-        title: 'Upload réussi',
-        description: 'Le fichier a été uploadé avec succès.',
+        title: 'Upload réussi (simulé)',
+        description: 'Le fichier a été uploadé avec succès (simulation).',
       });
 
       return {
-        url: urlData.publicUrl,
-        path: filePath
+        url: simulatedUrl,
+        path: simulatedPath
       };
 
     } catch (error: any) {
-      console.error('Erreur upload:', error);
+      console.error('Erreur upload (simulé):', error);
       toast({
-        title: 'Erreur d\'upload',
-        description: error.message || 'Erreur lors de l\'upload du fichier.',
+        title: 'Erreur d\'upload (simulé)',
+        description: error.message || 'Erreur lors de l\'upload du fichier (simulation).',
         variant: 'destructive',
       });
       return null;
@@ -88,25 +72,20 @@ export const useFileUpload = () => {
 
   const deleteFile = async (bucket: string, path: string): Promise<boolean> => {
     try {
-      const { error } = await supabase.storage
-        .from(bucket)
-        .remove([path]);
-
-      if (error) {
-        throw error;
-      }
+      // Simulate deletion
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       toast({
-        title: 'Fichier supprimé',
-        description: 'Le fichier a été supprimé avec succès.',
+        title: 'Fichier supprimé (simulé)',
+        description: 'Le fichier a été supprimé avec succès (simulation).',
       });
 
       return true;
     } catch (error: any) {
-      console.error('Erreur suppression:', error);
+      console.error('Erreur suppression (simulé):', error);
       toast({
-        title: 'Erreur',
-        description: 'Erreur lors de la suppression du fichier.',
+        title: 'Erreur (simulé)',
+        description: 'Erreur lors de la suppression du fichier (simulation).',
         variant: 'destructive',
       });
       return false;

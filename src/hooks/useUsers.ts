@@ -1,8 +1,9 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import axios from 'axios';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+
+const API_BASE_URL = 'http://localhost:5000/api';
 
 export interface UserData {
   id: string;
@@ -28,13 +29,8 @@ export const useUsers = () => {
   const { data: users = [], isLoading, error } = useQuery({
     queryKey: ['users'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data as UserData[];
+      const response = await axios.get(`${API_BASE_URL}/users`);
+      return response.data as UserData[];
     },
     enabled: !!user,
   });
@@ -49,64 +45,26 @@ export const useUsers = () => {
       position?: string;
       airport: 'ENFIDHA' | 'MONASTIR';
       role: 'SUPER_ADMIN' | 'ADMINISTRATOR' | 'APPROVER' | 'USER' | 'VISITOR';
-      password: string;
+      password: string; // Password is only for initial creation, not stored in profile
     }) => {
       console.log('Création utilisateur avec données:', userData);
-      
-      // Créer l'utilisateur dans auth.users
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: userData.email,
-        password: userData.password,
-        email_confirm: true,
-        user_metadata: {
-          first_name: userData.first_name,
-          last_name: userData.last_name,
-        }
-      });
-
-      if (authError) {
-        console.error('Erreur création auth:', authError);
-        throw authError;
-      }
-
-      console.log('Utilisateur auth créé:', authData.user);
-
-      // Mettre à jour le profil créé automatiquement par le trigger
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          first_name: userData.first_name,
-          last_name: userData.last_name,
-          phone: userData.phone,
-          department: userData.department,
-          position: userData.position,
-          airport: userData.airport,
-          role: userData.role,
-        })
-        .eq('id', authData.user.id)
-        .select()
-        .single();
-
-      if (profileError) {
-        console.error('Erreur mise à jour profil:', profileError);
-        throw profileError;
-      }
-
-      console.log('Profil mis à jour:', profileData);
-      return profileData;
+      // The backend handles the user creation and profile update in one go
+      const response = await axios.post(`${API_BASE_URL}/users`, userData);
+      console.log('Utilisateur créé:', response.data);
+      return response.data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       toast({
         title: 'Utilisateur créé',
-        description: `L'utilisateur ${data.first_name} ${data.last_name} a été créé avec succès. Les admins ont été notifiés.`,
+        description: `L'utilisateur ${data.first_name} ${data.last_name} a été créé avec succès.`,
       });
     },
     onError: (error: any) => {
-      console.error('Erreur création utilisateur:', error);
+      console.error('Erreur création utilisateur:', error.response?.data || error.message);
       toast({
         title: 'Erreur',
-        description: error.message || 'Impossible de créer l\'utilisateur.',
+        description: error.response?.data?.message || error.message || 'Impossible de créer l\'utilisateur.',
         variant: 'destructive',
       });
     },
@@ -114,15 +72,8 @@ export const useUsers = () => {
 
   const updateUser = useMutation({
     mutationFn: async ({ id, ...updates }: { id: string } & Partial<UserData>) => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      const response = await axios.put(`${API_BASE_URL}/users/${id}`, updates);
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
@@ -131,11 +82,11 @@ export const useUsers = () => {
         description: 'L\'utilisateur a été mis à jour avec succès.',
       });
     },
-    onError: (error) => {
-      console.error('Erreur mise à jour utilisateur:', error);
+    onError: (error: any) => {
+      console.error('Erreur mise à jour utilisateur:', error.response?.data || error.message);
       toast({
         title: 'Erreur',
-        description: 'Impossible de mettre à jour l\'utilisateur.',
+        description: error.response?.data?.message || error.message || 'Impossible de mettre à jour l\'utilisateur.',
         variant: 'destructive',
       });
     },
@@ -143,12 +94,8 @@ export const useUsers = () => {
 
   const deleteUser = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ is_active: false })
-        .eq('id', id);
-
-      if (error) throw error;
+      // Soft delete: set is_active to false
+      await axios.delete(`${API_BASE_URL}/users/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
@@ -157,11 +104,11 @@ export const useUsers = () => {
         description: 'L\'utilisateur a été désactivé avec succès.',
       });
     },
-    onError: (error) => {
-      console.error('Erreur désactivation utilisateur:', error);
+    onError: (error: any) => {
+      console.error('Erreur désactivation utilisateur:', error.response?.data || error.message);
       toast({
         title: 'Erreur',
-        description: 'Impossible de désactiver l\'utilisateur.',
+        description: error.response?.data?.message || error.message || 'Impossible de désactiver l\'utilisateur.',
         variant: 'destructive',
       });
     },

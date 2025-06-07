@@ -1,6 +1,7 @@
-
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import axios from 'axios';
+
+const API_BASE_URL = 'http://localhost:5000/api';
 
 export interface DashboardStats {
   totalDocuments: number;
@@ -32,55 +33,36 @@ export const useDashboard = () => {
     queryKey: ['dashboard-stats'],
     queryFn: async (): Promise<DashboardStats> => {
       try {
-        // Récupérer les documents avec leurs auteurs
-        const { data: documents } = await supabase
-          .from('documents')
-          .select(`
-            *,
-            author:profiles(first_name, last_name)
-          `)
-          .order('created_at', { ascending: false });
+        // Fetch all necessary data from backend endpoints
+        const [documentsRes, usersRes, actionsRes, activityLogsRes] = await Promise.all([
+          axios.get(`${API_BASE_URL}/documents`),
+          axios.get(`${API_BASE_URL}/users`),
+          axios.get(`${API_BASE_URL}/actions`),
+          axios.get(`${API_BASE_URL}/activity-logs`),
+        ]);
 
-        // Récupérer les utilisateurs actifs
-        const { data: users } = await supabase
-          .from('profiles')
-          .select('id, is_active')
-          .eq('is_active', true);
-
-        // Récupérer les actions
-        const { data: actions } = await supabase
-          .from('actions')
-          .select(`
-            *,
-            document:documents(title, type)
-          `)
-          .order('created_at', { ascending: false });
-
-        // Récupérer les logs d'activité
-        const { data: activityLogs } = await supabase
-          .from('activity_logs')
-          .select('*')
-          .order('timestamp', { ascending: false })
-          .limit(10);
+        const documents = documentsRes.data || [];
+        const users = usersRes.data || [];
+        const actions = actionsRes.data || [];
+        const activityLogs = activityLogsRes.data || [];
 
         const now = new Date();
         const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-        const totalDocuments = documents?.length || 0;
-        const activeUsers = users?.length || 0;
-        const completedActions = actions?.filter(a => a.status === 'COMPLETED').length || 0;
-        const pendingActions = actions?.filter(a => a.status === 'PENDING').length || 0;
-        const documentsThisMonth = documents?.filter(d => new Date(d.created_at) >= thisMonth).length || 0;
-        const recentDocuments = documents?.slice(0, 5) || [];
-        const urgentActions = actions?.filter(a => a.priority === 'URGENT').slice(0, 5) || [];
+        const totalDocuments = documents.length || 0;
+        const activeUsers = users.filter((u: any) => u.is_active).length || 0;
+        const completedActions = actions.filter((a: any) => a.status === 'COMPLETED').length || 0;
+        const pendingActions = actions.filter((a: any) => a.status === 'PENDING').length || 0;
+        const documentsThisMonth = documents.filter((d: any) => new Date(d.created_at) >= thisMonth).length || 0;
+        const recentDocuments = documents.slice(0, 5) || [];
+        const urgentActions = actions.filter((a: any) => a.priority === 'URGENT').slice(0, 5) || [];
 
-        // Calculer le temps moyen de completion
-        const completedActionsWithTime = actions?.filter(a => 
-          a.status === 'COMPLETED' && a.actual_hours
+        const completedActionsWithTime = actions.filter((a: any) => 
+          a.status === 'COMPLETED' && a.actual_hours !== undefined && a.actual_hours !== null
         ) || [];
         
         const averageCompletionTime = completedActionsWithTime.length > 0
-          ? completedActionsWithTime.reduce((acc, action) => acc + (action.actual_hours || 0), 0) / completedActionsWithTime.length
+          ? completedActionsWithTime.reduce((acc: number, action: any) => acc + (action.actual_hours || 0), 0) / completedActionsWithTime.length
           : 0;
 
         return {
@@ -92,7 +74,18 @@ export const useDashboard = () => {
           averageCompletionTime,
           recentDocuments,
           urgentActions,
-          activityLogs: activityLogs || [],
+          activityLogs: activityLogs.map((log: any) => ({
+            id: log.id,
+            type: log.action as 'document_created' | 'user_added' | 'action_completed' | 'action_overdue',
+            title: log.action.replace(/_/g, ' ').toUpperCase(), // Replace underscores and capitalize
+            description: log.details,
+            user: {
+              name: `${log.user?.first_name || 'Utilisateur'} ${log.user?.last_name || 'Inconnu'}`,
+              initials: `${log.user?.first_name?.[0] || 'U'}${log.user?.last_name?.[0] || 'I'}`,
+            },
+            timestamp: log.timestamp,
+            priority: 'medium' as const, // Defaulting priority for activity logs
+          })) || [],
         };
       } catch (error) {
         console.error('Erreur récupération stats dashboard:', error);
@@ -111,41 +104,6 @@ export const useDashboard = () => {
     },
   });
 
-  const { data: activities, isLoading: activitiesLoading } = useQuery({
-    queryKey: ['dashboard-activities'],
-    queryFn: async (): Promise<DashboardActivity[]> => {
-      try {
-        // Récupérer les activités récentes depuis les logs d'activité
-        const { data: logs } = await supabase
-          .from('activity_logs')
-          .select(`
-            *,
-            user:profiles(first_name, last_name)
-          `)
-          .order('timestamp', { ascending: false })
-          .limit(20);
-
-        if (!logs) return [];
-
-        return logs.map(log => ({
-          id: log.id,
-          type: log.action as 'document_created' | 'user_added' | 'action_completed' | 'action_overdue',
-          title: log.action.replace('_', ' ').toUpperCase(),
-          description: log.details,
-          user: {
-            name: `${log.user?.first_name || 'Utilisateur'} ${log.user?.last_name || 'Inconnu'}`,
-            initials: `${log.user?.first_name?.[0] || 'U'}${log.user?.last_name?.[0] || 'I'}`,
-          },
-          timestamp: log.timestamp,
-          priority: 'medium' as const,
-        }));
-      } catch (error) {
-        console.error('Erreur récupération activités dashboard:', error);
-        return [];
-      }
-    },
-  });
-
   return {
     stats: stats || {
       totalDocuments: 0,
@@ -158,9 +116,6 @@ export const useDashboard = () => {
       urgentActions: [],
       activityLogs: [],
     },
-    activities: activities || [],
-    isLoading: statsLoading || activitiesLoading,
-    statsLoading,
-    activitiesLoading,
+    isLoading: statsLoading,
   };
 };

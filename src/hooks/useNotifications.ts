@@ -1,8 +1,9 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import axios from 'axios';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+
+const API_BASE_URL = 'http://localhost:5000/api';
 
 export interface Notification {
   id: string;
@@ -23,37 +24,26 @@ export const useNotifications = () => {
   const { data: notifications = [], isLoading, error } = useQuery({
     queryKey: ['notifications'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data as Notification[];
+      if (!user?.id) throw new Error('Utilisateur non connecté');
+      const response = await axios.get(`${API_BASE_URL}/notifications`);
+      return response.data as Notification[];
     },
     enabled: !!user,
   });
 
   const markAsRead = useMutation({
     mutationFn: async (notificationId: string) => {
-      const { data, error } = await supabase
-        .from('notifications')
-        .update({ is_read: true })
-        .eq('id', notificationId)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      const response = await axios.put(`${API_BASE_URL}/notifications/${notificationId}`, { is_read: true });
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
-    onError: (error) => {
-      console.error('Erreur marquage notification:', error);
+    onError: (error: any) => {
+      console.error('Erreur marquage notification:', error.response?.data || error.message);
       toast({
         title: 'Erreur',
-        description: 'Impossible de marquer la notification comme lue.',
+        description: error.response?.data?.message || error.message || 'Impossible de marquer la notification comme lue.',
         variant: 'destructive',
       });
     },
@@ -61,13 +51,8 @@ export const useNotifications = () => {
 
   const markAllAsRead = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ is_read: true })
-        .eq('user_id', user?.id)
-        .eq('is_read', false);
-
-      if (error) throw error;
+      if (!user?.id) throw new Error('Utilisateur non connecté');
+      await axios.put(`${API_BASE_URL}/notifications/mark-all-read`, { userId: user.id });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
@@ -76,11 +61,11 @@ export const useNotifications = () => {
         description: 'Toutes les notifications ont été marquées comme lues.',
       });
     },
-    onError: (error) => {
-      console.error('Erreur marquage toutes notifications:', error);
+    onError: (error: any) => {
+      console.error('Erreur marquage toutes notifications:', error.response?.data || error.message);
       toast({
         title: 'Erreur',
-        description: 'Impossible de marquer toutes les notifications comme lues.',
+        description: error.response?.data?.message || error.message || 'Impossible de marquer toutes les notifications comme lues.',
         variant: 'destructive',
       });
     },

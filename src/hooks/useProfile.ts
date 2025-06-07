@@ -1,8 +1,9 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import axios from 'axios';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+
+const API_BASE_URL = 'http://localhost:5000/api';
 
 export interface ProfileData {
   id: string;
@@ -24,40 +25,21 @@ export const useProfile = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // ===========================================
-  // DÉBUT INTÉGRATION BACKEND SUPABASE - PROFIL
-  // ===========================================
-
   const { data: profile, isLoading, error } = useQuery({
     queryKey: ['profile', user?.id],
     queryFn: async () => {
       if (!user?.id) throw new Error('Utilisateur non connecté');
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-      if (error) throw error;
-      return data as ProfileData;
+      const response = await axios.get(`${API_BASE_URL}/users/${user.id}`);
+      return response.data as ProfileData;
     },
     enabled: !!user?.id,
   });
 
   const updateProfile = useMutation({
-    mutationFn: async (updates: Partial<Omit<ProfileData, 'id' | 'created_at' | 'updated_at'>>) => {
+    mutationFn: async (updates: Partial<Omit<ProfileData, 'id' | 'created_at' | 'updated_at' | 'email' | 'role' | 'airport' | 'is_active'>>) => {
       if (!user?.id) throw new Error('Utilisateur non connecté');
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('id', user.id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      const response = await axios.put(`${API_BASE_URL}/users/${user.id}`, updates);
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profile'] });
@@ -66,19 +48,15 @@ export const useProfile = () => {
         description: 'Votre profil a été mis à jour avec succès.',
       });
     },
-    onError: (error) => {
-      console.error('Erreur mise à jour profil:', error);
+    onError: (error: any) => {
+      console.error('Erreur mise à jour profil:', error.response?.data || error.message);
       toast({
         title: 'Erreur',
-        description: 'Impossible de mettre à jour le profil.',
+        description: error.response?.data?.message || error.message || 'Impossible de mettre à jour le profil.',
         variant: 'destructive',
       });
     },
   });
-
-  // ===========================================
-  // FIN INTÉGRATION BACKEND SUPABASE - PROFIL
-  // ===========================================
 
   return {
     profile,
