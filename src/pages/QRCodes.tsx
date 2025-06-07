@@ -1,4 +1,3 @@
-
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,38 +5,30 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { QrCode, Search, Download, Eye, Plus } from 'lucide-react';
 import { useState } from 'react';
-import { useDocuments } from '@/hooks/useDocuments';
+import { useQRCodes } from '@/hooks/useQRCodes'; // Use the dedicated QR codes hook
 
 const QRCodes = () => {
-  const { documents, isLoading } = useDocuments();
+  const { qrCodes, isLoading, generateQRCode: generateNewQRCode } = useQRCodes();
   const [searchTerm, setSearchTerm] = useState('');
 
-  // ===========================================
-  // DÉBUT INTÉGRATION BACKEND SUPABASE - PAGE QR CODES
-  // ===========================================
-  
-  const filteredDocuments = documents.filter(doc => 
-    doc.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
-    doc.qr_code
+  const filteredQRCodes = qrCodes.filter(qr => 
+    qr.document?.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    qr.qr_code.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const generateQRCode = (qrCode: string) => {
-    // Génération d'un QR code simple avec l'URL du document
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrCode)}`;
-    return qrUrl;
+  const generateQRCodeImage = (qrCodeValue: string) => {
+    // This is a placeholder for a real QR code image generation service or library.
+    // For now, it uses a public API for demonstration.
+    return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrCodeValue)}`;
   };
 
-  const downloadQRCode = (document: any) => {
-    const qrUrl = generateQRCode(document.qr_code);
+  const handleDownloadQRCode = (qrCodeData: any) => {
+    const qrUrl = generateQRCodeImage(qrCodeData.qr_code);
     const link = document.createElement('a');
     link.href = qrUrl;
-    link.download = `qr-${document.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.png`;
+    link.download = `qr-${qrCodeData.document?.title.replace(/[^a-z0-9]/gi, '_').toLowerCase() || qrCodeData.id}.png`;
     link.click();
   };
-
-  // ===========================================
-  // FIN INTÉGRATION BACKEND SUPABASE - PAGE QR CODES
-  // ===========================================
 
   return (
     <AppLayout>
@@ -49,7 +40,10 @@ const QRCodes = () => {
               Générer et gérer les codes QR des documents
             </p>
           </div>
-          <Button className="bg-aviation-sky hover:bg-aviation-sky-dark">
+          {/* The "Générer QR Code" button here would typically open a dialog to select a document to generate a QR for.
+              For now, the useQRCodes hook has a generateQRCode mutation that can be triggered with a document ID.
+              This button is left as a placeholder for future implementation of a selection dialog. */}
+          <Button className="bg-aviation-sky hover:bg-aviation-sky-dark" onClick={() => alert('Fonctionnalité de génération de QR code pour un document spécifique à implémenter.')}>
             <Plus className="w-4 h-4 mr-2" />
             Générer QR Code
           </Button>
@@ -61,7 +55,7 @@ const QRCodes = () => {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
-                placeholder="Rechercher un document..."
+                placeholder="Rechercher un document par titre ou code QR..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -85,7 +79,7 @@ const QRCodes = () => {
               </Card>
             ))}
           </div>
-        ) : filteredDocuments.length === 0 ? (
+        ) : filteredQRCodes.length === 0 ? (
           <Card className="text-center p-8">
             <CardContent>
               <QrCode className="w-16 h-16 text-gray-400 mx-auto mb-4" />
@@ -99,21 +93,21 @@ const QRCodes = () => {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredDocuments.map((document) => (
-              <Card key={document.id} className="hover:shadow-md transition-shadow">
+            {filteredQRCodes.map((qrData) => (
+              <Card key={qrData.id} className="hover:shadow-md transition-shadow">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <QrCode className="w-5 h-5 text-aviation-sky" />
                     <Badge variant="outline">
-                      {document.airport}
+                      {qrData.document?.airport || 'N/A'} {/* Assuming airport might be available on document */}
                     </Badge>
                   </div>
                   <CardTitle className="text-lg line-clamp-2">
-                    {document.title}
+                    {qrData.document?.title || 'Document sans titre'}
                   </CardTitle>
                   <CardDescription>
                     <Badge variant="secondary" className="text-xs">
-                      {document.type}
+                      {qrData.document?.type || 'N/A'}
                     </Badge>
                   </CardDescription>
                 </CardHeader>
@@ -122,8 +116,8 @@ const QRCodes = () => {
                     {/* QR Code Image */}
                     <div className="w-32 h-32 border rounded-lg overflow-hidden bg-white">
                       <img
-                        src={generateQRCode(document.qr_code)}
-                        alt={`QR Code pour ${document.title}`}
+                        src={generateQRCodeImage(qrData.qr_code)}
+                        alt={`QR Code pour ${qrData.document?.title || 'Document'}`}
                         className="w-full h-full object-contain"
                       />
                     </div>
@@ -132,7 +126,7 @@ const QRCodes = () => {
                     <div className="text-center">
                       <p className="text-xs text-gray-500 mb-1">Code QR</p>
                       <p className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
-                        {document.qr_code.substring(0, 12)}...
+                        {qrData.qr_code.substring(0, 12)}...
                       </p>
                     </div>
 
@@ -146,7 +140,7 @@ const QRCodes = () => {
                         variant="outline" 
                         size="sm" 
                         className="flex-1"
-                        onClick={() => downloadQRCode(document)}
+                        onClick={() => handleDownloadQRCode(qrData)}
                       >
                         <Download className="w-4 h-4 mr-1" />
                         Télécharger
