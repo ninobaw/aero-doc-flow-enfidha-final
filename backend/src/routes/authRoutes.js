@@ -1,5 +1,6 @@
-import { Router } from 'express';
-import { User } from '../models/User'; // Assuming User model is defined
+const { Router } = require('express');
+const { User } = require('../models/User'); // Assuming User model is defined
+const bcrypt = require('bcryptjs'); // Import bcryptjs
 
 const router = Router();
 
@@ -13,12 +14,16 @@ router.post('/login', async (req, res) => {
   }
 
   try {
-    // In a real application, you would hash passwords and compare them securely.
-    // For migration purposes, we'll simulate a check against a hardcoded password or a simple match.
-    // IMPORTANT: This is NOT secure for production.
     const user = await User.findOne({ email });
 
-    if (!user || user.email !== email || password !== 'admin123' && password !== 'user123') { // Simplified check
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    // Compare provided password with hashed password in DB
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
@@ -46,4 +51,4 @@ router.post('/login', async (req, res) => {
   }
 });
 
-export default router;
+module.exports = router;

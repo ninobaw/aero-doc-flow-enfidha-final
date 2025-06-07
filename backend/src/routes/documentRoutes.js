@@ -1,7 +1,7 @@
-import { Router } from 'express';
-import { Document } from '../models/Document';
-import { User } from '../models/User'; // To populate author details
-import { v4 as uuidv4 } from 'uuid';
+const { Router } = require('express');
+const { Document } = require('../models/Document');
+const { User } = require('../models/User'); // To populate author details
+const { v4: uuidv4 } = require('uuid');
 
 const router = Router();
 
@@ -13,8 +13,8 @@ router.get('/', async (req, res) => {
       ...doc.toObject(),
       id: doc._id, // Map _id to id for frontend compatibility
       author: doc.authorId ? {
-        first_name: (doc.authorId as any).firstName,
-        last_name: (doc.authorId as any).lastName,
+        first_name: doc.authorId.firstName,
+        last_name: doc.authorId.lastName,
       } : null,
     }));
     res.json(formattedDocuments);
@@ -56,8 +56,8 @@ router.post('/', async (req, res) => {
       ...populatedDocument.toObject(),
       id: populatedDocument._id,
       author: populatedDocument.authorId ? {
-        first_name: (populatedDocument.authorId as any).firstName,
-        last_name: (populatedDocument.authorId as any).lastName,
+        first_name: populatedDocument.authorId.firstName,
+        last_name: populatedDocument.authorId.lastName,
       } : null,
     };
     res.status(201).json(formattedDocument);
@@ -81,8 +81,8 @@ router.put('/:id', async (req, res) => {
       ...document.toObject(),
       id: document._id,
       author: document.authorId ? {
-        first_name: (document.authorId as any).firstName,
-        last_name: (document.authorId as any).lastName,
+        first_name: document.authorId.firstName,
+        last_name: document.authorId.lastName,
       } : null,
     };
     res.json(formattedDocument);
@@ -108,4 +108,4 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-export default router;
+module.exports = router;

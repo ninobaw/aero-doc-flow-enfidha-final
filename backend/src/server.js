@@ -1,18 +1,18 @@
-import express from 'express';
-import dotenv from 'dotenv';
-import cors from 'cors';
-import connectDB from './db';
-import authRoutes from './routes/authRoutes';
-import userRoutes from './routes/userRoutes';
-import documentRoutes from './routes/documentRoutes';
-import formulaireRoutes from './routes/formulaireRoutes';
-import actionRoutes from './routes/actionRoutes'; // New import
-import correspondanceRoutes from './routes/correspondanceRoutes'; // New import
-import procesVerbalRoutes from './routes/procesVerbalRoutes'; // New import
-import reportRoutes from './routes/reportRoutes'; // New import
-import notificationRoutes from './routes/notificationRoutes'; // New import
-import appSettingsRoutes from './routes/appSettingsRoutes'; // New import
-import activityLogRoutes from './routes/activityLogRoutes'; // New import
+const express = require('express');
+const dotenv = require('dotenv');
+const cors = require('cors');
+const connectDB = require('./db');
+const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
+const documentRoutes = require('./routes/documentRoutes');
+const formulaireRoutes = require('./routes/formulaireRoutes');
+const actionRoutes = require('./routes/actionRoutes');
+const correspondanceRoutes = require('./routes/correspondanceRoutes');
+const procesVerbalRoutes = require('./routes/procesVerbalRoutes');
+const reportRoutes = require('./routes/reportRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const appSettingsRoutes = require('./routes/appSettingsRoutes');
+const activityLogRoutes = require('./routes/activityLogRoutes');
 
 dotenv.config();
 
@@ -30,13 +30,13 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/documents', documentRoutes);
 app.use('/api/formulaires', formulaireRoutes);
-app.use('/api/actions', actionRoutes); // Use action routes
-app.use('/api/correspondances', correspondanceRoutes); // Use correspondance routes
-app.use('/api/proces-verbaux', procesVerbalRoutes); // Use proces verbal routes
-app.use('/api/reports', reportRoutes); // Use report routes
-app.use('/api/notifications', notificationRoutes); // Use notification routes
-app.use('/api/settings', appSettingsRoutes); // Use app settings routes
-app.use('/api/activity-logs', activityLogRoutes); // Use activity log routes
+app.use('/api/actions', actionRoutes);
+app.use('/api/correspondances', correspondanceRoutes);
+app.use('/api/proces-verbaux', procesVerbalRoutes);
+app.use('/api/reports', reportRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/settings', appSettingsRoutes);
+app.use('/api/activity-logs', activityLogRoutes);
 
 // Define a simple root route
 app.get('/', (req, res) => {

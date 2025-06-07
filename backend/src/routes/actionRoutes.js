@@ -1,7 +1,7 @@
-import { Router } from 'express';
-import { Action } from '../models/Action';
-import { Document } from '../models/Document'; // To populate parent document details
-import { v4 as uuidv4 } from 'uuid';
+const { Router } = require('express');
+const { Action } = require('../models/Action');
+const { Document } = require('../models/Document'); // To populate parent document details
+const { v4: uuidv4 } = require('uuid');
 
 const router = Router();
 
@@ -13,8 +13,8 @@ router.get('/', async (req, res) => {
       ...action.toObject(),
       id: action._id,
       document: action.parentDocumentId ? {
-        title: (action.parentDocumentId as any).title,
-        type: (action.parentDocumentId as any).type,
+        title: action.parentDocumentId.title,
+        type: action.parentDocumentId.type,
       } : null,
     }));
     res.json(formattedActions);
@@ -53,8 +53,8 @@ router.post('/', async (req, res) => {
       ...populatedAction.toObject(),
       id: populatedAction._id,
       document: populatedAction.parentDocumentId ? {
-        title: (populatedAction.parentDocumentId as any).title,
-        type: (populatedAction.parentDocumentId as any).type,
+        title: populatedAction.parentDocumentId.title,
+        type: populatedAction.parentDocumentId.type,
       } : null,
     };
     res.status(201).json(formattedAction);
@@ -104,8 +104,8 @@ router.put('/:id', async (req, res) => {
       ...action.toObject(),
       id: action._id,
       document: action.parentDocumentId ? {
-        title: (action.parentDocumentId as any).title,
-        type: (action.parentDocumentId as any).type,
+        title: action.parentDocumentId.title,
+        type: action.parentDocumentId.type,
       } : null,
     };
     res.json(formattedAction);
@@ -131,4 +131,4 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-export default router;
+module.exports = router;

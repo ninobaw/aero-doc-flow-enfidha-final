@@ -1,16 +1,16 @@
-import { Router } from 'express';
-import { Report } from '../models/Report';
-import { Document } from '../models/Document';
-import { User } from '../models/User';
-import { Action } from '../models/Action';
-import { Correspondance } from '../models/Correspondance';
-import { v4 as uuidv4 } from 'uuid';
+const { Router } = require('express');
+const { Report } = require('../models/Report');
+const { Document } = require('../models/Document');
+const { User } = require('../models/User');
+const { Action } = require('../models/Action');
+const { Correspondance } = require('../models/Correspondance');
+const { v4: uuidv4 } = require('uuid');
 
 const router = Router();
 
 // Helper function to generate report content based on type
-const generateReportContent = async (type: string, config: Record<string, any>) => {
-  let reportContent: Record<string, any> = {};
+const generateReportContent = async (type, config) => {
+  let reportContent = {};
 
   try {
     switch (type) {
@@ -18,16 +18,16 @@ const generateReportContent = async (type: string, config: Record<string, any>) 
         const documentsData = await Document.find({});
         reportContent = {
           totalDocuments: documentsData?.length || 0,
-          documentsByType: documentsData?.reduce((acc: any, doc: any) => {
+          documentsByType: documentsData?.reduce((acc, doc) => {
             acc[doc.type] = (acc[doc.type] || 0) + 1;
             return acc;
           }, {}) || {},
-          documentsByAirport: documentsData?.reduce((acc: any, doc: any) => {
+          documentsByAirport: documentsData?.reduce((acc, doc) => {
             acc[doc.airport] = (acc[doc.airport] || 0) + 1;
             return acc;
           }, {}) || {},
-          totalViews: documentsData?.reduce((sum: number, doc: any) => sum + (doc.viewsCount || 0), 0) || 0,
-          totalDownloads: documentsData?.reduce((sum: number, doc: any) => sum + (doc.downloadsCount || 0), 0) || 0,
+          totalViews: documentsData?.reduce((sum, doc) => sum + (doc.viewsCount || 0), 0) || 0,
+          totalDownloads: documentsData?.reduce((sum, doc) => sum + (doc.downloadsCount || 0), 0) || 0,
         };
         break;
 
@@ -35,12 +35,12 @@ const generateReportContent = async (type: string, config: Record<string, any>) 
         const usersData = await User.find({});
         reportContent = {
           totalUsers: usersData?.length || 0,
-          activeUsers: usersData?.filter((user: any) => user.isActive).length || 0,
-          usersByRole: usersData?.reduce((acc: any, user: any) => {
+          activeUsers: usersData?.filter(user => user.isActive).length || 0,
+          usersByRole: usersData?.reduce((acc, user) => {
             acc[user.role] = (acc[user.role] || 0) + 1;
             return acc;
           }, {}) || {},
-          usersByAirport: usersData?.reduce((acc: any, user: any) => {
+          usersByAirport: usersData?.reduce((acc, user) => {
             acc[user.airport] = (acc[user.airport] || 0) + 1;
             return acc;
           }, {}) || {},
@@ -51,15 +51,15 @@ const generateReportContent = async (type: string, config: Record<string, any>) 
         const actionsData = await Action.find({});
         reportContent = {
           totalActions: actionsData?.length || 0,
-          actionsByStatus: actionsData?.reduce((acc: any, action: any) => {
+          actionsByStatus: actionsData?.reduce((acc, action) => {
             acc[action.status] = (acc[action.status] || 0) + 1;
             return acc;
           }, {}) || {},
-          actionsByPriority: actionsData?.reduce((acc: any, action: any) => {
+          actionsByPriority: actionsData?.reduce((acc, action) => {
             acc[action.priority] = (acc[action.priority] || 0) + 1;
             return acc;
           }, {}) || {},
-          averageProgress: actionsData?.reduce((sum: number, action: any) => sum + (action.progress || 0), 0) / (actionsData?.length || 1) || 0,
+          averageProgress: actionsData?.reduce((sum, action) => sum + (action.progress || 0), 0) / (actionsData?.length || 1) || 0,
         };
         break;
 
@@ -80,21 +80,21 @@ const generateReportContent = async (type: string, config: Record<string, any>) 
 
         reportContent = {
           productivity: {
-            documentsCreatedThisMonth: documents.filter((doc: any) => 
+            documentsCreatedThisMonth: documents.filter(doc => 
               doc.createdAt.getMonth() === currentMonth && doc.createdAt.getFullYear() === currentYear
             ).length,
-            actionsCompletedThisMonth: actions.filter((action: any) => 
+            actionsCompletedThisMonth: actions.filter(action => 
               action.status === 'COMPLETED' &&
               action.createdAt.getMonth() === currentMonth && action.createdAt.getFullYear() === currentYear
             ).length,
-            correspondancesSentThisMonth: correspondances.filter((corr: any) => 
+            correspondancesSentThisMonth: correspondances.filter(corr => 
               corr.createdAt.getMonth() === currentMonth && corr.createdAt.getFullYear() === currentYear
             ).length,
           },
           efficiency: {
             totalActions: actions.length,
-            completedActions: actions.filter((action: any) => action.status === 'COMPLETED').length,
-            overdueActions: actions.filter((action: any) => 
+            completedActions: actions.filter(action => action.status === 'COMPLETED').length,
+            overdueActions: actions.filter(action => 
               action.status !== 'COMPLETED' && action.dueDate < now
             ).length,
           }
@@ -120,10 +120,10 @@ router.get('/', async (req, res) => {
       ...report.toObject(),
       id: report._id,
       created_by: report.createdBy ? {
-        first_name: (report.createdBy as any).firstName,
-        last_name: (report.createdBy as any).lastName,
+        first_name: report.createdBy.firstName,
+        last_name: report.createdBy.lastName,
       } : null,
-      last_generated: report.lastGenerated?.toISOString(), // Ensure date is ISO string
+      last_generated: report.lastGenerated?.toISOString(),
     }));
     res.json(formattedReports);
   } catch (error) {
@@ -149,7 +149,7 @@ router.post('/', async (req, res) => {
       type,
       config: config || {},
       content,
-      status: 'COMPLETED', // Reports are generated immediately upon creation
+      status: 'COMPLETED',
       frequency,
       lastGenerated: new Date(),
       createdBy: created_by,
@@ -162,8 +162,8 @@ router.post('/', async (req, res) => {
       ...populatedReport.toObject(),
       id: populatedReport._id,
       created_by: populatedReport.createdBy ? {
-        first_name: (populatedReport.createdBy as any).firstName,
-        last_name: (populatedReport.createdBy as any).lastName,
+        first_name: populatedReport.createdBy.firstName,
+        last_name: populatedReport.createdBy.lastName,
       } : null,
       last_generated: populatedReport.lastGenerated?.toISOString(),
     };
@@ -190,4 +190,4 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-export default router;
+module.exports = router;

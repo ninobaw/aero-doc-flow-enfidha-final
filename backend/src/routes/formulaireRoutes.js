@@ -1,7 +1,7 @@
-import { Router } from 'express';
-import { Document } from '../models/Document';
-import { User } from '../models/User'; // To populate author details
-import { v4 as uuidv4 } from 'uuid';
+const { Router } = require('express');
+const { Document } = require('../models/Document');
+const { User } = require('../models/User'); // To populate author details
+const { v4: uuidv4 } = require('uuid');
 
 const router = Router();
 
@@ -13,8 +13,8 @@ router.get('/', async (req, res) => {
       ...doc.toObject(),
       id: doc._id,
       author: doc.authorId ? {
-        first_name: (doc.authorId as any).firstName,
-        last_name: (doc.authorId as any).lastName,
+        first_name: doc.authorId.firstName,
+        last_name: doc.authorId.lastName,
       } : null,
     }));
     res.json(formattedFormulaires);
@@ -54,8 +54,8 @@ router.post('/', async (req, res) => {
       ...populatedFormulaire.toObject(),
       id: populatedFormulaire._id,
       author: populatedFormulaire.authorId ? {
-        first_name: (populatedFormulaire.authorId as any).firstName,
-        last_name: (populatedFormulaire.authorId as any).lastName,
+        first_name: populatedFormulaire.authorId.firstName,
+        last_name: populatedFormulaire.authorId.lastName,
       } : null,
     };
     res.status(201).json(formattedFormulaire);
@@ -81,4 +81,4 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-export default router;
+module.exports = router;
