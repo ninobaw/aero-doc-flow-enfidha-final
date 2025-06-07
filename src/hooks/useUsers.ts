@@ -8,8 +8,8 @@ const API_BASE_URL = 'http://localhost:5000/api'; // Your custom Node.js backend
 export interface UserData {
   id: string;
   email: string;
-  first_name: string;
-  last_name: string;
+  firstName: string; // Changed from first_name
+  lastName: string;  // Changed from last_name
   phone?: string;
   department?: string;
   position?: string;
@@ -38,8 +38,8 @@ export const useUsers = () => {
   const createUser = useMutation({
     mutationFn: async (userData: {
       email: string;
-      first_name: string;
-      last_name: string;
+      firstName: string; // Changed from first_name
+      lastName: string;  // Changed from last_name
       phone?: string;
       department?: string;
       position?: string;
@@ -57,7 +57,7 @@ export const useUsers = () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       toast({
         title: 'Utilisateur créé',
-        description: `L'utilisateur ${data.first_name} ${data.last_name} a été créé avec succès.`,
+        description: `L'utilisateur ${data.firstName} ${data.lastName} a été créé avec succès.`,
       });
     },
     onError: (error: any) => {

@@ -66,12 +66,19 @@ const Users = () => {
     return <Badge className={config.color}>{config.label}</Badge>;
   };
 
-  const filteredUsers = users.filter(user =>
-    user.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.department?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers = users.filter(user => {
+    const firstName = user.firstName || ''; // Use user.firstName and provide fallback
+    const lastName = user.lastName || '';   // Use user.lastName and provide fallback
+    const email = user.email || '';
+    const department = user.department || '';
+
+    return (
+      firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      department.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
 
   const canManageUsers = hasPermission('manage_users');
 
@@ -172,12 +179,12 @@ const Users = () => {
                         <Avatar className="h-8 w-8">
                           <AvatarImage src={user.profile_photo} />
                           <AvatarFallback className="bg-aviation-sky text-white text-xs">
-                            {user.first_name[0]}{user.last_name[0]}
+                            {user.firstName?.[0]}{user.lastName?.[0]}
                           </AvatarFallback>
                         </Avatar>
                         <div>
                           <div className="font-medium text-gray-900">
-                            {user.first_name} {user.last_name}
+                            {user.firstName} {user.lastName}
                           </div>
                           {user.phone && (
                             <div className="text-sm text-gray-500">{user.phone}</div>
