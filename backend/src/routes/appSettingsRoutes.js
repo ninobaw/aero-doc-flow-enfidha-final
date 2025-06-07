@@ -1,6 +1,6 @@
-import { Router } from 'express';
-import { AppSettings } from '../models/AppSettings';
-import { v4 as uuidv4 } from 'uuid';
+const { Router } = require('express');
+const { AppSettings } = require('../models/AppSettings');
+const { v4: uuidv4 } = require('uuid');
 
 const router = Router();
 
@@ -68,7 +68,7 @@ router.put('/:userId', async (req, res) => {
   const updates = req.body;
 
   // Map frontend field names to backend schema names
-  const mappedUpdates: any = {};
+  const mappedUpdates = {};
   if (updates.company_name !== undefined) mappedUpdates.companyName = updates.company_name;
   if (updates.default_airport !== undefined) mappedUpdates.defaultAirport = updates.default_airport;
   if (updates.language !== undefined) mappedUpdates.language = updates.language;
@@ -119,4 +119,4 @@ router.put('/:userId', async (req, res) => {
   }
 });
 
-export default router;
+module.exports = router;

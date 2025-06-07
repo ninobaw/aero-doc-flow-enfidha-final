@@ -1,7 +1,7 @@
-import { Router } from 'express';
-import { ActivityLog } from '../models/ActivityLog';
-import { User } from '../models/User'; // To populate user details
-import { v4 as uuidv4 } from 'uuid';
+const { Router } = require('express');
+const { ActivityLog } = require('../models/ActivityLog');
+const { User } = require('../models/User'); // To populate user details
+const { v4: uuidv4 } = require('uuid');
 
 const router = Router();
 
@@ -13,8 +13,8 @@ router.get('/', async (req, res) => {
       ...log.toObject(),
       id: log._id,
       user: log.userId ? {
-        first_name: (log.userId as any).firstName,
-        last_name: (log.userId as any).lastName,
+        first_name: log.userId.firstName,
+        last_name: log.userId.lastName,
       } : null,
       timestamp: log.timestamp.toISOString(),
     }));
@@ -57,4 +57,4 @@ router.post('/', async (req, res) => {
   }
 });
 
-export default router;
+module.exports = router;

@@ -1,6 +1,6 @@
-import { Router } from 'express';
-import { Notification } from '../models/Notification';
-import { v4 as uuidv4 } from 'uuid';
+const { Router } = require('express');
+const { Notification } = require('../models/Notification');
+const { v4: uuidv4 } = require('uuid');
 
 const router = Router();
 
@@ -102,4 +102,4 @@ router.put('/mark-all-read', async (req, res) => {
   }
 });
 
-export default router;
+module.exports = router;

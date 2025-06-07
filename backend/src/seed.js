@@ -1,7 +1,7 @@
-import connectDB from './db';
-import { User } from './models/User';
-import { v4 as uuidv4 } from 'uuid';
-import bcrypt from 'bcryptjs'; // Import bcryptjs
+const connectDB = require('./db');
+const { User } = require('./models/User');
+const { v4: uuidv4 } = require('uuid');
+const bcrypt = require('bcryptjs'); // Import bcryptjs
 
 const seedDatabase = async () => {
   await connectDB();
