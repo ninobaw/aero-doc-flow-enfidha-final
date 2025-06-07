@@ -1,6 +1,6 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, UserRole } from '@/shared/types';
+import axios from 'axios'; // Import axios
 
 interface AuthContextType {
   user: User | null;
@@ -12,44 +12,15 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Comptes de test
-const TEST_USERS: Array<User & { password: string }> = [
-  {
-    id: 'user-1',
-    email: 'superadmin@aerodoc.tn',
-    password: 'admin123',
-    firstName: 'Ahmed',
-    lastName: 'Ben Ali',
-    role: UserRole.SUPER_ADMIN,
-    airport: 'ENFIDHA',
-    createdAt: new Date('2023-01-15'),
-    updatedAt: new Date(),
-    isActive: true,
-    phone: '+216 20 123 456',
-    department: 'Administration'
-  },
-  {
-    id: 'user-2',
-    email: 'user@aerodoc.tn',
-    password: 'user123',
-    firstName: 'Fatma',
-    lastName: 'Trabelsi',
-    role: UserRole.USER,
-    airport: 'MONASTIR',
-    createdAt: new Date('2023-03-20'),
-    updatedAt: new Date(),
-    isActive: true,
-    phone: '+216 25 789 012',
-    department: 'Opérations'
-  }
-];
+// Define your backend API base URL
+const API_BASE_URL = 'http://localhost:5000/api'; // Adjust if your backend runs on a different port/host
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Vérifier si l'utilisateur est déjà connecté
+    // Check if the user is already logged in from localStorage
     const savedUser = localStorage.getItem('currentUser');
     if (savedUser) {
       setUser(JSON.parse(savedUser));
@@ -59,27 +30,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
-    
-    // Simuler un délai d'authentification
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const foundUser = TEST_USERS.find(u => u.email === email && u.password === password);
-    
-    if (foundUser) {
-      const { password: _, ...userWithoutPassword } = foundUser;
-      setUser(userWithoutPassword);
-      localStorage.setItem('currentUser', JSON.stringify(userWithoutPassword));
+    try {
+      const response = await axios.post(`${API_BASE_URL}/auth/login`, { email, password });
+      const loggedInUser = response.data.user;
+      
+      setUser(loggedInUser);
+      localStorage.setItem('currentUser', JSON.stringify(loggedInUser));
       setIsLoading(false);
       return true;
+    } catch (error) {
+      console.error('Login failed:', error);
+      setUser(null);
+      setIsLoading(false);
+      return false;
     }
-    
-    setIsLoading(false);
-    return false;
   };
 
   const logout = () => {
     setUser(null);
     localStorage.removeItem('currentUser');
+    // In a real app, you might also call a backend logout endpoint here
   };
 
   const hasPermission = (permission: string): boolean => {
