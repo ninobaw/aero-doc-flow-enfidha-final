@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,11 +11,16 @@ import { FilePlus, Upload, FileText, Save, Eye, X } from 'lucide-react';
 import { useDocuments } from '@/hooks/useDocuments';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useFileUpload } from '@/hooks/useFileUpload';
+import { useToast } from '@/hooks/use-toast';
 
 const NouveauDoc = () => {
   const { user } = useAuth();
   const { createDocument, isCreating } = useDocuments();
+  const { uploadFile, uploading: isUploadingFile } = useFileUpload();
   const navigate = useNavigate();
+  const { toast } = useToast();
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
@@ -52,6 +56,11 @@ const NouveauDoc = () => {
         }
         const url = URL.createObjectURL(file);
         setPreviewUrl(url);
+      } else {
+        if (previewUrl) {
+          URL.revokeObjectURL(previewUrl);
+        }
+        setPreviewUrl(null); // No preview for other file types
       }
     }
   };
@@ -68,10 +77,20 @@ const NouveauDoc = () => {
     event.preventDefault();
     
     if (!user) {
+      toast({
+        title: 'Erreur d\'authentification',
+        description: 'Vous devez être connecté pour créer un document.',
+        variant: 'destructive',
+      });
       return;
     }
 
     if (!formData.titre.trim() || !formData.aeroport || !formData.type) {
+      toast({
+        title: 'Champs manquants',
+        description: 'Veuillez remplir tous les champs obligatoires (Titre, Aéroport, Type).',
+        variant: 'destructive',
+      });
       return;
     }
 
@@ -80,42 +99,70 @@ const NouveauDoc = () => {
       content: formData.contenu,
       type: formData.type as 'FORMULAIRE_DOC' | 'CORRESPONDANCE' | 'PROCES_VERBAL' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL',
       airport: formData.aeroport as 'ENFIDHA' | 'MONASTIR',
-      category: formData.reference,
-      description: formData.description,
+      // Additional metadata can be stringified into content or added as separate fields if schema allows
+      // For now, reference, version, responsable are not directly mapped to backend Document model fields
+      // They could be part of the 'content' JSON string if needed.
     };
 
     createDocument(documentData, {
       onSuccess: () => {
+        toast({
+          title: 'Document créé',
+          description: 'Le document a été créé avec succès.',
+        });
         navigate('/documents');
       }
     });
   };
 
-  const handleFileSubmit = (event: React.FormEvent) => {
+  const handleFileSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     
     if (!user) {
+      toast({
+        title: 'Erreur d\'authentification',
+        description: 'Vous devez être connecté pour importer un document.',
+        variant: 'destructive',
+      });
       return;
     }
 
     if (!importData.titre.trim() || !importData.aeroport || !importData.type || !selectedFile) {
+      toast({
+        title: 'Champs manquants',
+        description: 'Veuillez remplir tous les champs obligatoires et sélectionner un fichier.',
+        variant: 'destructive',
+      });
       return;
     }
 
-    const documentData = {
-      title: importData.titre,
-      content: importData.description,
-      type: importData.type as 'FORMULAIRE_DOC' | 'CORRESPONDANCE' | 'PROCES_VERBAL' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL',
-      airport: importData.aeroport as 'ENFIDHA' | 'MONASTIR',
-      description: importData.description,
-      file: selectedFile,
-    };
-
-    createDocument(documentData, {
-      onSuccess: () => {
-        navigate('/documents');
-      }
+    const uploadedFile = await uploadFile(selectedFile, {
+      bucket: 'documents', // Logical bucket name
+      folder: 'uploads',
+      allowedTypes: ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx'],
+      maxSize: 10 // 10MB
     });
+
+    if (uploadedFile) {
+      const documentData = {
+        title: importData.titre,
+        content: importData.description,
+        type: importData.type as 'FORMULAIRE_DOC' | 'CORRESPONDANCE' | 'PROCES_VERBAL' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL',
+        airport: importData.aeroport as 'ENFIDHA' | 'MONASTIR',
+        file_path: uploadedFile.path, // Store the path from the simulated upload
+        file_type: selectedFile.type,
+      };
+
+      createDocument(documentData, {
+        onSuccess: () => {
+          toast({
+            title: 'Document importé',
+            description: 'Le document a été importé et enregistré avec succès.',
+          });
+          navigate('/documents');
+        }
+      });
+    }
   };
 
   return (
@@ -180,6 +227,7 @@ const NouveauDoc = () => {
                       <Select 
                         value={formData.aeroport}
                         onValueChange={(value: 'ENFIDHA' | 'MONASTIR') => setFormData(prev => ({ ...prev, aeroport: value }))}
+                        required
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner un aéroport" />
@@ -196,6 +244,7 @@ const NouveauDoc = () => {
                       <Select
                         value={formData.type}
                         onValueChange={(value: 'FORMULAIRE_DOC' | 'CORRESPONDANCE' | 'PROCES_VERBAL' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL') => setFormData(prev => ({ ...prev, type: value }))}
+                        required
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner un type" />
@@ -260,7 +309,7 @@ const NouveauDoc = () => {
                     </Button>
                     <Button 
                       type="submit" 
-                      disabled={isCreating || !formData.titre.trim() || !formData.aeroport || !formData.type}
+                      disabled={isCreating}
                       className="bg-aviation-sky hover:bg-aviation-sky-dark"
                     >
                       <Save className="w-4 h-4 mr-2" />
@@ -289,6 +338,7 @@ const NouveauDoc = () => {
                       <Select
                         value={importData.aeroport}
                         onValueChange={(value: 'ENFIDHA' | 'MONASTIR') => setImportData(prev => ({ ...prev, aeroport: value }))}
+                        required
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner un aéroport" />
@@ -305,6 +355,7 @@ const NouveauDoc = () => {
                       <Select
                         value={importData.type}
                         onValueChange={(value: 'FORMULAIRE_DOC' | 'CORRESPONDANCE' | 'PROCES_VERBAL' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL') => setImportData(prev => ({ ...prev, type: value }))}
+                        required
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner un type" />
@@ -367,7 +418,12 @@ const NouveauDoc = () => {
                           </div>
                           <div className="flex space-x-2">
                             {previewUrl && (
-                              <Button variant="outline" size="sm" type="button">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                type="button"
+                                onClick={() => window.open(previewUrl, '_blank')}
+                              >
                                 <Eye className="w-4 h-4 mr-2" />
                                 Prévisualiser
                               </Button>
@@ -392,11 +448,11 @@ const NouveauDoc = () => {
                     </Button>
                     <Button 
                       type="submit" 
-                      disabled={isCreating || !importData.titre.trim() || !importData.aeroport || !importData.type || !selectedFile}
+                      disabled={isCreating || isUploadingFile || !importData.titre.trim() || !importData.aeroport || !importData.type || !selectedFile}
                       className="bg-aviation-sky hover:bg-aviation-sky-dark"
                     >
                       <Save className="w-4 h-4 mr-2" />
-                      {isCreating ? 'Import...' : 'Importer et Enregistrer'}
+                      {isCreating || isUploadingFile ? 'Import...' : 'Importer et Enregistrer'}
                     </Button>
                   </div>
                 </form>
