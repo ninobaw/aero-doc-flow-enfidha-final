@@ -1,4 +1,3 @@
-
 export const AIRPORTS = {
   ENFIDHA: {
     code: 'ENFIDHA',
