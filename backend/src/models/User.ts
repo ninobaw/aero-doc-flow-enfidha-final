@@ -5,6 +5,7 @@ export interface IUser extends Document {
   email: string;
   firstName: string;
   lastName: string;
+  password: string; // Added password field
   role: 'SUPER_ADMIN' | 'ADMINISTRATOR' | 'APPROVER' | 'USER' | 'VISITOR';
   profilePhoto?: string;
   airport: 'ENFIDHA' | 'MONASTIR';
@@ -22,6 +23,7 @@ const UserSchema = new Schema<IUser>({
   email: { type: String, required: true, unique: true },
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
+  password: { type: String, required: true }, // Mark as required
   role: { 
     type: String, 
     enum: ['SUPER_ADMIN', 'ADMINISTRATOR', 'APPROVER', 'USER', 'VISITOR'], 
