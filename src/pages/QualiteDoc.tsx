@@ -1,4 +1,4 @@
-
+import { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,9 +6,85 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FileCheck, Save, Plus } from 'lucide-react';
+import { FileCheck, Save } from 'lucide-react';
+import { useDocuments } from '@/hooks/useDocuments';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 const QualiteDoc = () => {
+  const { user } = useAuth();
+  const { createDocument, isCreating } = useDocuments();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const [formData, setFormData] = useState({
+    title: '',
+    reference: '',
+    airport: '' as 'ENFIDHA' | 'MONASTIR' | '',
+    typeQualite: '', // Specific to QualiteDoc, will be part of content
+    version: '1.0',
+    responsable: '',
+    description: '',
+    objectifs: '',
+    processus: '',
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!user) {
+      toast({
+        title: 'Erreur d\'authentification',
+        description: 'Vous devez être connecté pour créer un document.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!formData.title.trim() || !formData.airport) {
+      toast({
+        title: 'Erreur de validation',
+        description: 'Le titre du document et l\'aéroport sont requis.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Combine specific fields into a JSON string for the 'content' field
+    const contentData = {
+      reference: formData.reference,
+      typeQualite: formData.typeQualite,
+      version: formData.version,
+      responsable: formData.responsable,
+      description: formData.description,
+      objectifs: formData.objectifs,
+      processus: formData.processus,
+    };
+
+    createDocument({
+      title: formData.title.trim(),
+      type: 'QUALITE_DOC', // Fixed type for this page
+      content: JSON.stringify(contentData),
+      airport: formData.airport as 'ENFIDHA' | 'MONASTIR',
+    }, {
+      onSuccess: () => {
+        setFormData({
+          title: '',
+          reference: '',
+          airport: '',
+          typeQualite: '',
+          version: '1.0',
+          responsable: '',
+          description: '',
+          objectifs: '',
+          processus: '',
+        });
+        navigate('/documents'); // Redirect to documents list after creation
+      }
+    });
+  };
+
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -30,12 +106,14 @@ const QualiteDoc = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="titre">Titre du document *</Label>
                   <Input
                     id="titre"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     placeholder="Entrez le titre du document"
                     required
                   />
@@ -45,26 +123,35 @@ const QualiteDoc = () => {
                   <Label htmlFor="reference">Référence</Label>
                   <Input
                     id="reference"
+                    value={formData.reference}
+                    onChange={(e) => setFormData({ ...formData, reference: e.target.value })}
                     placeholder="REF-QUAL-2025-001"
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="aeroport">Aéroport *</Label>
-                  <Select>
+                  <Select 
+                    value={formData.airport} 
+                    onValueChange={(value: 'ENFIDHA' | 'MONASTIR') => setFormData({ ...formData, airport: value })}
+                    required
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Sélectionner un aéroport" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="enfidha">Enfidha</SelectItem>
-                      <SelectItem value="monastir">Monastir</SelectItem>
+                      <SelectItem value="ENFIDHA">Enfidha</SelectItem>
+                      <SelectItem value="MONASTIR">Monastir</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="type-qualite">Type de document qualité</Label>
-                  <Select>
+                  <Select 
+                    value={formData.typeQualite} 
+                    onValueChange={(value) => setFormData({ ...formData, typeQualite: value })}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Sélectionner le type" />
                     </SelectTrigger>
@@ -82,8 +169,9 @@ const QualiteDoc = () => {
                   <Label htmlFor="version">Version</Label>
                   <Input
                     id="version"
+                    value={formData.version}
+                    onChange={(e) => setFormData({ ...formData, version: e.target.value })}
                     placeholder="1.0"
-                    defaultValue="1.0"
                   />
                 </div>
 
@@ -91,6 +179,8 @@ const QualiteDoc = () => {
                   <Label htmlFor="responsable">Responsable qualité</Label>
                   <Input
                     id="responsable"
+                    value={formData.responsable}
+                    onChange={(e) => setFormData({ ...formData, responsable: e.target.value })}
                     placeholder="Nom du responsable"
                   />
                 </div>
@@ -100,6 +190,8 @@ const QualiteDoc = () => {
                 <Label htmlFor="description">Description</Label>
                 <Textarea
                   id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Description détaillée du document qualité..."
                   rows={4}
                 />
@@ -109,6 +201,8 @@ const QualiteDoc = () => {
                 <Label htmlFor="objectifs">Objectifs qualité</Label>
                 <Textarea
                   id="objectifs"
+                  value={formData.objectifs}
+                  onChange={(e) => setFormData({ ...formData, objectifs: e.target.value })}
                   placeholder="Définir les objectifs et la portée de ce document..."
                   rows={3}
                 />
@@ -118,18 +212,24 @@ const QualiteDoc = () => {
                 <Label htmlFor="processus">Processus concernés</Label>
                 <Textarea
                   id="processus"
+                  value={formData.processus}
+                  onChange={(e) => setFormData({ ...formData, processus: e.target.value })}
                   placeholder="Lister les processus aéroportuaires concernés..."
                   rows={3}
                 />
               </div>
 
               <div className="flex justify-end space-x-4">
-                <Button variant="outline">
+                <Button type="button" variant="outline" onClick={() => navigate('/documents')}>
                   Annuler
                 </Button>
-                <Button className="bg-aviation-sky hover:bg-aviation-sky-dark">
+                <Button 
+                  type="submit" 
+                  disabled={isCreating}
+                  className="bg-aviation-sky hover:bg-aviation-sky-dark"
+                >
                   <Save className="w-4 h-4 mr-2" />
-                  Enregistrer
+                  {isCreating ? 'Enregistrement...' : 'Enregistrer'}
                 </Button>
               </div>
             </form>
