@@ -8,14 +8,16 @@ const router = Router();
 // GET /api/correspondances
 router.get('/', async (req, res) => {
   try {
-    const correspondances = await Correspondance.find({}).populate('documentId', 'title authorId').populate({
-      path: 'documentId',
-      populate: {
-        path: 'authorId',
-        model: 'User',
-        select: 'firstName lastName'
-      }
-    });
+    const correspondances = await Correspondance.find({})
+      .populate('documentId', 'title authorId')
+      .populate({
+        path: 'documentId',
+        populate: {
+          path: 'authorId',
+          model: 'User',
+          select: 'firstName lastName'
+        }
+      });
     const formattedCorrespondances = correspondances.map(corr => ({
       ...corr.toObject(),
       id: corr._id,
@@ -77,14 +79,16 @@ router.post('/', async (req, res) => {
 
     await newCorrespondance.save();
     
-    const populatedCorrespondance = await newCorrespondance.populate('documentId', 'title authorId').populate({
-      path: 'documentId',
-      populate: {
-        path: 'authorId',
-        model: 'User',
-        select: 'firstName lastName'
-      }
-    });
+    const populatedCorrespondance = await newCorrespondance
+      .populate('documentId', 'title authorId')
+      .populate({
+        path: 'documentId',
+        populate: {
+          path: 'authorId',
+          model: 'User',
+          select: 'firstName lastName'
+        }
+      });
 
     const formattedCorrespondance = {
       ...populatedCorrespondance.toObject(),
@@ -116,14 +120,16 @@ router.put('/:id', async (req, res) => {
   if (updates.actions_decidees) { updates.actionsDecidees = updates.actions_decidees; delete updates.actions_decidees; }
 
   try {
-    const correspondance = await Correspondance.findByIdAndUpdate(id, updates, { new: true }).populate('documentId', 'title authorId').populate({
-      path: 'documentId',
-      populate: {
-        path: 'authorId',
-        model: 'User',
-        select: 'firstName lastName'
-      }
-    });
+    const correspondance = await Correspondance.findByIdAndUpdate(id, updates, { new: true })
+      .populate('documentId', 'title authorId')
+      .populate({
+        path: 'documentId',
+        populate: {
+          path: 'authorId',
+          model: 'User',
+          select: 'firstName lastName'
+        }
+      });
     if (!correspondance) {
       return res.status(404).json({ message: 'Correspondance not found' });
     }
