@@ -8,14 +8,16 @@ const router = Router();
 // GET /api/proces-verbaux
 router.get('/', async (req, res) => {
   try {
-    const procesVerbaux = await ProcesVerbal.find({}).populate('documentId', 'title authorId').populate({
-      path: 'documentId',
-      populate: {
-        path: 'authorId',
-        model: 'User',
-        select: 'firstName lastName'
-      }
-    });
+    const procesVerbaux = await ProcesVerbal.find({})
+      .populate({
+        path: 'documentId',
+        select: 'title authorId',
+        populate: {
+          path: 'authorId',
+          model: 'User',
+          select: 'firstName lastName'
+        }
+      });
     const formattedProcesVerbaux = procesVerbaux.map(pv => ({
       ...pv.toObject(),
       id: pv._id,
@@ -76,14 +78,16 @@ router.post('/', async (req, res) => {
 
     await newProcesVerbal.save();
     
-    const populatedProcesVerbal = await newProcesVerbal.populate('documentId', 'title authorId').populate({
-      path: 'documentId',
-      populate: {
-        path: 'authorId',
-        model: 'User',
-        select: 'firstName lastName'
-      }
-    });
+    const populatedProcesVerbal = await newProcesVerbal
+      .populate({
+        path: 'documentId',
+        select: 'title authorId',
+        populate: {
+          path: 'authorId',
+          model: 'User',
+          select: 'firstName lastName'
+        }
+      });
 
     const formattedProcesVerbal = {
       ...populatedProcesVerbal.toObject(),
@@ -115,14 +119,16 @@ router.put('/:id', async (req, res) => {
   if (updates.actions_decidees) { updates.actionsDecidees = updates.actions_decidees; delete updates.actions_decidees; }
 
   try {
-    const procesVerbal = await ProcesVerbal.findByIdAndUpdate(id, updates, { new: true }).populate('documentId', 'title authorId').populate({
-      path: 'documentId',
-      populate: {
-        path: 'authorId',
-        model: 'User',
-        select: 'firstName lastName'
-      }
-    });
+    const procesVerbal = await ProcesVerbal.findByIdAndUpdate(id, updates, { new: true })
+      .populate({
+        path: 'documentId',
+        select: 'title authorId',
+        populate: {
+          path: 'authorId',
+          model: 'User',
+          select: 'firstName lastName'
+        }
+      });
     if (!procesVerbal) {
       return res.status(404).json({ message: 'Proces Verbal not found' });
     }

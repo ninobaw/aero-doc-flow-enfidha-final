@@ -9,13 +9,13 @@ const router = Router();
 router.get('/', async (req, res) => {
   try {
     const correspondances = await Correspondance.find({})
-      .populate('documentId', 'title authorId')
       .populate({
         path: 'documentId',
+        select: 'title authorId', // Select fields from the Document
         populate: {
           path: 'authorId',
           model: 'User',
-          select: 'firstName lastName'
+          select: 'firstName lastName' // Select fields from the User
         }
       });
     const formattedCorrespondances = correspondances.map(corr => ({
@@ -80,9 +80,9 @@ router.post('/', async (req, res) => {
     await newCorrespondance.save();
     
     const populatedCorrespondance = await newCorrespondance
-      .populate('documentId', 'title authorId')
       .populate({
         path: 'documentId',
+        select: 'title authorId',
         populate: {
           path: 'authorId',
           model: 'User',
@@ -121,9 +121,9 @@ router.put('/:id', async (req, res) => {
 
   try {
     const correspondance = await Correspondance.findByIdAndUpdate(id, updates, { new: true })
-      .populate('documentId', 'title authorId')
       .populate({
         path: 'documentId',
+        select: 'title authorId',
         populate: {
           path: 'authorId',
           model: 'User',
