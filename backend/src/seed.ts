@@ -1,6 +1,7 @@
 import connectDB from './db';
 import { User } from './models/User';
 import { v4 as uuidv4 } from 'uuid';
+import bcrypt from 'bcryptjs'; // Import bcryptjs
 
 const seedDatabase = async () => {
   await connectDB();
@@ -18,6 +19,7 @@ const seedDatabase = async () => {
       department: 'Direction',
       position: 'CEO',
       lastLogin: new Date(),
+      password: 'admin123', // Temporary plain text password for seeding
     },
     {
       _id: uuidv4(),
@@ -31,6 +33,7 @@ const seedDatabase = async () => {
       department: 'IT',
       position: 'IT Manager',
       lastLogin: new Date(),
+      password: 'admin123', // Temporary plain text password for seeding
     },
     {
       _id: uuidv4(),
@@ -44,6 +47,7 @@ const seedDatabase = async () => {
       department: 'Quality',
       position: 'Quality Manager',
       lastLogin: new Date(),
+      password: 'user123', // Temporary plain text password for seeding
     },
     {
       _id: uuidv4(),
@@ -57,6 +61,7 @@ const seedDatabase = async () => {
       department: 'Operations',
       position: 'Agent',
       lastLogin: new Date(),
+      password: 'user123', // Temporary plain text password for seeding
     },
     {
       _id: uuidv4(),
@@ -70,6 +75,7 @@ const seedDatabase = async () => {
       department: 'Public Relations',
       position: 'Visitor',
       lastLogin: new Date(),
+      password: 'user123', // Temporary plain text password for seeding
     },
   ];
 
@@ -79,14 +85,20 @@ const seedDatabase = async () => {
     console.log('Existing users deleted.');
 
     console.log('Seeding new users...');
-    await User.insertMany(usersToSeed);
+    const hashedUsers = await Promise.all(usersToSeed.map(async (user) => {
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(user.password, salt);
+      return { ...user, password: hashedPassword };
+    }));
+
+    await User.insertMany(hashedUsers);
     console.log('Users seeded successfully!');
-    console.log('\n--- Test Accounts ---');
-    console.log('  Email: superadmin@aerodoc.tn, Password: admin123 (Role: SUPER_ADMIN, Airport: ENFIDHA)');
-    console.log('  Email: admin@aerodoc.tn, Password: admin123 (Role: ADMINISTRATOR, Airport: MONASTIR)');
-    console.log('  Email: approver@aerodoc.tn, Password: user123 (Role: APPROVER, Airport: ENFIDHA)');
-    console.log('  Email: user@aerodoc.tn, Password: user123 (Role: USER, Airport: MONASTIR)');
-    console.log('  Email: visitor@aerodoc.tn, Password: user123 (Role: VISITOR, Airport: ENFIDHA)');
+    console.log('\n--- Test Accounts (Passwords are hashed in DB) ---');
+    console.log('  Email: superadmin@aerodoc.tn, Password: admin123');
+    console.log('  Email: admin@aerodoc.tn, Password: admin123');
+    console.log('  Email: approver@aerodoc.tn, Password: user123');
+    console.log('  Email: user@aerodoc.tn, Password: user123');
+    console.log('  Email: visitor@aerodoc.tn, Password: user123');
 
   } catch (error) {
     console.error('Error seeding database:', error);
