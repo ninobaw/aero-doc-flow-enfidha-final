@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'http://localhost:5000/api'; // Your custom Node.js backend URL
 
 export interface UserData {
   id: string;
@@ -45,12 +45,12 @@ export const useUsers = () => {
       position?: string;
       airport: 'ENFIDHA' | 'MONASTIR';
       role: 'SUPER_ADMIN' | 'ADMINISTRATOR' | 'APPROVER' | 'USER' | 'VISITOR';
-      password: string; // Password is only for initial creation, not stored in profile
+      password: string;
     }) => {
-      console.log('Création utilisateur avec données:', userData);
-      // The backend handles the user creation and profile update in one go
+      console.log('Création utilisateur via backend Node.js avec données:', userData);
+      // This call goes to your Node.js backend, which should then handle Supabase admin user creation
       const response = await axios.post(`${API_BASE_URL}/users`, userData);
-      console.log('Utilisateur créé:', response.data);
+      console.log('Utilisateur créé par backend Node.js:', response.data);
       return response.data;
     },
     onSuccess: (data) => {
