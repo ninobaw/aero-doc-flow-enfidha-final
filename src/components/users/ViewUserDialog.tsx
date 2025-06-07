@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -39,13 +38,13 @@ export const ViewUserDialog: React.FC<ViewUserDialogProps> = ({ user, open, onOp
             <Avatar className="w-20 h-20">
               <AvatarImage src={user.profile_photo} />
               <AvatarFallback className="bg-aviation-sky text-white text-lg">
-                {user.first_name[0]}{user.last_name[0]}
+                {user.firstName?.[0]}{user.lastName?.[0]} {/* Changed from first_name, last_name */}
               </AvatarFallback>
             </Avatar>
             
             <div className="flex-1">
               <h3 className="text-xl font-semibold text-gray-900">
-                {user.first_name} {user.last_name}
+                {user.firstName} {user.lastName} {/* Changed from first_name, last_name */}
               </h3>
               <div className="mt-2 space-y-2">
                 <div className="flex items-center text-gray-600">

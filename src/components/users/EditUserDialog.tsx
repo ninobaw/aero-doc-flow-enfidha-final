@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -23,8 +22,8 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, open, onOp
   const { toast } = useToast();
   
   const [formData, setFormData] = useState({
-    first_name: '',
-    last_name: '',
+    firstName: '', // Changed from first_name
+    lastName: '',  // Changed from last_name
     email: '',
     phone: '',
     department: '',
@@ -37,8 +36,8 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, open, onOp
   useEffect(() => {
     if (user) {
       setFormData({
-        first_name: user.first_name || '',
-        last_name: user.last_name || '',
+        firstName: user.firstName || '', // Changed from first_name
+        lastName: user.lastName || '',   // Changed from last_name
         email: user.email || '',
         phone: user.phone || '',
         department: user.department || '',
@@ -53,7 +52,7 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, open, onOp
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.first_name || !formData.last_name || !formData.email) {
+    if (!formData.firstName || !formData.lastName || !formData.email) { // Changed from first_name, last_name
       toast({
         title: "Erreur",
         description: "Veuillez remplir tous les champs obligatoires",
@@ -82,20 +81,20 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, open, onOp
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="first_name">Prénom *</Label>
+              <Label htmlFor="firstName">Prénom *</Label>
               <Input
-                id="first_name"
-                value={formData.first_name}
-                onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                id="firstName"
+                value={formData.firstName}
+                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                 required
               />
             </div>
             <div>
-              <Label htmlFor="last_name">Nom *</Label>
+              <Label htmlFor="lastName">Nom *</Label>
               <Input
-                id="last_name"
-                value={formData.last_name}
-                onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                id="lastName"
+                value={formData.lastName}
+                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                 required
               />
             </div>

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -19,8 +18,8 @@ export const CreateUserDialog: React.FC = () => {
   
   const [formData, setFormData] = useState({
     email: '',
-    first_name: '',
-    last_name: '',
+    firstName: '', // Changed from first_name
+    lastName: '',  // Changed from last_name
     role: 'USER' as UserRole,
     airport: 'ENFIDHA' as Airport,
     phone: '',
@@ -31,7 +30,7 @@ export const CreateUserDialog: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.email || !formData.first_name || !formData.last_name || !formData.password) {
+    if (!formData.email || !formData.firstName || !formData.lastName || !formData.password) {
       toast({
         title: "Erreur",
         description: "Veuillez remplir tous les champs obligatoires",
@@ -66,8 +65,8 @@ export const CreateUserDialog: React.FC = () => {
         // Reset form
         setFormData({
           email: '',
-          first_name: '',
-          last_name: '',
+          firstName: '',
+          lastName: '',
           role: 'USER',
           airport: 'ENFIDHA',
           phone: '',
@@ -111,21 +110,21 @@ export const CreateUserDialog: React.FC = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="first_name">Prénom *</Label>
+              <Label htmlFor="firstName">Prénom *</Label>
               <Input
-                id="first_name"
-                value={formData.first_name}
-                onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                id="firstName"
+                value={formData.firstName}
+                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                 placeholder="Prénom"
                 required
               />
             </div>
             <div>
-              <Label htmlFor="last_name">Nom *</Label>
+              <Label htmlFor="lastName">Nom *</Label>
               <Input
-                id="last_name"
-                value={formData.last_name}
-                onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                id="lastName"
+                value={formData.lastName}
+                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                 placeholder="Nom"
                 required
               />
