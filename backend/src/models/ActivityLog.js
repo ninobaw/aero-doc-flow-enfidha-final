@@ -1,18 +1,6 @@
-import { Schema, model, Document } from 'mongoose';
+const { Schema, model } = require('mongoose');
 
-export interface IActivityLog extends Document {
-  _id: string;
-  action: string;
-  details: string;
-  entityId: string;
-  entityType: 'USER' | 'DOCUMENT' | 'ACTION' | 'TASK' | 'CORRESPONDANCE' | 'PROCES_VERBAL' | 'REPORT' | 'SETTINGS';
-  timestamp: Date;
-  userId: string; // Reference to User
-  ipAddress?: string;
-  userAgent?: string;
-}
-
-const ActivityLogSchema = new Schema<IActivityLog>({
+const ActivityLogSchema = new Schema({
   _id: { type: String, required: true },
   action: { type: String, required: true },
   details: { type: String, required: true },
@@ -23,9 +11,10 @@ const ActivityLogSchema = new Schema<IActivityLog>({
     required: true 
   },
   timestamp: { type: Date, default: Date.now },
-  userId: { type: String, ref: 'User', required: true }, // Reference to User model
+  userId: { type: String, ref: 'User', required: true },
   ipAddress: { type: String },
   userAgent: { type: String },
 });
 
-export const ActivityLog = model<IActivityLog>('ActivityLog', ActivityLogSchema);
+const ActivityLog = model('ActivityLog', ActivityLogSchema);
+module.exports = { ActivityLog };

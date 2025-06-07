@@ -1,11 +1,11 @@
-import { Schema, model, Document } from 'mongoose';
+const { Schema, model } = require('mongoose');
 
 // Embedded schema for ActionDecidee
 const ActionDecideeSchema = new Schema({
   titre: { type: String, required: true },
   description: { type: String },
-  responsable: { type: String, required: true }, // Could be a User ID reference
-  echeance: { type: String, required: true }, // Storing as string for simplicity, can be Date
+  responsable: { type: String, required: true },
+  echeance: { type: String, required: true },
   priorite: { 
     type: String, 
     enum: ['LOW', 'MEDIUM', 'HIGH', 'URGENT'], 
@@ -16,27 +16,12 @@ const ActionDecideeSchema = new Schema({
     enum: ['PENDING', 'IN_PROGRESS', 'COMPLETED'], 
     default: 'PENDING' 
   },
-  collaborateurs: [{ type: String }], // Array of User IDs
+  collaborateurs: [{ type: String }],
 });
 
-export interface ICorrespondance extends Document {
-  _id: string;
-  documentId: string; // Reference to Document
-  fromAddress: string;
-  toAddress: string;
-  subject: string;
-  content: string;
-  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
-  status: 'DRAFT' | 'SENT' | 'RECEIVED' | 'ARCHIVED';
-  airport: 'ENFIDHA' | 'MONASTIR';
-  attachments?: string[];
-  actionsDecidees?: typeof ActionDecideeSchema[]; // Embedded actions
-  createdAt: Date;
-}
-
-const CorrespondanceSchema = new Schema<ICorrespondance>({
+const CorrespondanceSchema = new Schema({
   _id: { type: String, required: true },
-  documentId: { type: String, ref: 'Document', required: true }, // Reference to Document model
+  documentId: { type: String, ref: 'Document', required: true },
   fromAddress: { type: String, required: true },
   toAddress: { type: String, required: true },
   subject: { type: String, required: true },
@@ -57,8 +42,9 @@ const CorrespondanceSchema = new Schema<ICorrespondance>({
     required: true 
   },
   attachments: [{ type: String }],
-  actionsDecidees: [ActionDecideeSchema], // Embedded sub-documents
+  actionsDecidees: [ActionDecideeSchema],
   createdAt: { type: Date, default: Date.now },
 });
 
-export const Correspondance = model<ICorrespondance>('Correspondance', CorrespondanceSchema);
+const Correspondance = model('Correspondance', CorrespondanceSchema);
+module.exports = { Correspondance };

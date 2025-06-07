@@ -1,32 +1,8 @@
-import { Schema, model, Document } from 'mongoose';
+const { Schema, model } = require('mongoose');
 
-export interface IAppSettings extends Document {
-  _id: string;
-  userId: string; // Reference to User
-  companyName: string;
-  defaultAirport: 'ENFIDHA' | 'MONASTIR';
-  language: string;
-  theme: string;
-  emailNotifications: boolean;
-  smsNotifications: boolean;
-  pushNotifications: boolean;
-  sessionTimeout: number;
-  requireTwoFactor: boolean;
-  passwordExpiry: number;
-  documentRetention: number;
-  autoArchive: boolean;
-  maxFileSize: number;
-  smtpHost: string;
-  smtpPort: number;
-  smtpUsername: string;
-  useSsl: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-const AppSettingsSchema = new Schema<IAppSettings>({
+const AppSettingsSchema = new Schema({
   _id: { type: String, required: true },
-  userId: { type: String, ref: 'User', required: true, unique: true }, // One-to-one with User
+  userId: { type: String, ref: 'User', required: true, unique: true },
   companyName: { type: String, default: 'AeroDoc - Gestion Documentaire' },
   defaultAirport: { 
     type: String, 
@@ -52,4 +28,5 @@ const AppSettingsSchema = new Schema<IAppSettings>({
   updatedAt: { type: Date, default: Date.now },
 }, { timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' } });
 
-export const AppSettings = model<IAppSettings>('AppSettings', AppSettingsSchema);
+const AppSettings = model('AppSettings', AppSettingsSchema);
+module.exports = { AppSettings };

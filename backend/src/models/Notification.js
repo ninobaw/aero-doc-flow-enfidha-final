@@ -1,19 +1,8 @@
-import { Schema, model, Document } from 'mongoose';
+const { Schema, model } = require('mongoose');
 
-export interface INotification extends Document {
-  _id: string;
-  userId?: string; // Optional reference to User
-  title: string;
-  message: string;
-  type: 'info' | 'success' | 'warning' | 'error';
-  isRead: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-const NotificationSchema = new Schema<INotification>({
+const NotificationSchema = new Schema({
   _id: { type: String, required: true },
-  userId: { type: String, ref: 'User' }, // Optional reference to User model
+  userId: { type: String, ref: 'User' },
   title: { type: String, required: true },
   message: { type: String, required: true },
   type: { 
@@ -26,4 +15,5 @@ const NotificationSchema = new Schema<INotification>({
   updatedAt: { type: Date, default: Date.now },
 }, { timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' } });
 
-export const Notification = model<INotification>('Notification', NotificationSchema);
+const Notification = model('Notification', NotificationSchema);
+module.exports = { Notification };

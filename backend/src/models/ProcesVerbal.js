@@ -1,4 +1,4 @@
-import { Schema, model, Document } from 'mongoose';
+const { Schema, model } = require('mongoose');
 
 // Embedded schema for ActionDecidee (re-used from Correspondance)
 const ActionDecideeSchema = new Schema({
@@ -19,24 +19,9 @@ const ActionDecideeSchema = new Schema({
   collaborateurs: [{ type: String }],
 });
 
-export interface IProcesVerbal extends Document {
-  _id: string;
-  documentId: string; // Reference to Document
-  meetingDate: Date;
-  participants: string[];
-  agenda: string;
-  decisions: string;
-  location: string;
-  meetingType: string;
-  airport: 'ENFIDHA' | 'MONASTIR';
-  nextMeetingDate?: Date;
-  actionsDecidees?: typeof ActionDecideeSchema[]; // Embedded actions
-  createdAt: Date;
-}
-
-const ProcesVerbalSchema = new Schema<IProcesVerbal>({
+const ProcesVerbalSchema = new Schema({
   _id: { type: String, required: true },
-  documentId: { type: String, ref: 'Document', required: true }, // Reference to Document model
+  documentId: { type: String, ref: 'Document', required: true },
   meetingDate: { type: Date, required: true },
   participants: [{ type: String }],
   agenda: { type: String, required: true },
@@ -49,8 +34,9 @@ const ProcesVerbalSchema = new Schema<IProcesVerbal>({
     required: true 
   },
   nextMeetingDate: { type: Date },
-  actionsDecidees: [ActionDecideeSchema], // Embedded sub-documents
+  actionsDecidees: [ActionDecideeSchema],
   createdAt: { type: Date, default: Date.now },
 });
 
-export const ProcesVerbal = model<IProcesVerbal>('ProcesVerbal', ProcesVerbalSchema);
+const ProcesVerbal = model('ProcesVerbal', ProcesVerbalSchema);
+module.exports = { ProcesVerbal };

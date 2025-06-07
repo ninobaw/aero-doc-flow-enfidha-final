@@ -1,24 +1,6 @@
-import { Schema, model, Document as MongooseDocument } from 'mongoose';
+const { Schema, model } = require('mongoose');
 
-export interface IDocument extends MongooseDocument {
-  _id: string;
-  title: string;
-  type: 'FORMULAIRE_DOC' | 'CORRESPONDANCE' | 'PROCES_VERBAL' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL';
-  content?: string;
-  authorId: string; // Reference to User
-  version: number;
-  status: 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
-  airport: 'ENFIDHA' | 'MONASTIR';
-  filePath?: string;
-  fileType?: string;
-  qrCode: string;
-  viewsCount: number;
-  downloadsCount: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-const DocumentSchema = new Schema<IDocument>({
+const DocumentSchema = new Schema({
   _id: { type: String, required: true },
   title: { type: String, required: true },
   type: { 
@@ -27,7 +9,7 @@ const DocumentSchema = new Schema<IDocument>({
     required: true 
   },
   content: { type: String },
-  authorId: { type: String, ref: 'User', required: true }, // Reference to User model
+  authorId: { type: String, ref: 'User', required: true },
   version: { type: Number, default: 1 },
   status: { 
     type: String, 
@@ -48,4 +30,5 @@ const DocumentSchema = new Schema<IDocument>({
   updatedAt: { type: Date, default: Date.now },
 }, { timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' } });
 
-export const Document = model<IDocument>('Document', DocumentSchema);
+const Document = model('Document', DocumentSchema);
+module.exports = { Document };
