@@ -4,6 +4,8 @@ import cors from 'cors';
 import connectDB from './db';
 import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
+import documentRoutes from './routes/documentRoutes'; // New import
+import formulaireRoutes from './routes/formulaireRoutes'; // New import
 
 dotenv.config();
 
@@ -18,7 +20,9 @@ app.use(cors()); // Enable CORS for all origins
 
 // Define API routes
 app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes); // Add user routes
+app.use('/api/users', userRoutes);
+app.use('/api/documents', documentRoutes); // Use document routes
+app.use('/api/formulaires', formulaireRoutes); // Use formulaire routes
 
 // Define a simple root route
 app.get('/', (req, res) => {

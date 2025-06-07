@@ -1,13 +1,15 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import axios from 'axios'; // Import axios
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+
+// Define your backend API base URL
+const API_BASE_URL = 'http://localhost:5000/api';
 
 export interface FormulaireData {
   id: string;
   title: string;
-  content: string;
+  content: string; // This will store JSON string of code, category, description, instructions
   code?: string;
   airport: 'ENFIDHA' | 'MONASTIR';
   category?: string;
@@ -44,24 +46,10 @@ export const useFormulaires = () => {
   const { data: formulaires = [], isLoading, error } = useQuery({
     queryKey: ['formulaires'],
     queryFn: async () => {
-      console.log('Récupération des formulaires');
-      
-      const { data, error } = await supabase
-        .from('documents')
-        .select(`
-          *,
-          author:profiles(first_name, last_name)
-        `)
-        .eq('type', 'FORMULAIRE_DOC')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Erreur récupération formulaires:', error);
-        throw error;
-      }
-
-      console.log('Formulaires récupérés:', data);
-      return data as FormulaireData[];
+      console.log('Récupération des formulaires via backend API');
+      const response = await axios.get(`${API_BASE_URL}/formulaires`);
+      console.log('Formulaires récupérés:', response.data);
+      return response.data as FormulaireData[];
     },
     enabled: !!user,
   });
@@ -80,71 +68,20 @@ export const useFormulaires = () => {
         throw new Error('Vous devez être connecté pour créer un formulaire');
       }
 
-      console.log('Création du formulaire:', formulaireData);
-      console.log('User ID:', user.id);
-
-      // Vérifier que l'user.id est un UUID valide ou générer un UUID si nécessaire
-      let authorId = user.id;
+      console.log('Création du formulaire via backend API:', formulaireData);
       
-      // Si l'ID utilisateur n'est pas un UUID valide, utiliser l'ID du profil utilisateur
-      if (!authorId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
-        console.log('ID utilisateur non-UUID détecté, récupération du profil...');
-        
-        // Récupérer le profil utilisateur pour obtenir l'UUID correct
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('email', user.email)
-          .maybeSingle();
-
-        if (profileError) {
-          console.error('Erreur récupération profil:', profileError);
-          throw new Error('Impossible de récupérer le profil utilisateur');
-        }
-
-        if (!profile) {
-          console.error('Profil utilisateur non trouvé pour:', user.email);
-          throw new Error('Profil utilisateur non trouvé');
-        }
-
-        authorId = profile.id;
-        console.log('UUID du profil récupéré:', authorId);
-      }
-
-      const contentData = {
-        code: formulaireData.code || '',
-        category: formulaireData.category || '',
-        description: formulaireData.description || '',
-        instructions: formulaireData.instructions || '',
-      };
-
-      const documentData = {
+      const response = await axios.post(`${API_BASE_URL}/formulaires`, {
         title: formulaireData.title,
-        content: JSON.stringify(contentData),
-        type: 'FORMULAIRE_DOC' as const,
-        author_id: authorId,
+        content: formulaireData.content, // This will be a JSON string
+        code: formulaireData.code,
         airport: formulaireData.airport,
-        status: 'DRAFT' as const,
-      };
-
-      console.log('Données à insérer:', documentData);
-
-      const { data, error } = await supabase
-        .from('documents')
-        .insert(documentData)
-        .select(`
-          *,
-          author:profiles(first_name, last_name)
-        `)
-        .single();
-
-      if (error) {
-        console.error('Erreur création formulaire:', error);
-        throw error;
-      }
-
-      console.log('Formulaire créé avec succès:', data);
-      return data as FormulaireData;
+        category: formulaireData.category,
+        description: formulaireData.description,
+        instructions: formulaireData.instructions,
+        author_id: user.id, // Pass author_id from frontend user
+      });
+      console.log('Formulaire créé avec succès:', response.data);
+      return response.data as FormulaireData;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['formulaires'] });
@@ -153,11 +90,11 @@ export const useFormulaires = () => {
         description: 'Le formulaire a été créé avec succès.',
       });
     },
-    onError: (error) => {
-      console.error('Erreur création formulaire:', error);
+    onError: (error: any) => {
+      console.error('Erreur création formulaire:', error.response?.data || error.message);
       toast({
         title: 'Erreur',
-        description: error.message || 'Impossible de créer le formulaire.',
+        description: error.response?.data?.message || error.message || 'Impossible de créer le formulaire.',
         variant: 'destructive',
       });
     },
@@ -165,18 +102,8 @@ export const useFormulaires = () => {
 
   const deleteFormulaire = useMutation({
     mutationFn: async (id: string) => {
-      console.log('Suppression du formulaire:', id);
-      
-      const { error } = await supabase
-        .from('documents')
-        .delete()
-        .eq('id', id);
-
-      if (error) {
-        console.error('Erreur suppression formulaire:', error);
-        throw error;
-      }
-
+      console.log('Suppression du formulaire via backend API:', id);
+      await axios.delete(`${API_BASE_URL}/formulaires/${id}`);
       console.log('Formulaire supprimé avec succès');
     },
     onSuccess: () => {
@@ -186,11 +113,11 @@ export const useFormulaires = () => {
         description: 'Le formulaire a été supprimé avec succès.',
       });
     },
-    onError: (error) => {
-      console.error('Erreur suppression formulaire:', error);
+    onError: (error: any) => {
+      console.error('Erreur suppression formulaire:', error.response?.data || error.message);
       toast({
         title: 'Erreur',
-        description: 'Impossible de supprimer le formulaire.',
+        description: error.response?.data?.message || error.message || 'Impossible de supprimer le formulaire.',
         variant: 'destructive',
       });
     },

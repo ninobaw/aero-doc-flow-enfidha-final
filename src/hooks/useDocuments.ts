@@ -1,8 +1,10 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import axios from 'axios'; // Import axios
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+
+// Define your backend API base URL
+const API_BASE_URL = 'http://localhost:5000/api';
 
 export interface DocumentData {
   id: string;
@@ -34,16 +36,8 @@ export const useDocuments = () => {
   const { data: documents = [], isLoading, error } = useQuery({
     queryKey: ['documents'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('documents')
-        .select(`
-          *,
-          author:profiles(first_name, last_name)
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data as DocumentData[];
+      const response = await axios.get(`${API_BASE_URL}/documents`);
+      return response.data as DocumentData[];
     },
   });
 
@@ -58,17 +52,11 @@ export const useDocuments = () => {
     }) => {
       if (!user?.id) throw new Error('Utilisateur non connecté');
 
-      const { data, error } = await supabase
-        .from('documents')
-        .insert({
-          ...documentData,
-          author_id: user.id,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      const response = await axios.post(`${API_BASE_URL}/documents`, {
+        ...documentData,
+        author_id: user.id,
+      });
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['documents'] });
@@ -101,15 +89,8 @@ export const useDocuments = () => {
       views_count?: number;
       downloads_count?: number;
     }) => {
-      const { data, error } = await supabase
-        .from('documents')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      const response = await axios.put(`${API_BASE_URL}/documents/${id}`, updates);
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['documents'] });
@@ -130,12 +111,7 @@ export const useDocuments = () => {
 
   const deleteDocument = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('documents')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
+      await axios.delete(`${API_BASE_URL}/documents/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['documents'] });
