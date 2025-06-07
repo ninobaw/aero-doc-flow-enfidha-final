@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { CheckSquare, Plus, Search, Filter } from 'lucide-react';
 import { ActionsList } from '@/components/actions/ActionsList';
 import { useActions } from '@/hooks/useActions';
+import { CreateActionDialog } from '@/components/actions/CreateActionDialog'; // Import the dialog
 
 const Actions = () => {
   const { actions, isLoading } = useActions();
@@ -14,10 +15,6 @@ const Actions = () => {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterPriority, setFilterPriority] = useState<string>('all');
 
-  // ===========================================
-  // DÉBUT INTÉGRATION BACKEND SUPABASE - PAGE ACTIONS
-  // ===========================================
-  
   const filteredActions = actions.filter(action => {
     const matchesSearch = action.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          action.description?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -26,10 +23,6 @@ const Actions = () => {
     
     return matchesSearch && matchesStatus && matchesPriority;
   });
-
-  // ===========================================
-  // FIN INTÉGRATION BACKEND SUPABASE - PAGE ACTIONS
-  // ===========================================
 
   return (
     <AppLayout>
@@ -41,10 +34,7 @@ const Actions = () => {
               Gérer les actions et tâches
             </p>
           </div>
-          <Button className="bg-aviation-sky hover:bg-aviation-sky-dark">
-            <Plus className="w-4 h-4 mr-2" />
-            Nouvelle Action
-          </Button>
+          <CreateActionDialog /> {/* Use the CreateActionDialog component */}
         </div>
 
         {/* Filtres et recherche */}

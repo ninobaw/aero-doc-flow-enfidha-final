@@ -9,13 +9,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ClipboardList, Save, Plus, Users } from 'lucide-react';
 import { ActionsDecideesField, ActionDecidee } from '@/components/actions/ActionsDecideesField';
 import { useProcesVerbaux } from '@/hooks/useProcesVerbaux';
-import { useDocuments } from '@/hooks/useDocuments';
+import { useDocuments } from '@/hooks/useDocuments'; // Keep this import if needed for other document-related actions, though not directly used in PV creation here
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext'; // Import useAuth to get user ID
 
 const ProcesVerbaux = () => {
   const { toast } = useToast();
+  const { user } = useAuth(); // Get current user
   const { createProcesVerbal, isCreating } = useProcesVerbaux();
-  const { createDocument, isCreating: isCreatingDocument } = useDocuments();
   
   const [formData, setFormData] = useState({
     titreReunion: '',
@@ -23,7 +24,7 @@ const ProcesVerbaux = () => {
     dateReunion: '',
     duree: '',
     lieu: '',
-    aeroport: '',
+    aeroport: '' as 'ENFIDHA' | 'MONASTIR' | '',
     president: '',
     secretaire: '',
     ordreJour: '',
@@ -57,10 +58,19 @@ const ProcesVerbaux = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.titreReunion || !formData.dateReunion) {
+    if (!user) {
+      toast({
+        title: 'Erreur d\'authentification',
+        description: 'Vous devez être connecté pour créer un procès-verbal.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!formData.titreReunion || !formData.dateReunion || !formData.aeroport) {
       toast({
         title: 'Erreur',
-        description: 'Veuillez remplir tous les champs obligatoires.',
+        description: 'Veuillez remplir tous les champs obligatoires (Titre, Date, Aéroport).',
         variant: 'destructive',
       });
       return;
@@ -74,32 +84,41 @@ const ProcesVerbaux = () => {
         agenda: formData.ordreJour,
         decisions: formData.discussions,
         location: formData.lieu,
-        meeting_type: 'Réunion de travail',
-        airport: (formData.aeroport as 'ENFIDHA' | 'MONASTIR') || 'ENFIDHA',
+        meeting_type: 'Réunion de travail', // Hardcoded as per previous structure
+        airport: formData.aeroport as 'ENFIDHA' | 'MONASTIR',
         next_meeting_date: formData.prochaineReunion || undefined,
         actions_decidees: actionsDecidees,
+        author_id: user.id, // Pass the current user's ID as author
       };
 
-      createProcesVerbal(pvData);
-
-      // Réinitialiser le formulaire
-      setFormData({
-        titreReunion: '',
-        numeroPV: '',
-        dateReunion: '',
-        duree: '',
-        lieu: '',
-        aeroport: '',
-        president: '',
-        secretaire: '',
-        ordreJour: '',
-        discussions: '',
-        prochaineReunion: '',
+      createProcesVerbal(pvData, {
+        onSuccess: () => {
+          // Reset form after successful creation
+          setFormData({
+            titreReunion: '',
+            numeroPV: '',
+            dateReunion: '',
+            duree: '',
+            lieu: '',
+            aeroport: '',
+            president: '',
+            secretaire: '',
+            ordreJour: '',
+            discussions: '',
+            prochaineReunion: '',
+          });
+          setParticipants([{ nom: '', fonction: '', statut: 'present' }]);
+          setActionsDecidees([]);
+        }
       });
-      setParticipants([{ nom: '', fonction: '', statut: 'present' }]);
-      setActionsDecidees([]);
+
     } catch (error) {
       console.error('Erreur sauvegarde PV:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Une erreur est survenue lors de la sauvegarde du procès-verbal.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -181,8 +200,8 @@ const ProcesVerbaux = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="aeroport">Aéroport</Label>
-                  <Select value={formData.aeroport} onValueChange={(value) => setFormData({ ...formData, aeroport: value })}>
+                  <Label htmlFor="aeroport">Aéroport *</Label>
+                  <Select value={formData.aeroport} onValueChange={(value: 'ENFIDHA' | 'MONASTIR') => setFormData({ ...formData, aeroport: value })} required>
                     <SelectTrigger>
                       <SelectValue placeholder="Sélectionner un aéroport" />
                     </SelectTrigger>
@@ -297,7 +316,7 @@ const ProcesVerbaux = () => {
               <ActionsDecideesField
                 actions={actionsDecidees}
                 onChange={setActionsDecidees}
-                disabled={isCreating || isCreatingDocument}
+                disabled={isCreating}
               />
 
               <div className="space-y-2">
@@ -311,16 +330,33 @@ const ProcesVerbaux = () => {
               </div>
 
               <div className="flex justify-end space-x-4">
-                <Button variant="outline" type="button">
+                <Button variant="outline" type="button" onClick={() => {
+                  // Reset form fields
+                  setFormData({
+                    titreReunion: '',
+                    numeroPV: '',
+                    dateReunion: '',
+                    duree: '',
+                    lieu: '',
+                    aeroport: '',
+                    president: '',
+                    secretaire: '',
+                    ordreJour: '',
+                    discussions: '',
+                    prochaineReunion: '',
+                  });
+                  setParticipants([{ nom: '', fonction: '', statut: 'present' }]);
+                  setActionsDecidees([]);
+                }}>
                   Annuler
                 </Button>
                 <Button 
                   type="submit"
-                  disabled={isCreating || isCreatingDocument}
+                  disabled={isCreating}
                   className="bg-aviation-sky hover:bg-aviation-sky-dark"
                 >
                   <Save className="w-4 h-4 mr-2" />
-                  {isCreating || isCreatingDocument ? 'Enregistrement...' : 'Enregistrer le PV'}
+                  {isCreating ? 'Enregistrement...' : 'Enregistrer le PV'}
                 </Button>
               </div>
             </form>
