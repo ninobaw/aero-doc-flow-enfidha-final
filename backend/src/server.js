@@ -1,18 +1,18 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
-const connectDB = require('./db');
-const authRoutes = require('./routes/authRoutes');
-const userRoutes = require('./routes/userRoutes');
-const documentRoutes = require('./routes/documentRoutes');
-const formulaireRoutes = require('./routes/formulaireRoutes');
-const actionRoutes = require('./routes/actionRoutes');
-const correspondanceRoutes = require('./routes/correspondanceRoutes');
-const procesVerbalRoutes = require('./routes/procesVerbalRoutes');
-const reportRoutes = require('./routes/reportRoutes');
-const notificationRoutes = require('./routes/notificationRoutes');
-const appSettingsRoutes = require('./routes/appSettingsRoutes');
-const activityLogRoutes = require('./routes/activityLogRoutes');
+const connectDB = require('./db.js'); // Added .js
+const authRoutes = require('./routes/authRoutes.js'); // Added .js
+const userRoutes = require('./routes/userRoutes.js'); // Added .js
+const documentRoutes = require('./routes/documentRoutes.js'); // Added .js
+const formulaireRoutes = require('./routes/formulaireRoutes.js'); // Added .js
+const actionRoutes = require('./routes/actionRoutes.js'); // Added .js
+const correspondanceRoutes = require('./routes/correspondanceRoutes.js'); // Added .js
+const procesVerbalRoutes = require('./routes/procesVerbalRoutes.js'); // Added .js
+const reportRoutes = require('./routes/reportRoutes.js'); // Added .js
+const notificationRoutes = require('./routes/notificationRoutes.js'); // Added .js
+const appSettingsRoutes = require('./routes/appSettingsRoutes.js'); // Added .js
+const activityLogRoutes = require('./routes/activityLogRoutes.js'); // Added .js
 
 dotenv.config();
 
