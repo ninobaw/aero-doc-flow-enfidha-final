@@ -1,17 +1,13 @@
 {
   "name": "aerodoc-backend",
   "version": "1.0.0",
-  "description": "Backend API for AeroDoc application using Node.js, Express, and MongoDB",
-  "main": "dist/server.js",
+  "description": "Backend for AeroDoc application",
+  "main": "src/server.js",
   "scripts": {
-    "start": "node dist/server.js",
-    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "seed": "node src/seed.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "@types/uuid": "^10.0.0",
     "bcryptjs": "^3.0.2",
@@ -25,9 +21,6 @@
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/mongoose": "^5.11.97",
-    "@types/node": "^20.14.12",
-    "ts-node": "^10.9.2",
-    "ts-node-dev": "^2.0.0",
-    "typescript": "^5.5.4"
+    "@types/node": "^20.14.12"
   }
 }
