@@ -1,7 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, UserRole } from '@/shared/types';
-import { supabase } from '@/integrations/supabase/client'; // Import Supabase client
-import { useToast } from '@/hooks/use-toast'; // Import useToast
+import { useToast } from '@/hooks/use-toast';
+import axios from 'axios'; // Import axios for backend calls
+
+const API_BASE_URL = 'http://localhost:5000/api'; // Your custom Node.js backend URL
 
 interface AuthContextType {
   user: User | null;
@@ -18,103 +20,71 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
+  // Simulate initial user check (e.g., from a stored token or session)
+  // In a real app, you might check localStorage for a token and validate it with the backend
   useEffect(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session) {
-          // Fetch user profile from your backend after successful Supabase auth
-          // This assumes your backend has a /users/:id endpoint that returns the full User object
-          try {
-            const { data, error } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
-            if (error) throw error;
-            
-            const mappedUser: User = {
-              id: data.id,
-              email: data.email,
-              firstName: data.first_name,
-              lastName: data.last_name,
-              role: data.role as UserRole,
-              profilePhoto: data.profile_photo,
-              airport: data.airport,
-              createdAt: new Date(data.created_at),
-              updatedAt: new Date(data.updated_at),
-              isActive: data.is_active,
-              phone: data.phone,
-              department: data.department,
-            };
-            setUser(mappedUser);
-          } catch (profileError) {
-            console.error('Error fetching user profile:', profileError);
-            setUser(null);
-            toast({
-              title: "Erreur de profil",
-              description: "Impossible de charger les informations de profil.",
-              variant: "destructive"
-            });
-          }
-        } else {
-          setUser(null);
-        }
-        setIsLoading(false);
-      }
-    );
-
-    // Check current session on mount
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        // Trigger onAuthStateChange to fetch profile
-      } else {
-        setIsLoading(false);
-      }
-    });
-
-    return () => {
-      authListener.unsubscribe();
+    const checkUserSession = async () => {
+      // For simplicity, we'll assume no persistent session on frontend for now.
+      // User will need to log in on refresh.
+      // In a real app, you'd send a request to your backend to validate a token from localStorage.
+      setIsLoading(false);
     };
+    checkUserSession();
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        throw error;
-      }
-      // onAuthStateChange will handle setting the user
+      const response = await axios.post(`${API_BASE_URL}/auth/login`, { email, password });
+      const loggedInUser = response.data.user; // Assuming your backend returns { user: {...}, token: '...' }
+
+      const mappedUser: User = {
+        id: loggedInUser.id,
+        email: loggedInUser.email,
+        firstName: loggedInUser.firstName,
+        lastName: loggedInUser.lastName,
+        role: loggedInUser.role as UserRole,
+        profilePhoto: loggedInUser.profilePhoto,
+        airport: loggedInUser.airport,
+        createdAt: new Date(loggedInUser.createdAt),
+        updatedAt: new Date(loggedInUser.updatedAt),
+        isActive: loggedInUser.isActive,
+        phone: loggedInUser.phone,
+        department: loggedInUser.department,
+      };
+      setUser(mappedUser);
       toast({
         title: "Connexion réussie",
         description: "Vous êtes maintenant connecté.",
       });
       return true;
     } catch (error: any) {
-      console.error('Login failed:', error.message);
+      console.error('Login failed:', error.response?.data?.message || error.message);
       toast({
         title: "Erreur de connexion",
-        description: error.message || "Email ou mot de passe incorrect.",
+        description: error.response?.data?.message || "Email ou mot de passe incorrect.",
         variant: "destructive"
       });
-      setIsLoading(false);
       return false;
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const logout = async () => {
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        throw error;
-      }
+      await axios.post(`${API_BASE_URL}/auth/logout`); // Call backend logout endpoint
       setUser(null);
       toast({
         title: "Déconnexion réussie",
         description: "Vous avez été déconnecté.",
       });
     } catch (error: any) {
-      console.error('Logout failed:', error.message);
+      console.error('Logout failed:', error.response?.data?.message || error.message);
       toast({
         title: "Erreur de déconnexion",
-        description: error.message || "Impossible de se déconnecter.",
+        description: error.response?.data?.message || "Impossible de se déconnecter.",
         variant: "destructive"
       });
     } finally {

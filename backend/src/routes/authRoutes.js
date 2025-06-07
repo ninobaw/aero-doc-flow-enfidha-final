@@ -51,4 +51,11 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// POST /api/auth/logout
+router.post('/logout', (req, res) => {
+  // In a real application, you would invalidate the user's session/token here.
+  // For this mock backend, we simply send a success response.
+  res.status(200).json({ message: 'Logged out successfully' });
+});
+
 module.exports = router;

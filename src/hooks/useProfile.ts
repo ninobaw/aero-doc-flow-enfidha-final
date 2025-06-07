@@ -12,6 +12,7 @@ export interface ProfileData {
   last_name: string;
   phone?: string;
   department?: string;
+  position?: string;
   profile_photo?: string;
   airport: 'ENFIDHA' | 'MONASTIR';
   role: 'SUPER_ADMIN' | 'ADMINISTRATOR' | 'APPROVER' | 'USER' | 'VISITOR';
@@ -22,7 +23,7 @@ export interface ProfileData {
 
 export const useProfile = () => {
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user } = useAuth(); // Get user from local AuthContext
   const queryClient = useQueryClient();
 
   const { data: profile, isLoading, error } = useQuery({
@@ -32,7 +33,7 @@ export const useProfile = () => {
       const response = await axios.get(`${API_BASE_URL}/users/${user.id}`);
       return response.data as ProfileData;
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id, // Only fetch if user is logged in
   });
 
   const updateProfile = useMutation({
