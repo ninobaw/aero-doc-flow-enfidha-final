@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -161,7 +161,6 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
                   <SelectValue placeholder="Sélectionner un aéroport" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Sélectionner...</SelectItem>
                   {codeConfig?.scopes.map(scope => (
                     <SelectItem key={scope.code} value={scope.code}>
                       {scope.label}
@@ -182,7 +181,6 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
                   <SelectValue placeholder="Sélectionner un type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Sélectionner...</SelectItem>
                   {codeConfig?.documentTypes.map(docType => (
                     <SelectItem key={docType.code} value={docType.code}>
                       {docType.label}
@@ -204,7 +202,6 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
                   <SelectValue placeholder="Sélectionner un département" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Sélectionner...</SelectItem>
                   {codeConfig?.departments.map(dept => (
                     <SelectItem key={dept.code} value={dept.code}>
                       {dept.label}
@@ -229,7 +226,7 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
                   <SelectValue placeholder="Sélectionner un sous-département" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Aucun</SelectItem>
+                  {/* Removed SelectItem with empty value */}
                   {codeConfig?.subDepartments.map(subDept => (
                     <SelectItem key={subDept.code} value={subDept.code}>
                       {subDept.label}
@@ -250,7 +247,6 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
                   <SelectValue placeholder="Sélectionner une langue" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Sélectionner...</SelectItem>
                   {codeConfig?.languages.map(lang => (
                     <SelectItem key={lang.code} value={lang.code}>
                       {lang.label}
