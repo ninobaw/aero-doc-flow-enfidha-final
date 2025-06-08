@@ -251,3 +251,16 @@ export const generateDocumentCodePreview = (
 
   return parts.join('-');
 };
+
+export const mapDocumentTypeCodeToDocumentTypeEnum = (code: string): DocumentType => {
+  switch (code) {
+    case 'FM': return DocumentType.FORMULAIRE_DOC;
+    case 'CR': return DocumentType.CORRESPONDANCE;
+    case 'PV': return DocumentType.PROCES_VERBAL;
+    case 'PQ': return DocumentType.QUALITE_DOC;
+    case 'ND': return DocumentType.NOUVEAU_DOC;
+    case 'MN': return DocumentType.GENERAL; 
+    case 'RG': return DocumentType.GENERAL;
+    default: return DocumentType.GENERAL; // Fallback
+  }
+};
