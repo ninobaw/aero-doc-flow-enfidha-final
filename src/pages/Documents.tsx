@@ -4,14 +4,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FileText, Plus, Search, Filter, Upload } from 'lucide-react'; // Added Upload icon
+import { FileText, Plus, Search, Filter, Upload } from 'lucide-react';
 import { DocumentsList } from '@/components/documents/DocumentsList';
 import { useDocuments, DocumentData } from '@/hooks/useDocuments';
 import { useNavigate } from 'react-router-dom';
 import { EditDocumentDialog } from '@/components/documents/EditDocumentDialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'; // Import Tabs components
-import { DocumentCreationForm } from '@/components/documents/DocumentCreationForm'; // Import DocumentCreationForm
-import { DocumentImportForm } from '@/components/documents/DocumentImportForm'; // Import DocumentImportForm
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DocumentCreationForm } from '@/components/documents/DocumentCreationForm';
+import { DocumentImportForm } from '@/components/documents/DocumentImportForm';
+import { TagInput } from '@/components/ui/TagInput'; // Import TagInput
 
 const Documents = () => {
   const navigate = useNavigate();
@@ -20,18 +21,24 @@ const Documents = () => {
   const [filterType, setFilterType] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterAirport, setFilterAirport] = useState<string>('all');
+  const [filterTags, setFilterTags] = useState<string[]>([]); // New state for tag filter
 
   const [selectedDocumentForEdit, setSelectedDocumentForEdit] = useState<DocumentData | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   
   const filteredDocuments = documents.filter(doc => {
     const matchesSearch = doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         doc.content?.toLowerCase().includes(searchTerm.toLowerCase());
+                         doc.content?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         doc.qr_code.toLowerCase().includes(searchTerm.toLowerCase()); // Search by QR code as well
     const matchesType = filterType === 'all' || doc.type === filterType;
     const matchesStatus = filterStatus === 'all' || doc.status === filterStatus;
     const matchesAirport = filterAirport === 'all' || doc.airport === filterAirport;
     
-    return matchesSearch && matchesType && matchesStatus && matchesAirport;
+    // Filter by tags: document must have ALL selected tags
+    const matchesTags = filterTags.length === 0 || 
+                        (doc.tags && filterTags.every(tag => doc.tags.includes(tag)));
+
+    return matchesSearch && matchesType && matchesStatus && matchesAirport && matchesTags;
   });
 
   const handleDelete = (id: string) => {
@@ -43,6 +50,14 @@ const Documents = () => {
   const handleEdit = (document: DocumentData) => {
     setSelectedDocumentForEdit(document);
     setIsEditDialogOpen(true);
+  };
+
+  const handleResetFilters = () => {
+    setSearchTerm('');
+    setFilterType('all');
+    setFilterStatus('all');
+    setFilterAirport('all');
+    setFilterTags([]);
   };
 
   return (
@@ -80,11 +95,11 @@ const Documents = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="relative">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                  <div className="relative md:col-span-2">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                     <Input
-                      placeholder="Rechercher dans les documents..."
+                      placeholder="Rechercher par titre, contenu ou code QR..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-10"
@@ -130,6 +145,17 @@ const Documents = () => {
                       <SelectItem value="GENERALE">Général</SelectItem>
                     </SelectContent>
                   </Select>
+
+                  <div className="md:col-span-3">
+                    <TagInput
+                      tags={filterTags}
+                      onTagsChange={setFilterTags}
+                      placeholder="Filtrer par tags (ex: sécurité, audit)"
+                    />
+                  </div>
+                  <Button variant="outline" onClick={handleResetFilters} className="md:col-span-1">
+                    Réinitialiser les filtres
+                  </Button>
                 </div>
               </CardContent>
             </Card>
