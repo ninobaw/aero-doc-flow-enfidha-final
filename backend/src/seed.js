@@ -100,6 +100,20 @@ const seedDatabase = async () => {
         lastLogin: new Date(),
         password: 'user123',
       },
+      { // New user with GENERALE scope
+        _id: uuidv4(),
+        email: 'general.user@aerodoc.tn',
+        firstName: 'General',
+        lastName: 'User',
+        role: 'USER',
+        airport: 'GENERALE',
+        isActive: true,
+        phone: '21611111111',
+        department: 'Cross-Airport',
+        position: 'Coordinator',
+        lastLogin: new Date(),
+        password: 'user123',
+      },
     ];
 
     const hashedUsers = await Promise.all(usersToSeed.map(async (user) => {
@@ -115,6 +129,7 @@ const seedDatabase = async () => {
     const adminId = createdUsers.find(u => u.email === 'admin@aerodoc.tn')._id;
     const approverId = createdUsers.find(u => u.email === 'approver@aerodoc.tn')._id;
     const userId = createdUsers.find(u => u.email === 'user@aerodoc.tn')._id;
+    const generalUserId = createdUsers.find(u => u.email === 'general.user@aerodoc.tn')._id;
 
     // --- Seed Documents (General, QualiteDoc, FormulaireDoc) ---
     console.log('Seeding documents...');
@@ -174,6 +189,20 @@ const seedDatabase = async () => {
         downloadsCount: 5,
         createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
       },
+      { // New document with GENERALE scope
+        _id: uuidv4(),
+        title: 'Rapport Annuel de Sécurité (Général)',
+        type: 'GENERAL',
+        content: 'Rapport consolidé sur la sécurité pour tous les aéroports.',
+        authorId: superAdminId,
+        airport: 'GENERALE',
+        qrCode: `QR-${uuidv4()}`,
+        version: 1,
+        status: 'ACTIVE',
+        viewsCount: 200,
+        downloadsCount: 50,
+        createdAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000), // 20 days ago
+      },
     ];
     const createdDocuments = await Document.insertMany(documentsToSeed);
     console.log('Documents seeded successfully!');
@@ -230,6 +259,39 @@ const seedDatabase = async () => {
       createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
     };
     await Correspondance.create(correspondanceToSeed);
+
+    const generalCorrespondanceDocId = uuidv4();
+    const generalCorrespondanceDocument = new Document({
+      _id: generalCorrespondanceDocId,
+      title: 'Correspondance Générale: Annonce de nouvelle politique',
+      type: 'CORRESPONDANCE',
+      content: 'Annonce d\'une nouvelle politique applicable à tous les aéroports.',
+      authorId: superAdminId,
+      airport: 'GENERALE',
+      qrCode: `QR-${uuidv4()}`,
+      version: 1,
+      status: 'ACTIVE',
+      viewsCount: 50,
+      downloadsCount: 10,
+      createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
+    });
+    await generalCorrespondanceDocument.save();
+
+    const generalCorrespondanceToSeed = {
+      _id: uuidv4(),
+      documentId: generalCorrespondanceDocId,
+      fromAddress: 'direction@aerodoc.tn',
+      toAddress: 'all.staff@aerodoc.tn',
+      subject: 'Nouvelle politique de gestion des déchets',
+      content: 'Une nouvelle politique de gestion des déchets a été mise en place pour tous les sites.',
+      priority: 'HIGH',
+      status: 'SENT',
+      airport: 'GENERALE',
+      attachments: ['politique_dechets.pdf'],
+      actionsDecidees: [],
+      createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+    };
+    await Correspondance.create(generalCorrespondanceToSeed);
     console.log('Correspondences seeded successfully!');
 
     // --- Seed Proces Verbaux ---
@@ -283,6 +345,48 @@ const seedDatabase = async () => {
       createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
     };
     await ProcesVerbal.create(pvToSeed);
+
+    const generalPvDocId = uuidv4();
+    const generalPvDocument = new Document({
+      _id: generalPvDocId,
+      title: 'PV Réunion Stratégique (Général)',
+      type: 'PROCES_VERBAL',
+      content: 'Compte-rendu de la réunion stratégique inter-aéroports.',
+      authorId: superAdminId,
+      airport: 'GENERALE',
+      qrCode: `QR-${uuidv4()}`,
+      version: 1,
+      status: 'ACTIVE',
+      viewsCount: 30,
+      downloadsCount: 5,
+      createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
+    });
+    await generalPvDocument.save();
+
+    const generalPvToSeed = {
+      _id: uuidv4(),
+      documentId: generalPvDocId,
+      meetingDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+      participants: ['Super Admin', 'Airport Admin', 'Doc Approver'],
+      agenda: '1. Stratégie 2025\n2. Budgets\n3. Projets inter-sites',
+      decisions: 'Décision 1: Lancer le projet X.\nDécision 2: Allouer le budget Y.',
+      location: 'Siège Social',
+      meetingType: 'Réunion Stratégique',
+      airport: 'GENERALE',
+      nextMeetingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      actionsDecidees: [
+        {
+          titre: 'Préparer le plan de projet X',
+          description: 'Élaborer un plan détaillé pour le projet X.',
+          responsable: adminId,
+          echeance: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
+          priorite: 'HIGH',
+          statut: 'PENDING',
+        },
+      ],
+      createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+    };
+    await ProcesVerbal.create(generalPvToSeed);
     console.log('Proces Verbaux seeded successfully!');
 
     // --- Seed Actions ---
@@ -333,6 +437,17 @@ const seedDatabase = async () => {
         estimatedHours: 24,
         actualHours: 20,
       },
+      { // New action with GENERALE scope
+        _id: uuidv4(),
+        title: 'Audit de sécurité inter-aéroports',
+        description: 'Réaliser un audit de sécurité sur les deux sites.',
+        assignedTo: [superAdminId, generalUserId],
+        dueDate: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000), // 45 days from now
+        status: 'PENDING',
+        priority: 'HIGH',
+        progress: 0,
+        estimatedHours: 80,
+      },
     ];
     await Action.insertMany(actionsToSeed);
     console.log('Actions seeded successfully!');
@@ -375,6 +490,15 @@ const seedDatabase = async () => {
         type: 'error',
         isRead: true,
         createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
+      },
+      { // New notification for general user
+        _id: uuidv4(),
+        userId: generalUserId,
+        title: 'Nouvelle correspondance générale',
+        message: 'Une nouvelle correspondance "Nouvelle politique de gestion des déchets" a été publiée.',
+        type: 'info',
+        isRead: false,
+        createdAt: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
       },
     ];
     await Notification.insertMany(notificationsToSeed);
@@ -420,6 +544,22 @@ const seedDatabase = async () => {
         frequency: 'WEEKLY',
         lastGenerated: null,
         createdBy: superAdminId,
+      },
+      { // New report with GENERALE scope
+        _id: uuidv4(),
+        name: 'Rapport d\'Activité Utilisateurs (Général)',
+        type: 'USER_ACTIVITY',
+        config: { airport: 'GENERALE' },
+        content: {
+          totalUsers: 6,
+          activeUsers: 6,
+          usersByRole: { SUPER_ADMIN: 1, ADMINISTRATOR: 1, APPROVER: 1, USER: 2, VISITOR: 1 },
+          usersByAirport: { ENFIDHA: 3, MONASTIR: 2, GENERALE: 1 },
+        },
+        status: 'COMPLETED',
+        frequency: 'DAILY',
+        lastGenerated: new Date(),
+        createdBy: generalUserId,
       },
     ];
     await Report.insertMany(reportsToSeed);
@@ -492,6 +632,15 @@ const seedDatabase = async () => {
         userId: superAdminId,
         timestamp: new Date(Date.now() - 10 * 60 * 1000), // 10 minutes ago
       },
+      { // New activity log for general document
+        _id: uuidv4(),
+        action: 'DOCUMENT_CREATED',
+        details: 'Document "Rapport Annuel de Sécurité (Général)" créé.',
+        entityId: createdDocuments[3]._id,
+        entityType: 'DOCUMENT',
+        userId: superAdminId,
+        timestamp: new Date(Date.now() - 15 * 60 * 1000), // 15 minutes ago
+      },
     ];
     await ActivityLog.insertMany(activityLogsToSeed);
     console.log('Activity logs seeded successfully!');
@@ -503,6 +652,7 @@ const seedDatabase = async () => {
     console.log('  Email: approver@aerodoc.tn, Password: user123');
     console.log('  Email: user@aerodoc.tn, Password: user123');
     console.log('  Email: visitor@aerodoc.tn, Password: user123');
+    console.log('  Email: general.user@aerodoc.tn, Password: user123');
 
   } catch (error) {
     console.error('Error seeding database:', error);
