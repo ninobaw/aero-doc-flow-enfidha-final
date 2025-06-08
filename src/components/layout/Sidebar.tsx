@@ -37,14 +37,10 @@ const navigationItems: NavItem[] = [
   },
   {
     title: 'Documents',
+    href: '/documents', // Link directly to the unified Documents page
     icon: FileText,
     children: [
-      {
-        title: 'Nouveau Doc',
-        href: '/documents/nouveau',
-        icon: FilePlus,
-        permission: 'create_documents'
-      },
+      // Removed 'Nouveau Doc' as it's now part of /documents tabs
       {
         title: 'Qualité Doc',
         href: '/documents/qualite',
@@ -134,6 +130,10 @@ export const Sidebar = () => {
     const hasChildren = item.children && item.children.length > 0;
     const isActive = item.href ? location.pathname === item.href : false;
 
+    // Special handling for "Documents" parent link to be active if any child route is active
+    const isParentActive = item.title === 'Documents' && location.pathname.startsWith('/documents');
+
+
     if (hasChildren) {
       const visibleChildren = item.children.filter(hasPermissionForItem);
       if (visibleChildren.length === 0) return null;
@@ -144,7 +144,8 @@ export const Sidebar = () => {
             onClick={() => toggleExpanded(item.title)}
             className={cn(
               'w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors',
-              'hover:bg-white/10 text-aviation-sky-light'
+              'hover:bg-white/10 text-aviation-sky-light',
+              isParentActive ? 'bg-white/20 text-white' : '' // Apply active style to parent if any child is active
             )}
           >
             <div className="flex items-center">

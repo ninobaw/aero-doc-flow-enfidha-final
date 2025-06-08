@@ -17,7 +17,6 @@ import Actions from "./pages/Actions";
 import QRCodes from "./pages/QRCodes";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
-import NouveauDoc from "./pages/NouveauDoc";
 import Profile from "./pages/Profile";
 import Templates from "./pages/Templates"; // Import the new Templates page
 
@@ -41,11 +40,7 @@ const App = () => (
                 <Documents />
               </ProtectedRoute>
             } />
-            <Route path="/documents/nouveau" element={
-              <ProtectedRoute requiredPermission="create_documents">
-                <NouveauDoc />
-              </ProtectedRoute>
-            } />
+            {/* Removed /documents/nouveau route */}
             <Route path="/documents/qualite" element={
               <ProtectedRoute requiredPermission="view_documents">
                 <QualiteDoc />
