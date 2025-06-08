@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,9 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FileText, Plus, Search, Filter } from 'lucide-react';
 import { DocumentsList } from '@/components/documents/DocumentsList';
-import { useDocuments, DocumentData } from '@/hooks/useDocuments'; // Import DocumentData
+import { useDocuments, DocumentData } from '@/hooks/useDocuments';
 import { useNavigate } from 'react-router-dom';
-import { EditDocumentDialog } from '@/components/documents/EditDocumentDialog'; // Import the new dialog
+import { EditDocumentDialog } from '@/components/documents/EditDocumentDialog';
 
 const Documents = () => {
   const navigate = useNavigate();
@@ -16,9 +16,8 @@ const Documents = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [filterAirport, setFilterAirport] = useState<string>('all'); // New state for airport filter
+  const [filterAirport, setFilterAirport] = useState<string>('all');
 
-  // State for editing dialog
   const [selectedDocumentForEdit, setSelectedDocumentForEdit] = useState<DocumentData | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   
@@ -27,7 +26,7 @@ const Documents = () => {
                          doc.content?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType === 'all' || doc.type === filterType;
     const matchesStatus = filterStatus === 'all' || doc.status === filterStatus;
-    const matchesAirport = filterAirport === 'all' || doc.airport === filterAirport; // New filter condition
+    const matchesAirport = filterAirport === 'all' || doc.airport === filterAirport;
     
     return matchesSearch && matchesType && matchesStatus && matchesAirport;
   });
@@ -62,7 +61,6 @@ const Documents = () => {
           </Button>
         </div>
 
-        {/* Filtres et recherche */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
@@ -124,16 +122,14 @@ const Documents = () => {
           </CardContent>
         </Card>
 
-        {/* Liste des documents */}
         <DocumentsList 
           documents={filteredDocuments}
           isLoading={isLoading}
           onDelete={handleDelete}
-          onEdit={handleEdit} {/* Pass the handleEdit function */}
+          onEdit={handleEdit}
         />
       </div>
 
-      {/* Edit Document Dialog */}
       {selectedDocumentForEdit && (
         <EditDocumentDialog
           document={selectedDocumentForEdit}
