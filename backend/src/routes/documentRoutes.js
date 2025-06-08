@@ -1,9 +1,43 @@
 const { Router } = require('express');
 const { Document } = require('../models/Document');
 const { User } = require('../models/User'); // To populate author details
+const { DocumentCodeConfig } = require('../models/DocumentCodeConfig'); // Import DocumentCodeConfig model
 const { v4: uuidv4 } = require('uuid');
 
 const router = Router();
+
+// Helper function to generate the document code and update sequence
+const generateDocumentCodeAndSequence = async (
+  company_code,
+  scope_code,
+  department_code,
+  sub_department_code,
+  document_type_code,
+  language_code
+) => {
+  const config = await DocumentCodeConfig.findOne({});
+  if (!config) {
+    throw new Error('Document code configuration not found.');
+  }
+
+  // Construct the key for the sequence counter
+  const sequenceKey = `${company_code}-${scope_code}-${department_code}-${sub_department_code || 'NA'}-${document_type_code}-${language_code}`;
+  
+  let currentSequence = config.sequenceCounters.get(sequenceKey) || 0;
+  currentSequence++;
+  
+  // Update the sequence counter in the database
+  config.sequenceCounters.set(sequenceKey, currentSequence);
+  await config.save();
+
+  const paddedSequence = String(currentSequence).padStart(3, '0'); // e.g., 001, 002
+
+  // Construct the full QR code string
+  const qrCode = `${company_code}-${scope_code}-${department_code}${sub_department_code ? `-${sub_department_code}` : ''}-${document_type_code}-${paddedSequence}-${language_code}`;
+  
+  return { qrCode, sequence_number: currentSequence };
+};
+
 
 // GET /api/documents
 router.get('/', async (req, res) => {
@@ -26,13 +60,26 @@ router.get('/', async (req, res) => {
 
 // POST /api/documents
 router.post('/', async (req, res) => {
-  const { title, type, content, author_id, airport, file_path, file_type } = req.body;
+  const { 
+    title, type, content, author_id, airport, file_path, file_type,
+    company_code, scope_code, department_code, sub_department_code,
+    document_type_code, language_code
+  } = req.body;
 
-  if (!title || !type || !author_id || !airport) {
-    return res.status(400).json({ message: 'Missing required fields' });
+  if (!title || !type || !author_id || !airport || !company_code || !scope_code || !department_code || !document_type_code || !language_code) {
+    return res.status(400).json({ message: 'Missing required fields for document creation, including codification fields.' });
   }
 
   try {
+    const { qrCode, sequence_number } = await generateDocumentCodeAndSequence(
+      company_code,
+      scope_code,
+      department_code,
+      sub_department_code,
+      document_type_code,
+      language_code
+    );
+
     const newDocument = new Document({
       _id: uuidv4(),
       title,
@@ -42,11 +89,18 @@ router.post('/', async (req, res) => {
       airport,
       filePath: file_path,
       fileType: file_type,
-      qrCode: `QR-${uuidv4()}`, // Generate a unique QR code
+      qrCode, // Use the generated QR code
       version: 1,
       status: 'DRAFT',
       viewsCount: 0,
       downloadsCount: 0,
+      company_code,
+      scope_code,
+      department_code,
+      sub_department_code,
+      document_type_code,
+      language_code,
+      sequence_number,
     });
 
     await newDocument.save();
@@ -63,7 +117,7 @@ router.post('/', async (req, res) => {
     res.status(201).json(formattedDocument);
   } catch (error) {
     console.error('Error creating document:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: error.message || 'Server error' });
   }
 });
 
