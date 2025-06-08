@@ -6,7 +6,7 @@ const AppSettingsSchema = new Schema({
   companyName: { type: String, default: 'AeroDoc - Gestion Documentaire' },
   defaultAirport: { 
     type: String, 
-    enum: ['ENFIDHA', 'MONASTIR'], 
+    enum: ['ENFIDHA', 'MONASTIR', 'GENERALE'], 
     default: 'ENFIDHA' 
   },
   language: { type: String, default: 'fr' },

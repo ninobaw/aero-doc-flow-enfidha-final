@@ -1,4 +1,18 @@
-import React, { useState } => {
+import React, { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Plus } from 'lucide-react';
+import { useUsers } from '@/hooks/useUsers';
+import { useToast } from '@/hooks/use-toast';
+import { Airport } from '@/shared/types'; // Import Airport type
+
+type UserRole = 'SUPER_ADMIN' | 'ADMINISTRATOR' | 'APPROVER' | 'USER' | 'VISITOR';
+
+export const CreateUserDialog = () => {
   const [open, setOpen] = useState(false);
   const { createUser, isCreating } = useUsers();
   const { toast } = useToast();
