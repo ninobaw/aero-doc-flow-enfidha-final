@@ -15,6 +15,7 @@ const appSettingsRoutes = require('./routes/appSettingsRoutes.js');
 const activityLogRoutes = require('./routes/activityLogRoutes.js');
 const documentCodeConfigRoutes = require('./routes/documentCodeConfigRoutes.js');
 const uploadRoutes = require('./routes/uploadRoutes.js'); // New import
+const dashboardRoutes = require('./routes/dashboardRoutes.js'); // New import
 const path = require('path'); // New import
 
 dotenv.config();
@@ -45,6 +46,7 @@ app.use('/api/settings', appSettingsRoutes);
 app.use('/api/activity-logs', activityLogRoutes);
 app.use('/api/document-code-config', documentCodeConfigRoutes);
 app.use('/api/uploads', uploadRoutes); // New route for file uploads
+app.use('/api/dashboard', dashboardRoutes); // New route for dashboard stats
 
 // Define a simple root route
 app.get('/', (req, res) => {
