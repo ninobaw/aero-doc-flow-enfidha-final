@@ -2,6 +2,7 @@ const { Router } = require('express');
 const { Document } = require('../models/Document');
 const { User } = require('../models/User'); // To populate author details
 const { DocumentCodeConfig } = require('../models/DocumentCodeConfig'); // Import DocumentCodeConfig model
+const { ActivityLog } = require('../models/ActivityLog'); // Import ActivityLog model
 const { v4: uuidv4 } = require('uuid');
 
 const router = Router();
@@ -66,6 +67,34 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET /api/documents/:id/history
+router.get('/:id/history', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const historyLogs = await ActivityLog.find({ entityId: id, entityType: 'DOCUMENT' })
+      .populate('userId', 'firstName lastName')
+      .sort({ timestamp: 1 }); // Sort by timestamp ascending for chronological order
+
+    const formattedHistory = historyLogs.map(log => ({
+      id: log._id,
+      documentId: log.entityId,
+      action: log.action,
+      userId: log.userId._id,
+      userName: `${log.userId.firstName} ${log.userId.lastName}`,
+      timestamp: log.timestamp.toISOString(),
+      details: log.details,
+      // Assuming version and changes might be part of details or need to be parsed
+      version: log.details.includes('version') ? parseInt(log.details.split('version ')[1]?.split(' ')[0]) : undefined,
+      changes: log.details.includes('modifié') ? {} : undefined, // Placeholder for actual changes parsing
+    }));
+
+    res.json(formattedHistory);
+  } catch (error) {
+    console.error('Error fetching document history:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // POST /api/documents
 router.post('/', async (req, res) => {
   const { 
@@ -113,6 +142,17 @@ router.post('/', async (req, res) => {
 
     await newDocument.save();
     
+    // Log document creation
+    await ActivityLog.create({
+      _id: uuidv4(),
+      action: 'DOCUMENT_CREATED',
+      details: `Document "${newDocument.title}" (ID: ${newDocument._id}) créé.`,
+      entityId: newDocument._id,
+      entityType: 'DOCUMENT',
+      userId: author_id,
+      timestamp: new Date(),
+    });
+
     const populatedDocument = await newDocument
       .populate('authorId', 'firstName lastName')
       .populate('approvedBy', 'firstName lastName'); // Populate approvedBy for response
@@ -142,37 +182,81 @@ router.put('/:id', async (req, res) => {
   const { id } = req.params;
   const updates = req.body;
 
-  // Handle approval specific fields
-  if (updates.status === 'ACTIVE' && updates.approved_by_id) {
-    updates.approvedBy = updates.approved_by_id; // Map frontend field to backend
-    updates.approvedAt = new Date(); // Set approval timestamp
-    delete updates.approved_by_id;
-  } else if (updates.status !== 'ACTIVE') {
-    // If status is changed away from ACTIVE, clear approval info
-    updates.approvedBy = null;
-    updates.approvedAt = null;
-  }
-
   try {
-    const document = await Document.findByIdAndUpdate(id, updates, { new: true })
-      .populate('authorId', 'firstName lastName')
-      .populate('approvedBy', 'firstName lastName'); // Populate approvedBy for response
-    
-    if (!document) {
+    const oldDocument = await Document.findById(id);
+    if (!oldDocument) {
       return res.status(404).json({ message: 'Document not found' });
     }
+
+    // Handle approval specific fields
+    if (updates.status === 'ACTIVE' && updates.approved_by_id && oldDocument.status !== 'ACTIVE') {
+      updates.approvedBy = updates.approved_by_id; // Map frontend field to backend
+      updates.approvedAt = new Date(); // Set approval timestamp
+      delete updates.approved_by_id;
+      // Log approval
+      await ActivityLog.create({
+        _id: uuidv4(),
+        action: 'DOCUMENT_APPROVED',
+        details: `Document "${oldDocument.title}" (ID: ${oldDocument._id}) approuvé.`,
+        entityId: oldDocument._id,
+        entityType: 'DOCUMENT',
+        userId: updates.approvedBy, // Use the actual approver ID
+        timestamp: new Date(),
+      });
+    } else if (updates.status !== 'ACTIVE' && oldDocument.status === 'ACTIVE') {
+      // If status is changed away from ACTIVE, clear approval info
+      updates.approvedBy = null;
+      updates.approvedAt = null;
+      // Log un-approval or status change from active
+      await ActivityLog.create({
+        _id: uuidv4(),
+        action: 'DOCUMENT_STATUS_CHANGED',
+        details: `Statut du document "${oldDocument.title}" (ID: ${oldDocument._id}) changé de ACTIF à ${updates.status}.`,
+        entityId: oldDocument._id,
+        entityType: 'DOCUMENT',
+        userId: req.user ? req.user.id : 'system', // Assuming req.user from auth middleware
+        timestamp: new Date(),
+      });
+    }
+
+    // Handle general updates and log them
+    const updatedDocument = await Document.findByIdAndUpdate(id, updates, { new: true })
+      .populate('authorId', 'firstName lastName')
+      .populate('approvedBy', 'firstName lastName');
+    
+    if (!updatedDocument) {
+      return res.status(404).json({ message: 'Document not found after update attempt' });
+    }
+
+    // Log general update if not already logged by status change
+    const changes = Object.keys(updates).filter(key => 
+      key !== 'approvedBy' && key !== 'approvedAt' && key !== 'status' && 
+      JSON.stringify(updates[key]) !== JSON.stringify(oldDocument.toObject()[key])
+    );
+    if (changes.length > 0) {
+      await ActivityLog.create({
+        _id: uuidv4(),
+        action: 'DOCUMENT_UPDATED',
+        details: `Document "${updatedDocument.title}" (ID: ${updatedDocument._id}) modifié. Champs: ${changes.join(', ')}.`,
+        entityId: updatedDocument._id,
+        entityType: 'DOCUMENT',
+        userId: req.user ? req.user.id : 'system', // Assuming req.user from auth middleware
+        timestamp: new Date(),
+      });
+    }
+
     const formattedDocument = {
-      ...document.toObject(),
-      id: document._id,
-      author: document.authorId ? {
-        first_name: document.authorId.firstName,
-        last_name: document.authorId.lastName,
+      ...updatedDocument.toObject(),
+      id: updatedDocument._id,
+      author: updatedDocument.authorId ? {
+        first_name: updatedDocument.authorId.firstName,
+        last_name: updatedDocument.authorId.lastName,
       } : null,
-      approved_by: document.approvedBy ? {
-        first_name: document.approvedBy.firstName,
-        last_name: document.approvedBy.lastName,
+      approved_by: updatedDocument.approvedBy ? {
+        first_name: updatedDocument.approvedBy.firstName,
+        last_name: updatedDocument.approvedBy.lastName,
       } : null,
-      approved_at: document.approvedAt ? document.approvedAt.toISOString() : null,
+      approved_at: updatedDocument.approvedAt ? updatedDocument.approvedAt.toISOString() : null,
     };
     res.json(formattedDocument);
   } catch (error) {
@@ -190,6 +274,18 @@ router.delete('/:id', async (req, res) => {
     if (!document) {
       return res.status(404).json({ message: 'Document not found' });
     }
+
+    // Log document deletion
+    await ActivityLog.create({
+      _id: uuidv4(),
+      action: 'DOCUMENT_DELETED',
+      details: `Document "${document.title}" (ID: ${document._id}) supprimé.`,
+      entityId: document._id,
+      entityType: 'DOCUMENT',
+      userId: req.user ? req.user.id : 'system', // Assuming req.user from auth middleware
+      timestamp: new Date(),
+    });
+
     res.status(204).send(); // No content on successful deletion
   } catch (error) {
     console.error('Error deleting document:', error);
