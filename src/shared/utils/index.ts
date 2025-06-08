@@ -271,3 +271,8 @@ export const getAbsoluteFilePath = (relativePath: string): string => {
   const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
   return `${baseUrl}/uploads/${relativePath}`;
 };
+
+// New utility function for QR code image generation
+export const generateQRCodeImage = (qrCodeValue: string): string => {
+  return `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrCodeValue)}`;
+};
