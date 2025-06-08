@@ -1,3 +1,4 @@
+par <span> pour le code QR.">
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -75,6 +76,7 @@ export const DocumentsList = ({ documents, isLoading, onEdit, onDelete }: Docume
       case 'CORRESPONDANCE': return 'Correspondance';
       case 'PROCES_VERBAL': return 'Procès-Verbal';
       case 'FORMULAIRE_DOC': return 'Formulaire';
+      case 'TEMPLATE': return 'Modèle'; // Added TEMPLATE type
       default: return type;
     }
   };
@@ -103,9 +105,9 @@ export const DocumentsList = ({ documents, isLoading, onEdit, onDelete }: Docume
                 {getTypeLabel(document.type)}
               </Badge>
               {document.qr_code && (
-                <p className="font-mono text-xs bg-gray-100 px-2 py-1 rounded mt-1 inline-block">
+                <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded mt-1 inline-block">
                   {document.qr_code}
-                </p>
+                </span>
               )}
             </CardDescription>
           </CardHeader>

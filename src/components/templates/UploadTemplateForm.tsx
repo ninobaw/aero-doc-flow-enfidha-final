@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Save, Upload, FileText, Eye, X } from 'lucide-react';
+import { Save, Upload, FileText, Eye, X, FilePlus } from 'lucide-react'; // Added FilePlus
 import { useTemplates } from '@/hooks/useTemplates';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useAuth } from '@/contexts/AuthContext';
