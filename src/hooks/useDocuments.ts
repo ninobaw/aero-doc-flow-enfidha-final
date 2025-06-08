@@ -27,6 +27,14 @@ export interface DocumentData {
     first_name: string;
     last_name: string;
   };
+  // New fields for document code components
+  company_code?: string;
+  scope_code?: string;
+  department_code?: string;
+  sub_department_code?: string;
+  document_type_code?: string;
+  language_code?: string;
+  sequence_number?: number;
 }
 
 export const useDocuments = () => {
@@ -50,6 +58,13 @@ export const useDocuments = () => {
       airport: Airport; // Updated to use Airport type
       file_path?: string;
       file_type?: string;
+      // New codification fields
+      company_code?: string;
+      scope_code?: string;
+      department_code?: string;
+      sub_department_code?: string;
+      document_type_code?: string;
+      language_code?: string;
     }) => {
       if (!user?.id) throw new Error('Utilisateur non connecté');
 
@@ -89,6 +104,14 @@ export const useDocuments = () => {
       version?: number;
       views_count?: number;
       downloads_count?: number;
+      // New codification fields
+      company_code?: string;
+      scope_code?: string;
+      department_code?: string;
+      sub_department_code?: string;
+      document_type_code?: string;
+      language_code?: string;
+      sequence_number?: number;
     }) => {
       const response = await axios.put(`${API_BASE_URL}/documents/${id}`, updates);
       return response.data;
