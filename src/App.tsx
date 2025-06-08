@@ -19,6 +19,7 @@ import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import Templates from "./pages/Templates"; // Import the new Templates page
+import AuditLogs from "./pages/AuditLogs"; // Import the new AuditLogs page
 import { TestAuthComponent } from "@/components/TestAuthComponent"; // Import the new test component
 
 const queryClient = new QueryClient();
@@ -82,6 +83,11 @@ const App = () => (
             <Route path="/reports" element={
               <ProtectedRoute requiredPermission="view_reports">
                 <Reports />
+              </ProtectedRoute>
+            } />
+            <Route path="/audit-logs" element={ {/* New route for Audit Logs */}
+              <ProtectedRoute requiredPermission="manage_settings">
+                <AuditLogs />
               </ProtectedRoute>
             } />
             <Route path="/settings" element={

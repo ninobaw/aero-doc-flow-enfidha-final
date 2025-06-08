@@ -8,7 +8,8 @@ const router = Router();
 // GET /api/activity-logs
 router.get('/', async (req, res) => {
   try {
-    const logs = await ActivityLog.find({}).populate('userId', 'firstName lastName').sort({ timestamp: -1 }).limit(20);
+    // Removed .limit(20) to fetch all logs for the audit page
+    const logs = await ActivityLog.find({}).populate('userId', 'firstName lastName').sort({ timestamp: -1 });
     const formattedLogs = logs.map(log => ({
       ...log.toObject(),
       id: log._id,

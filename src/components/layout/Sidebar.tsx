@@ -16,7 +16,8 @@ import {
   ChevronRight,
   Plane,
   FilePlus,
-  FileBadge // Icon for Templates
+  FileBadge,
+  ScrollText // Icon for Audit Logs
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -90,6 +91,12 @@ const navigationItems: NavItem[] = [
     href: '/reports',
     icon: BarChart3,
     permission: 'view_reports'
+  },
+  {
+    title: 'Journaux d\'Audit', // New navigation item
+    href: '/audit-logs',
+    icon: ScrollText,
+    permission: 'manage_settings' // Typically, only admins can view audit logs
   },
   {
     title: 'Paramètres',
