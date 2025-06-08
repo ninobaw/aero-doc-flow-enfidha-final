@@ -27,11 +27,11 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
   const [formData, setFormData] = useState({
     title: '',
     company_code: '',
-    airport: '' as Airport,
-    department_code: '',
-    sub_department_code: '',
-    document_type_code: '',
-    language_code: '',
+    airport: undefined as Airport | undefined,
+    department_code: undefined as string | undefined,
+    sub_department_code: undefined as string | undefined,
+    document_type_code: undefined as string | undefined,
+    language_code: undefined as string | undefined,
     version: '',
     responsable: '',
     description: '',
@@ -43,11 +43,11 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
       setFormData({
         title: document.title || '',
         company_code: document.company_code || 'TAVTUN',
-        airport: document.airport || '' as Airport,
-        department_code: document.department_code || '',
-        sub_department_code: document.sub_department_code || '',
-        document_type_code: document.document_type_code || '',
-        language_code: document.language_code || '',
+        airport: document.airport || undefined,
+        department_code: document.department_code || undefined,
+        sub_department_code: document.sub_department_code || undefined,
+        document_type_code: document.document_type_code || undefined,
+        language_code: document.language_code || undefined,
         version: document.version?.toString() || '1.0',
         responsable: '', // Assuming no 'responsable' field in DocumentData directly
         description: document.content || '', // Using content as description for now
@@ -113,9 +113,9 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
   const initialDepartmentCode = useMemo(() => {
     if (user && codeConfig?.departments) {
       const foundDept = codeConfig.departments.find(d => d.label === user.department);
-      return foundDept ? foundDept.code : '';
+      return foundDept ? foundDept.code : undefined;
     }
-    return '';
+    return undefined;
   }, [user, codeConfig]);
 
   return (
@@ -196,7 +196,7 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
                 value={formData.department_code}
                 onValueChange={(value: string) => setFormData(prev => ({ ...prev, department_code: value }))}
                 required
-                disabled={!!user?.department && formData.department_code === initialDepartmentCode && initialDepartmentCode !== ''}
+                disabled={!!user?.department && formData.department_code === initialDepartmentCode && initialDepartmentCode !== undefined}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Sélectionner un département" />
@@ -209,7 +209,7 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
                   ))}
                 </SelectContent>
               </Select>
-              {user?.department && initialDepartmentCode !== '' && (
+              {user?.department && initialDepartmentCode !== undefined && (
                 <p className="text-xs text-gray-500">
                   Département pré-rempli ({user.department})
                 </p>
@@ -226,7 +226,6 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
                   <SelectValue placeholder="Sélectionner un sous-département" />
                 </SelectTrigger>
                 <SelectContent>
-                  {/* Removed SelectItem with empty value */}
                   {codeConfig?.subDepartments.map(subDept => (
                     <SelectItem key={subDept.code} value={subDept.code}>
                       {subDept.label}
