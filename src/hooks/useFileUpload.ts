@@ -23,6 +23,8 @@ export const useFileUpload = () => {
       setUploading(true);
       setProgress(0);
 
+      console.log('Début de l\'upload du fichier:', file.name, 'Type:', options.documentType);
+
       // Client-side validation (redundant with backend, but good for UX)
       if (options.allowedTypes && options.allowedTypes.length > 0) {
         const isValidType = options.allowedTypes.some(type => 
@@ -41,6 +43,7 @@ export const useFileUpload = () => {
       formData.append('file', file);
       formData.append('documentType', options.documentType); // Pass document type for folder organization
 
+      console.log('Envoi de la requête POST à:', `${API_BASE_URL}/uploads/file`);
       const response = await axios.post(`${API_BASE_URL}/uploads/file`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -52,6 +55,7 @@ export const useFileUpload = () => {
         },
       });
 
+      console.log('Réponse de l\'upload de fichier:', response.data);
       toast({
         title: 'Upload réussi',
         description: 'Le fichier a été uploadé avec succès.',
@@ -84,6 +88,8 @@ export const useFileUpload = () => {
       setUploading(true);
       setProgress(0);
 
+      console.log('Début de l\'upload du modèle:', file.name);
+
       if (options.allowedTypes && options.allowedTypes.length > 0) {
         const isValidType = options.allowedTypes.some(type => 
           file.type.startsWith(type.replace('.', '')) || file.name.toLowerCase().endsWith(type)
@@ -101,6 +107,7 @@ export const useFileUpload = () => {
       formData.append('templateFile', file);
       formData.append('documentType', 'templates'); // Hardcode 'templates' for template uploads
 
+      console.log('Envoi de la requête POST à:', `${API_BASE_URL}/uploads/template`);
       const response = await axios.post(`${API_BASE_URL}/uploads/template`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -112,6 +119,7 @@ export const useFileUpload = () => {
         },
       });
 
+      console.log('Réponse de l\'upload de modèle:', response.data);
       toast({
         title: 'Modèle uploadé',
         description: 'Le modèle a été uploadé avec succès.',
@@ -144,11 +152,13 @@ export const useFileUpload = () => {
       setUploading(true);
       setProgress(0); // Reset progress for copy operation
 
+      console.log('Début de la copie du modèle:', templateFilePath, 'vers le type:', documentType);
       const response = await axios.post(`${API_BASE_URL}/uploads/copy-template`, {
         templateFilePath,
         documentType,
       });
 
+      console.log('Réponse de la copie du modèle:', response.data);
       toast({
         title: 'Modèle copié',
         description: 'Le modèle a été copié pour le nouveau document.',
@@ -174,8 +184,10 @@ export const useFileUpload = () => {
 
   const deleteFile = async (filePath: string): Promise<boolean> => {
     try {
+      console.log('Tentative de suppression du fichier:', filePath);
       await axios.delete(`${API_BASE_URL}/uploads/file`, { data: { filePath } });
 
+      console.log('Fichier supprimé avec succès:', filePath);
       toast({
         title: 'Fichier supprimé',
         description: 'Le fichier a été supprimé avec succès.',

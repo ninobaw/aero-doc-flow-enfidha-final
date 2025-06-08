@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Save, Upload, FileText, Eye, X, FilePlus } from 'lucide-react'; // Added FilePlus
+import { Save, Upload, FileText, Eye, X, FilePlus } from 'lucide-react';
 import { useTemplates } from '@/hooks/useTemplates';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useAuth } from '@/contexts/AuthContext';
@@ -30,6 +30,7 @@ export const UploadTemplateForm: React.FC = () => {
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      console.log('Fichier sélectionné:', file);
       setSelectedFile(file);
       
       if (file.type.startsWith('image/') || file.type === 'application/pdf') {
@@ -53,6 +54,7 @@ export const UploadTemplateForm: React.FC = () => {
     }
     setSelectedFile(null);
     setPreviewUrl(null);
+    console.log('Fichier supprimé.');
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -73,8 +75,12 @@ export const UploadTemplateForm: React.FC = () => {
         description: 'Veuillez remplir le titre, sélectionner un aéroport et un fichier.',
         variant: 'destructive',
       });
+      console.log('Validation échouée: Champs manquants ou fichier non sélectionné.');
       return;
     }
+
+    console.log('Tentative d\'upload du fichier:', selectedFile);
+    console.log('Données du formulaire:', formData);
 
     const uploadedFile = await uploadTemplate(selectedFile, {
       allowedTypes: ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx'],
@@ -82,6 +88,7 @@ export const UploadTemplateForm: React.FC = () => {
     });
 
     if (uploadedFile) {
+      console.log('Fichier uploadé avec succès:', uploadedFile);
       createTemplate({
         title: formData.title,
         content: formData.description,
@@ -101,8 +108,11 @@ export const UploadTemplateForm: React.FC = () => {
             description: '',
           });
           removeFile();
+          console.log('Modèle créé et formulaire réinitialisé.');
         }
       });
+    } else {
+      console.log('L\'upload du fichier a échoué, annulation de la création du modèle.');
     }
   };
 
