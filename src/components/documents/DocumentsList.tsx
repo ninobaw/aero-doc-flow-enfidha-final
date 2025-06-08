@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -103,6 +102,11 @@ export const DocumentsList = ({ documents, isLoading, onEdit, onDelete }: Docume
               <Badge variant="secondary" className="text-xs">
                 {getTypeLabel(document.type)}
               </Badge>
+              {document.qr_code && (
+                <p className="font-mono text-xs bg-gray-100 px-2 py-1 rounded mt-1 inline-block">
+                  {document.qr_code}
+                </p>
+              )}
             </CardDescription>
           </CardHeader>
           <CardContent>
