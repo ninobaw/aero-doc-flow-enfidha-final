@@ -55,7 +55,7 @@ export interface Document {
   authorId: string;
   createdAt: Date;
   updatedAt: Date;
-  qrCode: string;
+  qrCode: string; // This will now store the full generated code
   version: number;
   status: 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
   actions: Action[];
@@ -63,6 +63,11 @@ export interface Document {
   filePath?: string;
   fileType?: string;
   airport: Airport; // Updated to use Airport type
+  // New fields for document code components
+  department_code?: string;
+  sub_department_code?: string;
+  language_code?: string;
+  sequence_number?: number;
 }
 
 export interface FormulaireDoc {
@@ -210,4 +215,23 @@ export interface AppSettings {
   allowedFileTypes: string[];
   theme: 'light' | 'dark' | 'auto';
   language: 'fr' | 'en' | 'ar';
+}
+
+// New types for Document Code Configuration
+export interface DocumentCodeComponent {
+  code: string;
+  label: string;
+  description?: string;
+}
+
+export interface DocumentCodeConfig {
+  id: string;
+  documentTypes: DocumentCodeComponent[];
+  departments: DocumentCodeComponent[];
+  subDepartments: DocumentCodeComponent[];
+  languages: DocumentCodeComponent[];
+  scopes: DocumentCodeComponent[]; // For NBE, MIR, GEN
+  sequenceCounters: Map<string, number>; // Key: 'SCOPE-DEPT-SUBDEPT-DOCTYPE-LANG', Value: current sequence number
+  createdAt: Date;
+  updatedAt: Date;
 }

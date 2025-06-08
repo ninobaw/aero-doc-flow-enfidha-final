@@ -13,6 +13,7 @@ const reportRoutes = require('./routes/reportRoutes.js'); // Added .js
 const notificationRoutes = require('./routes/notificationRoutes.js'); // Added .js
 const appSettingsRoutes = require('./routes/appSettingsRoutes.js'); // Added .js
 const activityLogRoutes = require('./routes/activityLogRoutes.js'); // Added .js
+const documentCodeConfigRoutes = require('./routes/documentCodeConfigRoutes.js'); // Added .js
 
 dotenv.config();
 
@@ -37,6 +38,7 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/settings', appSettingsRoutes);
 app.use('/api/activity-logs', activityLogRoutes);
+app.use('/api/document-code-config', documentCodeConfigRoutes); // New route
 
 // Define a simple root route
 app.get('/', (req, res) => {
