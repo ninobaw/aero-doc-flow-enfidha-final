@@ -5,7 +5,7 @@ const DocumentSchema = new Schema({
   title: { type: String, required: true },
   type: { 
     type: String, 
-    enum: ['FORMULAIRE_DOC', 'CORRESPONDANCE', 'PROCES_VERBAL', 'QUALITE_DOC', 'NOUVEAU_DOC', 'GENERAL'], 
+    enum: ['FORMULAIRE_DOC', 'CORRESPONDANCE', 'PROCES_VERBAL', 'QUALITE_DOC', 'NOUVEAU_DOC', 'GENERAL', 'TEMPLATE'], // Added TEMPLATE
     required: true 
   },
   content: { type: String },
@@ -21,7 +21,7 @@ const DocumentSchema = new Schema({
     enum: ['ENFIDHA', 'MONASTIR', 'GENERALE'], 
     required: true 
   },
-  filePath: { type: String },
+  filePath: { type: String }, // Relative path to the file in the uploads directory
   fileType: { type: String },
   qrCode: { type: String, unique: true, required: true },
   viewsCount: { type: Number, default: 0 },
@@ -36,6 +36,7 @@ const DocumentSchema = new Schema({
   document_type_code: { type: String },
   language_code: { type: String },
   sequence_number: { type: Number },
+  isTemplate: { type: Boolean, default: false }, // New field
 }, { timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' } });
 
 const Document = model('Document', DocumentSchema);

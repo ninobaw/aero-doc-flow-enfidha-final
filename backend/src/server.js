@@ -1,19 +1,21 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
-const connectDB = require('./db.js'); // Added .js
-const authRoutes = require('./routes/authRoutes.js'); // Added .js
-const userRoutes = require('./routes/userRoutes.js'); // Added .js
-const documentRoutes = require('./routes/documentRoutes.js'); // Added .js
-const formulaireRoutes = require('./routes/formulaireRoutes.js'); // Added .js
-const actionRoutes = require('./routes/actionRoutes.js'); // Added .js
-const correspondanceRoutes = require('./routes/correspondanceRoutes.js'); // Added .js
-const procesVerbalRoutes = require('./routes/procesVerbalRoutes.js'); // Added .js
-const reportRoutes = require('./routes/reportRoutes.js'); // Added .js
-const notificationRoutes = require('./routes/notificationRoutes.js'); // Added .js
-const appSettingsRoutes = require('./routes/appSettingsRoutes.js'); // Added .js
-const activityLogRoutes = require('./routes/activityLogRoutes.js'); // Added .js
-const documentCodeConfigRoutes = require('./routes/documentCodeConfigRoutes.js'); // Added .js
+const connectDB = require('./db.js');
+const authRoutes = require('./routes/authRoutes.js');
+const userRoutes = require('./routes/userRoutes.js');
+const documentRoutes = require('./routes/documentRoutes.js');
+const formulaireRoutes = require('./routes/formulaireRoutes.js');
+const actionRoutes = require('./routes/actionRoutes.js');
+const correspondanceRoutes = require('./routes/correspondanceRoutes.js');
+const procesVerbalRoutes = require('./routes/procesVerbalRoutes.js');
+const reportRoutes = require('./routes/reportRoutes.js');
+const notificationRoutes = require('./routes/notificationRoutes.js');
+const appSettingsRoutes = require('./routes/appSettingsRoutes.js');
+const activityLogRoutes = require('./routes/activityLogRoutes.js');
+const documentCodeConfigRoutes = require('./routes/documentCodeConfigRoutes.js');
+const uploadRoutes = require('./routes/uploadRoutes.js'); // New import
+const path = require('path'); // New import
 
 dotenv.config();
 
@@ -25,6 +27,9 @@ connectDB();
 // Init Middleware
 app.use(express.json()); // Allows us to get data in req.body
 app.use(cors()); // Enable CORS for all origins
+
+// Serve static files from the 'uploads' directory
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Define API routes
 app.use('/api/auth', authRoutes);
@@ -38,7 +43,8 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/settings', appSettingsRoutes);
 app.use('/api/activity-logs', activityLogRoutes);
-app.use('/api/document-code-config', documentCodeConfigRoutes); // New route
+app.use('/api/document-code-config', documentCodeConfigRoutes);
+app.use('/api/uploads', uploadRoutes); // New route for file uploads
 
 // Define a simple root route
 app.get('/', (req, res) => {
