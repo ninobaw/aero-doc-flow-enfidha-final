@@ -11,6 +11,7 @@ import { useDocuments } from '@/hooks/useDocuments';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { Airport } from '@/shared/types'; // Import Airport type
 
 const QualiteDoc = () => {
   const { user } = useAuth();
@@ -21,7 +22,7 @@ const QualiteDoc = () => {
   const [formData, setFormData] = useState({
     title: '',
     reference: '',
-    airport: '' as 'ENFIDHA' | 'MONASTIR' | '',
+    airport: '' as Airport, // Updated to use Airport type
     typeQualite: '', // Specific to QualiteDoc, will be part of content
     version: '1.0',
     responsable: '',
@@ -66,13 +67,13 @@ const QualiteDoc = () => {
       title: formData.title.trim(),
       type: 'QUALITE_DOC', // Fixed type for this page
       content: JSON.stringify(contentData),
-      airport: formData.airport as 'ENFIDHA' | 'MONASTIR',
+      airport: formData.airport, // Use Airport type
     }, {
       onSuccess: () => {
         setFormData({
           title: '',
           reference: '',
-          airport: '',
+          airport: 'ENFIDHA', // Reset to default
           typeQualite: '',
           version: '1.0',
           responsable: '',
@@ -133,7 +134,7 @@ const QualiteDoc = () => {
                   <Label htmlFor="aeroport">Aéroport *</Label>
                   <Select 
                     value={formData.airport} 
-                    onValueChange={(value: 'ENFIDHA' | 'MONASTIR') => setFormData({ ...formData, airport: value })}
+                    onValueChange={(value: Airport) => setFormData({ ...formData, airport: value })}
                     required
                   >
                     <SelectTrigger>
@@ -142,6 +143,7 @@ const QualiteDoc = () => {
                     <SelectContent>
                       <SelectItem value="ENFIDHA">Enfidha</SelectItem>
                       <SelectItem value="MONASTIR">Monastir</SelectItem>
+                      <SelectItem value="GENERALE">Général</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

@@ -13,6 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useToast } from '@/hooks/use-toast';
+import { Airport } from '@/shared/types'; // Import Airport type
 
 const NouveauDoc = () => {
   const { user } = useAuth();
@@ -28,7 +29,7 @@ const NouveauDoc = () => {
   const [formData, setFormData] = useState({
     titre: '',
     reference: '',
-    aeroport: '' as 'ENFIDHA' | 'MONASTIR' | '',
+    aeroport: '' as Airport, // Updated to use Airport type
     type: '' as 'FORMULAIRE_DOC' | 'CORRESPONDANCE' | 'PROCES_VERBAL' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL' | '',
     version: '1.0',
     responsable: '',
@@ -39,7 +40,7 @@ const NouveauDoc = () => {
   // État pour l'import de fichier
   const [importData, setImportData] = useState({
     titre: '',
-    aeroport: '' as 'ENFIDHA' | 'MONASTIR' | '',
+    aeroport: '' as Airport, // Updated to use Airport type
     type: '' as 'FORMULAIRE_DOC' | 'CORRESPONDANCE' | 'PROCES_VERBAL' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL' | '',
     description: ''
   });
@@ -98,7 +99,7 @@ const NouveauDoc = () => {
       title: formData.titre,
       content: formData.contenu,
       type: formData.type as 'FORMULAIRE_DOC' | 'CORRESPONDANCE' | 'PROCES_VERBAL' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL',
-      airport: formData.aeroport as 'ENFIDHA' | 'MONASTIR',
+      airport: formData.aeroport, // Use Airport type
       // Additional metadata can be stringified into content or added as separate fields if schema allows
       // For now, reference, version, responsable are not directly mapped to backend Document model fields
       // They could be part of the 'content' JSON string if needed.
@@ -148,7 +149,7 @@ const NouveauDoc = () => {
         title: importData.titre,
         content: importData.description,
         type: importData.type as 'FORMULAIRE_DOC' | 'CORRESPONDANCE' | 'PROCES_VERBAL' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL',
-        airport: importData.aeroport as 'ENFIDHA' | 'MONASTIR',
+        airport: importData.aeroport, // Use Airport type
         file_path: uploadedFile.path, // Store the path from the simulated upload
         file_type: selectedFile.type,
       };
@@ -226,7 +227,7 @@ const NouveauDoc = () => {
                       <Label htmlFor="aeroport">Aéroport *</Label>
                       <Select 
                         value={formData.aeroport}
-                        onValueChange={(value: 'ENFIDHA' | 'MONASTIR') => setFormData(prev => ({ ...prev, aeroport: value }))}
+                        onValueChange={(value: Airport) => setFormData(prev => ({ ...prev, aeroport: value }))}
                         required
                       >
                         <SelectTrigger>
@@ -235,6 +236,7 @@ const NouveauDoc = () => {
                         <SelectContent>
                           <SelectItem value="ENFIDHA">Enfidha</SelectItem>
                           <SelectItem value="MONASTIR">Monastir</SelectItem>
+                          <SelectItem value="GENERALE">Général</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -337,7 +339,7 @@ const NouveauDoc = () => {
                       <Label htmlFor="aeroport-import">Aéroport *</Label>
                       <Select
                         value={importData.aeroport}
-                        onValueChange={(value: 'ENFIDHA' | 'MONASTIR') => setImportData(prev => ({ ...prev, aeroport: value }))}
+                        onValueChange={(value: Airport) => setImportData(prev => ({ ...prev, aeroport: value }))}
                         required
                       >
                         <SelectTrigger>
@@ -346,6 +348,7 @@ const NouveauDoc = () => {
                         <SelectContent>
                           <SelectItem value="ENFIDHA">Enfidha</SelectItem>
                           <SelectItem value="MONASTIR">Monastir</SelectItem>
+                          <SelectItem value="GENERALE">Général</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
