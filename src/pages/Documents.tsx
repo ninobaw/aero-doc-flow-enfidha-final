@@ -6,8 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FileText, Plus, Search, Filter } from 'lucide-react';
 import { DocumentsList } from '@/components/documents/DocumentsList';
-import { useDocuments } from '@/hooks/useDocuments';
+import { useDocuments, DocumentData } from '@/hooks/useDocuments'; // Import DocumentData
 import { useNavigate } from 'react-router-dom';
+import { EditDocumentDialog } from '@/components/documents/EditDocumentDialog'; // Import the new dialog
 
 const Documents = () => {
   const navigate = useNavigate();
@@ -17,9 +18,9 @@ const Documents = () => {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterAirport, setFilterAirport] = useState<string>('all'); // New state for airport filter
 
-  // ===========================================
-  // DÉBUT INTÉGRATION BACKEND SUPABASE - PAGE DOCUMENTS
-  // ===========================================
+  // State for editing dialog
+  const [selectedDocumentForEdit, setSelectedDocumentForEdit] = useState<DocumentData | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   
   const filteredDocuments = documents.filter(doc => {
     const matchesSearch = doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -37,9 +38,10 @@ const Documents = () => {
     }
   };
 
-  // ===========================================
-  // FIN INTÉGRATION BACKEND SUPABASE - PAGE DOCUMENTS
-  // ===========================================
+  const handleEdit = (document: DocumentData) => {
+    setSelectedDocumentForEdit(document);
+    setIsEditDialogOpen(true);
+  };
 
   return (
     <AppLayout>
@@ -91,6 +93,7 @@ const Documents = () => {
                   <SelectItem value="CORRESPONDANCE">Correspondance</SelectItem>
                   <SelectItem value="PROCES_VERBAL">Procès-Verbal</SelectItem>
                   <SelectItem value="FORMULAIRE_DOC">Formulaire</SelectItem>
+                  <SelectItem value="GENERAL">Général</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -126,8 +129,18 @@ const Documents = () => {
           documents={filteredDocuments}
           isLoading={isLoading}
           onDelete={handleDelete}
+          onEdit={handleEdit} {/* Pass the handleEdit function */}
         />
       </div>
+
+      {/* Edit Document Dialog */}
+      {selectedDocumentForEdit && (
+        <EditDocumentDialog
+          document={selectedDocumentForEdit}
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+        />
+      )}
     </AppLayout>
   );
 };
