@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -9,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus } from 'lucide-react';
 import { useCorrespondances } from '@/hooks/useCorrespondances';
 import { ActionsDecideesField, ActionDecidee } from '@/components/actions/ActionsDecideesField';
+import { Airport } from '@/shared/types'; // Import Airport type
 
 export const CreateCorrespondanceDialog = () => {
   const [open, setOpen] = useState(false);
@@ -21,7 +21,7 @@ export const CreateCorrespondanceDialog = () => {
     subject: '',
     content: '',
     priority: 'MEDIUM' as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT',
-    airport: 'ENFIDHA' as 'ENFIDHA' | 'MONASTIR',
+    airport: 'ENFIDHA' as Airport, // Updated to use Airport type
     actions_decidees: [] as ActionDecidee[],
   });
 
@@ -114,13 +114,14 @@ export const CreateCorrespondanceDialog = () => {
 
           <div>
             <Label htmlFor="airport">Aéroport</Label>
-            <Select value={formData.airport} onValueChange={(value: 'ENFIDHA' | 'MONASTIR') => setFormData({ ...formData, airport: value })}>
+            <Select value={formData.airport} onValueChange={(value: Airport) => setFormData({ ...formData, airport: value })}>
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue placeholder="Sélectionner un aéroport" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ENFIDHA">Enfidha</SelectItem>
                 <SelectItem value="MONASTIR">Monastir</SelectItem>
+                <SelectItem value="GENERALE">Général</SelectItem>
               </SelectContent>
             </Select>
           </div>
