@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, UserRole } from '@/shared/types';
+import { User, UserRole, Airport } from '@/shared/types'; // Import Airport type
 import { useToast } from '@/hooks/use-toast';
 import axios from 'axios'; // Import axios for backend calls
 
@@ -45,7 +45,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         lastName: loggedInUser.lastName,
         role: loggedInUser.role as UserRole,
         profilePhoto: loggedInUser.profilePhoto,
-        airport: loggedInUser.airport,
+        airport: loggedInUser.airport as Airport, // Cast to Airport type
         createdAt: new Date(loggedInUser.createdAt),
         updatedAt: new Date(loggedInUser.updatedAt),
         isActive: loggedInUser.isActive,

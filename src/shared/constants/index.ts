@@ -12,6 +12,13 @@ export const AIRPORTS = {
     fullName: 'Aéroport International Monastir Habib Bourguiba',
     iataCode: 'MIR',
     icaoCode: 'DTMB'
+  },
+  GENERALE: { // Added GENERALE airport
+    code: 'GENERALE',
+    name: 'Général',
+    fullName: 'Scope Général (Multi-Aéroport)',
+    iataCode: 'GEN',
+    icaoCode: 'GEN'
   }
 } as const;
 

@@ -29,6 +29,9 @@ export enum Priority {
   URGENT = 'URGENT'
 }
 
+// Define Airport enum with GENERALE option
+export type Airport = 'ENFIDHA' | 'MONASTIR' | 'GENERALE';
+
 export interface User {
   id: string;
   email: string;
@@ -36,7 +39,7 @@ export interface User {
   lastName: string;
   role: UserRole;
   profilePhoto?: string;
-  airport: 'ENFIDHA' | 'MONASTIR';
+  airport: Airport; // Updated to use Airport type
   createdAt: Date;
   updatedAt: Date;
   isActive: boolean;
@@ -59,7 +62,7 @@ export interface Document {
   history: DocumentHistory[];
   filePath?: string;
   fileType?: string;
-  airport: 'ENFIDHA' | 'MONASTIR';
+  airport: Airport; // Updated to use Airport type
 }
 
 export interface FormulaireDoc {
@@ -97,7 +100,7 @@ export interface Correspondance {
   createdAt: Date;
   priority: Priority;
   status: 'DRAFT' | 'SENT' | 'RECEIVED' | 'ARCHIVED';
-  airport: 'ENFIDHA' | 'MONASTIR';
+  airport: Airport; // Updated to use Airport type
 }
 
 export interface ProcesVerbal {
@@ -111,7 +114,7 @@ export interface ProcesVerbal {
   nextMeetingDate?: Date;
   location: string;
   meetingType: string;
-  airport: 'ENFIDHA' | 'MONASTIR';
+  airport: Airport; // Updated to use Airport type
 }
 
 export interface Action {
