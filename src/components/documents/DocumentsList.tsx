@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FileText, Eye, Download, Calendar, User, Edit, Trash2 } from 'lucide-react';
 import { formatDate, getAbsoluteFilePath } from '@/shared/utils';
 import type { DocumentData } from '@/hooks/useDocuments';
+import { ViewDocumentDialog } from '@/components/documents/ViewDocumentDialog'; // Import the new dialog
 
 interface DocumentsListProps {
   documents: DocumentData[];
@@ -13,6 +15,9 @@ interface DocumentsListProps {
 }
 
 export const DocumentsList = ({ documents, isLoading, onEdit, onDelete }: DocumentsListProps) => {
+  const [selectedDocumentForView, setSelectedDocumentForView] = useState<DocumentData | null>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -80,108 +85,123 @@ export const DocumentsList = ({ documents, isLoading, onEdit, onDelete }: Docume
     }
   };
 
+  const handleViewDocument = (document: DocumentData) => {
+    setSelectedDocumentForView(document);
+    setIsViewDialogOpen(true);
+  };
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {documents.map((document) => (
-        <Card key={document.id} className="hover:shadow-md transition-shadow">
-          <CardHeader>
-            <div className="flex items-start justify-between">
-              <div className="flex items-center space-x-2">
-                <FileText className="w-5 h-5 text-aviation-sky" />
-                <Badge variant="outline" className="text-xs">
-                  {document.airport}
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {documents.map((document) => (
+          <Card key={document.id} className="hover:shadow-md transition-shadow">
+            <CardHeader>
+              <div className="flex items-start justify-between">
+                <div className="flex items-center space-x-2">
+                  <FileText className="w-5 h-5 text-aviation-sky" />
+                  <Badge variant="outline" className="text-xs">
+                    {document.airport}
+                  </Badge>
+                </div>
+                <Badge className={`text-xs ${getStatusColor(document.status)}`}>
+                  {getStatusLabel(document.status)}
                 </Badge>
               </div>
-              <Badge className={`text-xs ${getStatusColor(document.status)}`}>
-                {getStatusLabel(document.status)}
-              </Badge>
-            </div>
-            <CardTitle className="text-lg line-clamp-2">
-              {document.title}
-            </CardTitle>
-            <CardDescription>
-              <Badge variant="secondary" className="text-xs">
-                {getTypeLabel(document.type)}
-              </Badge>
-              {document.qr_code && (
-                <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded mt-1 inline-block">
-                  {document.qr_code}
-                </span>
-              )}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {document.content && (
-                <p className="text-sm text-gray-600 line-clamp-2">
-                  {document.content}
-                </p>
-              )}
-
-              {document.tags && document.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-2">
-                  {document.tags.map((tag, index) => (
-                    <Badge key={index} variant="outline" className="text-xs">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-
-              <div className="flex items-center justify-between text-xs text-gray-500">
-                <div className="flex items-center space-x-1">
-                  <User className="w-3 h-3" />
-                  <span>
-                    {document.author?.first_name} {document.author?.last_name}
+              <CardTitle className="text-lg line-clamp-2">
+                {document.title}
+              </CardTitle>
+              <CardDescription>
+                <Badge variant="secondary" className="text-xs">
+                  {getTypeLabel(document.type)}
+                </Badge>
+                {document.qr_code && (
+                  <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded mt-1 inline-block">
+                    {document.qr_code}
                   </span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <Calendar className="w-3 h-3" />
-                  <span>{formatDate(document.created_at)}</span>
-                </div>
-              </div>
+                )}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {document.content && (
+                  <p className="text-sm text-gray-600 line-clamp-2">
+                    {document.content}
+                  </p>
+                )}
 
-              <div className="flex justify-between pt-2">
-                <div className="flex space-x-1">
-                  <Button variant="outline" size="sm">
-                    <Eye className="w-4 h-4 mr-1" />
-                    Voir
-                  </Button>
-                  {document.file_path && (
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => {
-                        const link = document.createElement('a');
-                        link.href = getAbsoluteFilePath(document.file_path);
-                        link.download = document.title;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                      }}
-                    >
-                      <Download className="w-4 h-4 mr-1" />
-                      Télécharger
-                    </Button>
-                  )}
+                {document.tags && document.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {document.tags.map((tag, index) => (
+                      <Badge key={index} variant="outline" className="text-xs">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between text-xs text-gray-500">
+                  <div className="flex items-center space-x-1">
+                    <User className="w-3 h-3" />
+                    <span>
+                      {document.author?.first_name} {document.author?.last_name}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Calendar className="w-3 h-3" />
+                    <span>{formatDate(document.created_at)}</span>
+                  </div>
                 </div>
-                <div className="flex space-x-1">
-                  {onEdit && (
-                    <Button variant="ghost" size="sm" onClick={() => onEdit(document)}>
-                      <Edit className="w-4 h-4" />
+
+                <div className="flex justify-between pt-2">
+                  <div className="flex space-x-1">
+                    <Button variant="outline" size="sm" onClick={() => handleViewDocument(document)}>
+                      <Eye className="w-4 h-4 mr-1" />
+                      Voir
                     </Button>
-                  )}
-                  {onDelete && (
-                    <Button variant="ghost" size="sm" onClick={() => onDelete(document.id)}>
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  )}
+                    {document.file_path && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => {
+                          const link = document.createElement('a');
+                          link.href = getAbsoluteFilePath(document.file_path);
+                          link.download = document.title;
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                        }}
+                      >
+                        <Download className="w-4 h-4 mr-1" />
+                        Télécharger
+                      </Button>
+                    )}
+                  </div>
+                  <div className="flex space-x-1">
+                    {onEdit && (
+                      <Button variant="ghost" size="sm" onClick={() => onEdit(document)}>
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                    )}
+                    {onDelete && (
+                      <Button variant="ghost" size="sm" onClick={() => onDelete(document.id)}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {selectedDocumentForView && (
+        <ViewDocumentDialog
+          document={selectedDocumentForView}
+          open={isViewDialogOpen}
+          onOpenChange={setIsViewDialogOpen}
+        />
+      )}
+    </>
   );
 };
