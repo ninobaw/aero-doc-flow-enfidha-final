@@ -1,17 +1,18 @@
 import { useState } from 'react';
-// import { supabase } from '@/integrations/supabase/client'; // Supabase client removed
+import axios from 'axios';
 import { useToast } from '@/hooks/use-toast';
 
+const API_BASE_URL = 'http://localhost:5000/api';
+
 export interface UploadOptions {
-  bucket: string; // This will be a logical bucket name, not a real Supabase bucket
-  folder?: string;
+  documentType: string; // Used by backend to create subfolders (e.g., 'formulaires', 'general')
   allowedTypes?: string[];
   maxSize?: number; // en MB
 }
 
 export const useFileUpload = () => {
   const [uploading, setUploading] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const [progress, setProgress] = useState(0); // Note: actual progress tracking with multer is more complex, this remains a simple indicator
   const { toast } = useToast();
 
   const uploadFile = async (
@@ -22,10 +23,10 @@ export const useFileUpload = () => {
       setUploading(true);
       setProgress(0);
 
-      // Simulate file validation
+      // Client-side validation (redundant with backend, but good for UX)
       if (options.allowedTypes && options.allowedTypes.length > 0) {
         const isValidType = options.allowedTypes.some(type => 
-          file.type.startsWith(type) || file.name.toLowerCase().endsWith(type)
+          file.type.startsWith(type.replace('.', '')) || file.name.toLowerCase().endsWith(type)
         );
         if (!isValidType) {
           throw new Error(`Type de fichier non autorisé. Types acceptés: ${options.allowedTypes.join(', ')}`);
@@ -36,31 +37,36 @@ export const useFileUpload = () => {
         throw new Error(`Fichier trop volumineux. Taille maximum: ${options.maxSize}MB`);
       }
 
-      // Simulate upload progress
-      for (let i = 0; i <= 100; i += 10) {
-        await new Promise(resolve => setTimeout(resolve, 50));
-        setProgress(i);
-      }
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('documentType', options.documentType); // Pass document type for folder organization
 
-      // Simulate a successful upload
-      const simulatedPath = `${options.folder || 'uploads'}/${file.name}`;
-      const simulatedUrl = `http://localhost:5000/files/${simulatedPath}`; // Placeholder URL
+      const response = await axios.post(`${API_BASE_URL}/uploads/file`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        onUploadProgress: (event) => {
+          if (event.total) {
+            setProgress(Math.round((100 * event.loaded) / event.total));
+          }
+        },
+      });
 
       toast({
-        title: 'Upload réussi (simulé)',
-        description: 'Le fichier a été uploadé avec succès (simulation).',
+        title: 'Upload réussi',
+        description: 'Le fichier a été uploadé avec succès.',
       });
 
       return {
-        url: simulatedUrl,
-        path: simulatedPath
+        url: `${API_BASE_URL}${response.data.fileUrl}`, // Construct full URL
+        path: response.data.filePath // Relative path from backend uploads folder
       };
 
     } catch (error: any) {
-      console.error('Erreur upload (simulé):', error);
+      console.error('Erreur upload:', error.response?.data || error.message);
       toast({
-        title: 'Erreur d\'upload (simulé)',
-        description: error.message || 'Erreur lors de l\'upload du fichier (simulation).',
+        title: 'Erreur d\'upload',
+        description: error.response?.data?.message || error.message || 'Erreur lors de l\'upload du fichier.',
         variant: 'destructive',
       });
       return null;
@@ -70,22 +76,117 @@ export const useFileUpload = () => {
     }
   };
 
-  const deleteFile = async (bucket: string, path: string): Promise<boolean> => {
+  const uploadTemplate = async (
+    file: File,
+    options: Omit<UploadOptions, 'documentType'> // Templates go into a 'templates' folder
+  ): Promise<{ url: string; path: string } | null> => {
     try {
-      // Simulate deletion
-      await new Promise(resolve => setTimeout(resolve, 500));
+      setUploading(true);
+      setProgress(0);
+
+      if (options.allowedTypes && options.allowedTypes.length > 0) {
+        const isValidType = options.allowedTypes.some(type => 
+          file.type.startsWith(type.replace('.', '')) || file.name.toLowerCase().endsWith(type)
+        );
+        if (!isValidType) {
+          throw new Error(`Type de fichier non autorisé. Types acceptés: ${options.allowedTypes.join(', ')}`);
+        }
+      }
+
+      if (options.maxSize && file.size > options.maxSize * 1024 * 1024) {
+        throw new Error(`Fichier trop volumineux. Taille maximum: ${options.maxSize}MB`);
+      }
+
+      const formData = new FormData();
+      formData.append('templateFile', file);
+      formData.append('documentType', 'templates'); // Hardcode 'templates' for template uploads
+
+      const response = await axios.post(`${API_BASE_URL}/uploads/template`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        onUploadProgress: (event) => {
+          if (event.total) {
+            setProgress(Math.round((100 * event.loaded) / event.total));
+          }
+        },
+      });
 
       toast({
-        title: 'Fichier supprimé (simulé)',
-        description: 'Le fichier a été supprimé avec succès (simulation).',
+        title: 'Modèle uploadé',
+        description: 'Le modèle a été uploadé avec succès.',
+      });
+
+      return {
+        url: `${API_BASE_URL}${response.data.fileUrl}`,
+        path: response.data.filePath
+      };
+
+    } catch (error: any) {
+      console.error('Erreur upload modèle:', error.response?.data || error.message);
+      toast({
+        title: 'Erreur d\'upload modèle',
+        description: error.response?.data?.message || error.message || 'Erreur lors de l\'upload du modèle.',
+        variant: 'destructive',
+      });
+      return null;
+    } finally {
+      setUploading(false);
+      setProgress(0);
+    }
+  };
+
+  const copyTemplate = async (
+    templateFilePath: string,
+    documentType: string
+  ): Promise<{ url: string; path: string } | null> => {
+    try {
+      setUploading(true);
+      setProgress(0); // Reset progress for copy operation
+
+      const response = await axios.post(`${API_BASE_URL}/uploads/copy-template`, {
+        templateFilePath,
+        documentType,
+      });
+
+      toast({
+        title: 'Modèle copié',
+        description: 'Le modèle a été copié pour le nouveau document.',
+      });
+
+      return {
+        url: `${API_BASE_URL}${response.data.fileUrl}`,
+        path: response.data.filePath
+      };
+    } catch (error: any) {
+      console.error('Erreur copie modèle:', error.response?.data || error.message);
+      toast({
+        title: 'Erreur de copie',
+        description: error.response?.data?.message || error.message || 'Erreur lors de la copie du modèle.',
+        variant: 'destructive',
+      });
+      return null;
+    } finally {
+      setUploading(false);
+      setProgress(0);
+    }
+  };
+
+  const deleteFile = async (filePath: string): Promise<boolean> => {
+    try {
+      await axios.delete(`${API_BASE_URL}/uploads/file`, { data: { filePath } });
+
+      toast({
+        title: 'Fichier supprimé',
+        description: 'Le fichier a été supprimé avec succès.',
       });
 
       return true;
     } catch (error: any) {
-      console.error('Erreur suppression (simulé):', error);
+      console.error('Erreur suppression:', error.response?.data || error.message);
       toast({
-        title: 'Erreur (simulé)',
-        description: 'Erreur lors de la suppression du fichier (simulation).',
+        title: 'Erreur de suppression',
+        description: error.response?.data?.message || error.message || 'Erreur lors de la suppression du fichier.',
         variant: 'destructive',
       });
       return false;
@@ -94,6 +195,8 @@ export const useFileUpload = () => {
 
   return {
     uploadFile,
+    uploadTemplate,
+    copyTemplate,
     deleteFile,
     uploading,
     progress,
