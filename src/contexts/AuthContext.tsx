@@ -27,6 +27,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // For simplicity, we'll assume no persistent session on frontend for now.
       // User will need to log in on refresh.
       // In a real app, you'd send a request to your backend to validate a token from localStorage.
+      console.log('AuthContext: Initial session check completed. Setting isLoading to false.');
       setIsLoading(false);
     };
     checkUserSession();
@@ -34,6 +35,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
+    console.log('AuthContext: Attempting login for:', email);
     try {
       const response = await axios.post(`${API_BASE_URL}/auth/login`, { email, password });
       const loggedInUser = response.data.user; // Assuming your backend returns { user: {...}, token: '...' }
@@ -53,13 +55,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         department: loggedInUser.department,
       };
       setUser(mappedUser);
+      console.log('AuthContext: Login successful, user set:', mappedUser);
       toast({
         title: "Connexion réussie",
         description: "Vous êtes maintenant connecté.",
       });
       return true;
     } catch (error: any) {
-      console.error('Login failed:', error.response?.data?.message || error.message);
+      console.error('AuthContext: Login failed:', error.response?.data?.message || error.message);
       toast({
         title: "Erreur de connexion",
         description: error.response?.data?.message || "Email ou mot de passe incorrect.",
@@ -68,20 +71,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return false;
     } finally {
       setIsLoading(false);
+      console.log('AuthContext: Login attempt finished, isLoading set to false.');
     }
   };
 
   const logout = async () => {
     setIsLoading(true);
+    console.log('AuthContext: Attempting logout.');
     try {
       await axios.post(`${API_BASE_URL}/auth/logout`); // Call backend logout endpoint
       setUser(null);
+      console.log('AuthContext: Logout successful, user set to null.');
       toast({
         title: "Déconnexion réussie",
         description: "Vous avez été déconnecté.",
       });
     } catch (error: any) {
-      console.error('Logout failed:', error.response?.data?.message || error.message);
+      console.error('AuthContext: Logout failed:', error.response?.data?.message || error.message);
       toast({
         title: "Erreur de déconnexion",
         description: error.response?.data?.message || "Impossible de se déconnecter.",
@@ -89,6 +95,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
     } finally {
       setIsLoading(false);
+      console.log('AuthContext: Logout attempt finished, isLoading set to false.');
     }
   };
 

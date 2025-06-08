@@ -26,20 +26,31 @@ export const useProfile = () => {
   const { user } = useAuth(); // Get user from local AuthContext
   const queryClient = useQueryClient();
 
+  console.log('useProfile: user from AuthContext:', user);
+
   const { data: profile, isLoading, error } = useQuery({
     queryKey: ['profile', user?.id],
     queryFn: async () => {
-      if (!user?.id) throw new Error('Utilisateur non connecté');
+      if (!user?.id) {
+        console.warn('useProfile: user.id is missing, skipping fetch.');
+        throw new Error('Utilisateur non connecté');
+      }
+      console.log(`useProfile: Fetching profile for user ID: ${user.id}`);
       const response = await axios.get(`${API_BASE_URL}/users/${user.id}`);
+      console.log('useProfile: Profile data fetched:', response.data);
       return response.data as ProfileData;
     },
     enabled: !!user?.id, // Only fetch if user is logged in
   });
 
+  console.log('useProfile: isLoading:', isLoading, 'profile:', profile, 'error:', error);
+
   const updateProfile = useMutation({
     mutationFn: async (updates: Partial<Omit<ProfileData, 'id' | 'created_at' | 'updated_at' | 'email' | 'role' | 'airport' | 'is_active'>>) => {
       if (!user?.id) throw new Error('Utilisateur non connecté');
+      console.log(`useProfile: Updating profile for user ID: ${user.id} with updates:`, updates);
       const response = await axios.put(`${API_BASE_URL}/users/${user.id}`, updates);
+      console.log('useProfile: Profile updated successfully:', response.data);
       return response.data;
     },
     onSuccess: () => {
@@ -50,7 +61,7 @@ export const useProfile = () => {
       });
     },
     onError: (error: any) => {
-      console.error('Erreur mise à jour profil:', error.response?.data || error.message);
+      console.error('useProfile: Erreur mise à jour profil:', error.response?.data || error.message);
       toast({
         title: 'Erreur',
         description: error.response?.data?.message || error.message || 'Impossible de mettre à jour le profil.',
