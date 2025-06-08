@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -20,6 +19,7 @@ import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import NouveauDoc from "./pages/NouveauDoc";
 import Profile from "./pages/Profile";
+import Templates from "./pages/Templates"; // Import the new Templates page
 
 const queryClient = new QueryClient();
 
@@ -54,6 +54,11 @@ const App = () => (
             <Route path="/documents/formulaires" element={
               <ProtectedRoute requiredPermission="manage_forms">
                 <FormulairesDoc />
+              </ProtectedRoute>
+            } />
+            <Route path="/documents/templates" element={ // New route for Templates
+              <ProtectedRoute requiredPermission="manage_documents">
+                <Templates />
               </ProtectedRoute>
             } />
             <Route path="/correspondances" element={
