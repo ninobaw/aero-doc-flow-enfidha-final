@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Airport, DocumentType } from '@/shared/types';
 import { useDocumentCodeConfig } from '@/hooks/useDocumentCodeConfig';
 import { useAuth } from '@/contexts/AuthContext';
+import { generateDocumentCodePreview } from '@/shared/utils'; // Import the new utility
 
 interface EditDocumentDialogProps {
   document: DocumentData | null;
@@ -55,6 +56,25 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
       });
     }
   }, [document]);
+
+  // Memoized QR code preview for edit form
+  const previewQrCodeEdit = useMemo(() => {
+    return generateDocumentCodePreview(
+      formData.company_code,
+      formData.airport,
+      formData.department_code,
+      formData.sub_department_code,
+      formData.document_type_code,
+      formData.language_code
+    );
+  }, [
+    formData.company_code,
+    formData.airport,
+    formData.department_code,
+    formData.sub_department_code,
+    formData.document_type_code,
+    formData.language_code,
+  ]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -263,6 +283,32 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
                 onChange={(e) => setFormData(prev => ({ ...prev, version: e.target.value }))}
                 placeholder="1.0"
               />
+            </div>
+          </div>
+
+          {/* Existing QR Code and Preview of New Code */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Code QR Actuel</Label>
+              <Input
+                value={document?.qr_code || 'N/A'}
+                readOnly
+                className="font-mono bg-gray-100 text-gray-700"
+              />
+              <p className="text-xs text-gray-500">
+                Code QR attribué à ce document.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label>Prévisualisation du Nouveau Code</Label>
+              <Input
+                value={previewQrCodeEdit}
+                readOnly
+                className="font-mono bg-gray-100 text-gray-700"
+              />
+              <p className="text-xs text-gray-500">
+                Ce code sera généré si les champs de codification sont modifiés.
+              </p>
             </div>
           </div>
 
