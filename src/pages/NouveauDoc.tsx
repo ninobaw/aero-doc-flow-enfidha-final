@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useToast } from '@/hooks/use-toast';
-import { Airport, DocumentType } from '@/shared/types'; // Import DocumentType
+import { Airport, DocumentType } from '@/shared/types';
 import { useDocumentCodeConfig } from '@/hooks/useDocumentCodeConfig';
 
 const NouveauDoc = () => {
@@ -27,12 +27,22 @@ const NouveauDoc = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
+  // Determine initial department code based on user's department
+  const initialDepartmentCode = useMemo(() => {
+    if (user && codeConfig?.departments) {
+      // Find the code that matches the user's department label
+      const foundDept = codeConfig.departments.find(d => d.label === user.department);
+      return foundDept ? foundDept.code : '';
+    }
+    return '';
+  }, [user, codeConfig]);
+
   // État pour le formulaire direct
   const [formData, setFormData] = useState({
     title: '',
     company_code: 'TAVTUN', // Default company code
-    airport: 'ENFIDHA' as Airport,
-    department_code: '',
+    airport: user?.airport || 'ENFIDHA' as Airport, // Default to user's airport
+    department_code: initialDepartmentCode,
     sub_department_code: '',
     document_type_code: '',
     language_code: 'FR',
@@ -46,13 +56,23 @@ const NouveauDoc = () => {
   const [importData, setImportData] = useState({
     title: '',
     company_code: 'TAVTUN', // Default company code
-    airport: 'ENFIDHA' as Airport,
-    department_code: '',
+    airport: user?.airport || 'ENFIDHA' as Airport, // Default to user's airport
+    department_code: initialDepartmentCode,
     sub_department_code: '',
     document_type_code: '',
     language_code: 'FR',
     description: ''
   });
+
+  // Update form data if initialDepartmentCode changes after initial render
+  useEffect(() => {
+    if (initialDepartmentCode && formData.department_code === '') {
+      setFormData(prev => ({ ...prev, department_code: initialDepartmentCode }));
+    }
+    if (initialDepartmentCode && importData.department_code === '') {
+      setImportData(prev => ({ ...prev, department_code: initialDepartmentCode }));
+    }
+  }, [initialDepartmentCode, formData.department_code, importData.department_code]);
 
   // Helper function to map document type code to DocumentType enum string
   const mapDocumentTypeCodeToEnumType = (code: string): DocumentType => {
@@ -62,7 +82,6 @@ const NouveauDoc = () => {
       case 'PV': return DocumentType.PROCES_VERBAL;
       case 'PQ': return DocumentType.QUALITE_DOC;
       case 'ND': return DocumentType.NOUVEAU_DOC;
-      // For 'MN' (Manuel) and 'RG' (Règlement), if they don't have specific enums, map to GENERAL
       case 'MN': return DocumentType.GENERAL; 
       case 'RG': return DocumentType.GENERAL;
       default: return DocumentType.GENERAL; // Fallback
@@ -121,7 +140,7 @@ const NouveauDoc = () => {
     const documentData = {
       title: formData.title,
       content: formData.content,
-      type: mapDocumentTypeCodeToEnumType(formData.document_type_code), // Use the mapped enum type
+      type: mapDocumentTypeCodeToEnumType(formData.document_type_code),
       airport: formData.airport,
       company_code: formData.company_code,
       scope_code: codeConfig?.scopes.find(s => s.code === formData.airport)?.code || formData.airport,
@@ -174,7 +193,7 @@ const NouveauDoc = () => {
       const documentData = {
         title: importData.title,
         content: importData.description,
-        type: mapDocumentTypeCodeToEnumType(importData.document_type_code), // Use the mapped enum type
+        type: mapDocumentTypeCodeToEnumType(importData.document_type_code),
         airport: importData.airport,
         file_path: uploadedFile.path,
         file_type: selectedFile.type,
@@ -312,6 +331,7 @@ const NouveauDoc = () => {
                         value={formData.department_code}
                         onValueChange={(value: string) => setFormData(prev => ({ ...prev, department_code: value }))}
                         required
+                        disabled={!!user?.department && initialDepartmentCode !== ''} // Disable if user has a department
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner un département" />
@@ -324,6 +344,11 @@ const NouveauDoc = () => {
                           ))}
                         </SelectContent>
                       </Select>
+                      {user?.department && initialDepartmentCode !== '' && (
+                        <p className="text-xs text-gray-500">
+                          Département pré-rempli ({user.department})
+                        </p>
+                      )}
                     </div>
 
                     <div className="space-y-2">
@@ -495,6 +520,7 @@ const NouveauDoc = () => {
                         value={importData.department_code}
                         onValueChange={(value: string) => setImportData(prev => ({ ...prev, department_code: value }))}
                         required
+                        disabled={!!user?.department && initialDepartmentCode !== ''}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner un département" />
@@ -507,6 +533,11 @@ const NouveauDoc = () => {
                           ))}
                         </SelectContent>
                       </Select>
+                      {user?.department && initialDepartmentCode !== '' && (
+                        <p className="text-xs text-gray-500">
+                          Département pré-rempli ({user.department})
+                        </p>
+                      )}
                     </div>
 
                     <div className="space-y-2">
