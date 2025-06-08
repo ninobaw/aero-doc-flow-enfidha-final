@@ -28,6 +28,14 @@ const DocumentSchema = new Schema({
   downloadsCount: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
+  // New codification fields
+  company_code: { type: String },
+  scope_code: { type: String },
+  department_code: { type: String },
+  sub_department_code: { type: String },
+  document_type_code: { type: String },
+  language_code: { type: String },
+  sequence_number: { type: Number },
 }, { timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' } });
 
 const Document = model('Document', DocumentSchema);
