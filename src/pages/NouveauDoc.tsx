@@ -310,7 +310,6 @@ const NouveauDoc = () => {
                           <SelectValue placeholder="Sélectionner un aéroport" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Sélectionner...</SelectItem>
                           {codeConfig?.scopes.map(scope => (
                             <SelectItem key={scope.code} value={scope.code}>
                               {scope.label}
@@ -331,7 +330,6 @@ const NouveauDoc = () => {
                           <SelectValue placeholder="Sélectionner un type" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Sélectionner...</SelectItem>
                           {codeConfig?.documentTypes.map(docType => (
                             <SelectItem key={docType.code} value={docType.code}>
                               {docType.label}
@@ -353,7 +351,6 @@ const NouveauDoc = () => {
                           <SelectValue placeholder="Sélectionner un département" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Sélectionner...</SelectItem>
                           {codeConfig?.departments.map(dept => (
                             <SelectItem key={dept.code} value={dept.code}>
                               {dept.label}
@@ -363,7 +360,7 @@ const NouveauDoc = () => {
                       </Select>
                       {user?.department && initialDepartmentCode !== '' && (
                         <p className="text-xs text-gray-500">
-                          Département pré-rempli ({user.department})
+                          Département pré-rémpili ({user.department})
                         </p>
                       )}
                     </div>
@@ -378,7 +375,7 @@ const NouveauDoc = () => {
                           <SelectValue placeholder="Sélectionner un sous-département" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Aucun</SelectItem>
+                          <SelectItem value=""></SelectItem> {/* Keep this for "Aucun" option */}
                           {codeConfig?.subDepartments.map(subDept => (
                             <SelectItem key={subDept.code} value={subDept.code}>
                               {subDept.label}
@@ -399,7 +396,6 @@ const NouveauDoc = () => {
                           <SelectValue placeholder="Sélectionner une langue" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Sélectionner...</SelectItem>
                           {codeConfig?.languages.map(lang => (
                             <SelectItem key={lang.code} value={lang.code}>
                               {lang.label}
@@ -503,7 +499,6 @@ const NouveauDoc = () => {
                           <SelectValue placeholder="Sélectionner un aéroport" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Sélectionner...</SelectItem>
                           {codeConfig?.scopes.map(scope => (
                             <SelectItem key={scope.code} value={scope.code}>
                               {scope.label}
@@ -524,7 +519,6 @@ const NouveauDoc = () => {
                           <SelectValue placeholder="Sélectionner un type" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Sélectionner...</SelectItem>
                           {codeConfig?.documentTypes.map(docType => (
                             <SelectItem key={docType.code} value={docType.code}>
                               {docType.label}
@@ -546,7 +540,6 @@ const NouveauDoc = () => {
                           <SelectValue placeholder="Sélectionner un département" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Sélectionner...</SelectItem>
                           {codeConfig?.departments.map(dept => (
                             <SelectItem key={dept.code} value={dept.code}>
                               {dept.label}
@@ -571,7 +564,7 @@ const NouveauDoc = () => {
                           <SelectValue placeholder="Sélectionner un sous-département" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Aucun</SelectItem>
+                          <SelectItem value=""></SelectItem> {/* Keep this for "Aucun" option */}
                           {codeConfig?.subDepartments.map(subDept => (
                             <SelectItem key={subDept.code} value={subDept.code}>
                               {subDept.label}
@@ -592,7 +585,6 @@ const NouveauDoc = () => {
                           <SelectValue placeholder="Sélectionner une langue" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Sélectionner...</SelectItem>
                           {codeConfig?.languages.map(lang => (
                             <SelectItem key={lang.code} value={lang.code}>
                               {lang.label}
