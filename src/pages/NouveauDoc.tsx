@@ -13,14 +13,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useToast } from '@/hooks/use-toast';
-import { Airport } from '@/shared/types';
-import { useDocumentCodeConfig } from '@/hooks/useDocumentCodeConfig'; // Import the new hook
+import { Airport, DocumentType } from '@/shared/types'; // Import DocumentType
+import { useDocumentCodeConfig } from '@/hooks/useDocumentCodeConfig';
 
 const NouveauDoc = () => {
   const { user } = useAuth();
   const { createDocument, isCreating } = useDocuments();
   const { uploadFile, uploading: isUploadingFile } = useFileUpload();
-  const { config: codeConfig, isLoading: isLoadingCodeConfig } = useDocumentCodeConfig(); // Use the new hook
+  const { config: codeConfig, isLoading: isLoadingCodeConfig } = useDocumentCodeConfig();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -53,6 +53,21 @@ const NouveauDoc = () => {
     language_code: 'FR',
     description: ''
   });
+
+  // Helper function to map document type code to DocumentType enum string
+  const mapDocumentTypeCodeToEnumType = (code: string): DocumentType => {
+    switch (code) {
+      case 'FM': return DocumentType.FORMULAIRE_DOC;
+      case 'CR': return DocumentType.CORRESPONDANCE;
+      case 'PV': return DocumentType.PROCES_VERBAL;
+      case 'PQ': return DocumentType.QUALITE_DOC;
+      case 'ND': return DocumentType.NOUVEAU_DOC;
+      // For 'MN' (Manuel) and 'RG' (Règlement), if they don't have specific enums, map to GENERAL
+      case 'MN': return DocumentType.GENERAL; 
+      case 'RG': return DocumentType.GENERAL;
+      default: return DocumentType.GENERAL; // Fallback
+    }
+  };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -106,16 +121,14 @@ const NouveauDoc = () => {
     const documentData = {
       title: formData.title,
       content: formData.content,
-      type: codeConfig?.documentTypes.find(dt => dt.code === formData.document_type_code)?.label || 'GENERAL', // Map code back to full type string
+      type: mapDocumentTypeCodeToEnumType(formData.document_type_code), // Use the mapped enum type
       airport: formData.airport,
       company_code: formData.company_code,
-      scope_code: codeConfig?.scopes.find(s => s.code === formData.airport)?.code || formData.airport, // Use airport code as scope code
+      scope_code: codeConfig?.scopes.find(s => s.code === formData.airport)?.code || formData.airport,
       department_code: formData.department_code,
-      sub_department_code: formData.sub_department_code || undefined, // Optional
+      sub_department_code: formData.sub_department_code || undefined,
       document_type_code: formData.document_type_code,
       language_code: formData.language_code,
-      // version and responsable are not directly mapped to backend Document model fields
-      // They could be part of the 'content' JSON string if needed.
     };
 
     createDocument(documentData, {
@@ -161,14 +174,14 @@ const NouveauDoc = () => {
       const documentData = {
         title: importData.title,
         content: importData.description,
-        type: codeConfig?.documentTypes.find(dt => dt.code === importData.document_type_code)?.label || 'GENERAL', // Map code back to full type string
+        type: mapDocumentTypeCodeToEnumType(importData.document_type_code), // Use the mapped enum type
         airport: importData.airport,
         file_path: uploadedFile.path,
         file_type: selectedFile.type,
         company_code: importData.company_code,
-        scope_code: codeConfig?.scopes.find(s => s.code === importData.airport)?.code || importData.airport, // Use airport code as scope code
+        scope_code: codeConfig?.scopes.find(s => s.code === importData.airport)?.code || importData.airport,
         department_code: importData.department_code,
-        sub_department_code: importData.sub_department_code || undefined, // Optional
+        sub_department_code: importData.sub_department_code || undefined,
         document_type_code: importData.document_type_code,
         language_code: importData.language_code,
       };
