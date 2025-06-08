@@ -42,7 +42,10 @@ const generateDocumentCodeAndSequence = async (
 // GET /api/documents
 router.get('/', async (req, res) => {
   try {
-    const documents = await Document.find({}).populate('authorId', 'firstName lastName'); // Populate author details
+    const documents = await Document.find({})
+      .populate('authorId', 'firstName lastName') // Populate author details
+      .populate('approvedBy', 'firstName lastName'); // Populate approvedBy details
+    
     const formattedDocuments = documents.map(doc => ({
       ...doc.toObject(),
       id: doc._id, // Map _id to id for frontend compatibility
@@ -50,6 +53,11 @@ router.get('/', async (req, res) => {
         first_name: doc.authorId.firstName,
         last_name: doc.authorId.lastName,
       } : null,
+      approved_by: doc.approvedBy ? { // Map approvedBy to approved_by for frontend
+        first_name: doc.approvedBy.firstName,
+        last_name: doc.approvedBy.lastName,
+      } : null,
+      approved_at: doc.approvedAt ? doc.approvedAt.toISOString() : null, // Map approvedAt to approved_at
     }));
     res.json(formattedDocuments);
   } catch (error) {
@@ -91,7 +99,7 @@ router.post('/', async (req, res) => {
       fileType: file_type,
       qrCode, // Use the generated QR code
       version: 1,
-      status: 'DRAFT',
+      status: 'DRAFT', // New documents start as DRAFT
       viewsCount: 0,
       downloadsCount: 0,
       company_code,
@@ -105,7 +113,10 @@ router.post('/', async (req, res) => {
 
     await newDocument.save();
     
-    const populatedDocument = await newDocument.populate('authorId', 'firstName lastName');
+    const populatedDocument = await newDocument
+      .populate('authorId', 'firstName lastName')
+      .populate('approvedBy', 'firstName lastName'); // Populate approvedBy for response
+    
     const formattedDocument = {
       ...populatedDocument.toObject(),
       id: populatedDocument._id,
@@ -113,6 +124,11 @@ router.post('/', async (req, res) => {
         first_name: populatedDocument.authorId.firstName,
         last_name: populatedDocument.authorId.lastName,
       } : null,
+      approved_by: populatedDocument.approvedBy ? {
+        first_name: populatedDocument.approvedBy.firstName,
+        last_name: populatedDocument.approvedBy.lastName,
+      } : null,
+      approved_at: populatedDocument.approvedAt ? populatedDocument.approvedAt.toISOString() : null,
     };
     res.status(201).json(formattedDocument);
   } catch (error) {
@@ -126,8 +142,22 @@ router.put('/:id', async (req, res) => {
   const { id } = req.params;
   const updates = req.body;
 
+  // Handle approval specific fields
+  if (updates.status === 'ACTIVE' && updates.approved_by_id) {
+    updates.approvedBy = updates.approved_by_id; // Map frontend field to backend
+    updates.approvedAt = new Date(); // Set approval timestamp
+    delete updates.approved_by_id;
+  } else if (updates.status !== 'ACTIVE') {
+    // If status is changed away from ACTIVE, clear approval info
+    updates.approvedBy = null;
+    updates.approvedAt = null;
+  }
+
   try {
-    const document = await Document.findByIdAndUpdate(id, updates, { new: true }).populate('authorId', 'firstName lastName');
+    const document = await Document.findByIdAndUpdate(id, updates, { new: true })
+      .populate('authorId', 'firstName lastName')
+      .populate('approvedBy', 'firstName lastName'); // Populate approvedBy for response
+    
     if (!document) {
       return res.status(404).json({ message: 'Document not found' });
     }
@@ -138,6 +168,11 @@ router.put('/:id', async (req, res) => {
         first_name: document.authorId.firstName,
         last_name: document.authorId.lastName,
       } : null,
+      approved_by: document.approvedBy ? {
+        first_name: document.approvedBy.firstName,
+        last_name: document.approvedBy.lastName,
+      } : null,
+      approved_at: document.approvedAt ? document.approvedAt.toISOString() : null,
     };
     res.json(formattedDocument);
   } catch (error) {

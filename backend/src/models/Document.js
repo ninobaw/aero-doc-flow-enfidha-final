@@ -37,6 +37,9 @@ const DocumentSchema = new Schema({
   language_code: { type: String },
   sequence_number: { type: Number },
   isTemplate: { type: Boolean, default: false }, // New field
+  // Fields for document approval workflow
+  approvedBy: { type: String, ref: 'User' }, // User who approved the document
+  approvedAt: { type: Date }, // Timestamp of approval
 }, { timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' } });
 
 const Document = model('Document', DocumentSchema);
