@@ -15,6 +15,7 @@ import { useFileUpload } from '@/hooks/useFileUpload';
 import { useToast } from '@/hooks/use-toast';
 import { Airport, DocumentType } from '@/shared/types';
 import { useDocumentCodeConfig } from '@/hooks/useDocumentCodeConfig';
+import { generateDocumentCodePreview } from '@/shared/utils'; // Import the new utility
 
 const NouveauDoc = () => {
   const { user } = useAuth();
@@ -32,20 +33,20 @@ const NouveauDoc = () => {
     if (user && codeConfig?.departments) {
       // Find the code that matches the user's department label
       const foundDept = codeConfig.departments.find(d => d.label === user.department);
-      return foundDept ? foundDept.code : undefined; // Changed to undefined
+      return foundDept ? foundDept.code : undefined;
     }
-    return undefined; // Changed to undefined
+    return undefined;
   }, [user, codeConfig]);
 
   // État pour le formulaire direct
   const [formData, setFormData] = useState({
     title: '',
     company_code: 'TAVTUN', // Default company code
-    airport: undefined as Airport | undefined, // Changed to undefined
-    department_code: undefined as string | undefined, // Changed to undefined
-    sub_department_code: undefined as string | undefined, // Changed to undefined
-    document_type_code: undefined as string | undefined, // Changed to undefined
-    language_code: undefined as string | undefined, // Changed to undefined
+    airport: undefined as Airport | undefined,
+    department_code: undefined as string | undefined,
+    sub_department_code: undefined as string | undefined,
+    document_type_code: undefined as string | undefined,
+    language_code: undefined as string | undefined,
     version: '1.0',
     responsable: '',
     description: '',
@@ -56,22 +57,22 @@ const NouveauDoc = () => {
   const [importData, setImportData] = useState({
     title: '',
     company_code: 'TAVTUN', // Default company code
-    airport: undefined as Airport | undefined, // Changed to undefined
-    department_code: undefined as string | undefined, // Changed to undefined
-    sub_department_code: undefined as string | undefined, // Changed to undefined
-    document_type_code: undefined as string | undefined, // Changed to undefined
-    language_code: undefined as string | undefined, // Changed to undefined
+    airport: undefined as Airport | undefined,
+    department_code: undefined as string | undefined,
+    sub_department_code: undefined as string | undefined,
+    document_type_code: undefined as string | undefined,
+    language_code: undefined as string | undefined,
     description: ''
   });
 
   // UseEffect pour définir les valeurs initiales une fois que user et codeConfig sont chargés
   useEffect(() => {
     if (user && codeConfig) {
-      const defaultAirport = user.airport || 'ENFIDHA'; // Fallback si user.airport est null/undefined
-      const defaultLanguage = 'FR'; // Langue par défaut
+      const defaultAirport = user.airport || 'ENFIDHA';
+      const defaultLanguage = 'FR';
 
       const foundDept = codeConfig.departments.find(d => d.label === user.department);
-      const userDepartmentCode = foundDept ? foundDept.code : undefined; // Changed to undefined
+      const userDepartmentCode = foundDept ? foundDept.code : undefined;
 
       setFormData(prev => ({
         ...prev,
@@ -86,7 +87,45 @@ const NouveauDoc = () => {
         language_code: defaultLanguage,
       }));
     }
-  }, [user, codeConfig]); // Dépend de user et codeConfig
+  }, [user, codeConfig]);
+
+  // Memoized QR code preview for direct form
+  const previewQrCodeForm = useMemo(() => {
+    return generateDocumentCodePreview(
+      formData.company_code,
+      formData.airport,
+      formData.department_code,
+      formData.sub_department_code,
+      formData.document_type_code,
+      formData.language_code
+    );
+  }, [
+    formData.company_code,
+    formData.airport,
+    formData.department_code,
+    formData.sub_department_code,
+    formData.document_type_code,
+    formData.language_code,
+  ]);
+
+  // Memoized QR code preview for import form
+  const previewQrCodeImport = useMemo(() => {
+    return generateDocumentCodePreview(
+      importData.company_code,
+      importData.airport,
+      importData.department_code,
+      importData.sub_department_code,
+      importData.document_type_code,
+      importData.language_code
+    );
+  }, [
+    importData.company_code,
+    importData.airport,
+    importData.department_code,
+    importData.sub_department_code,
+    importData.document_type_code,
+    importData.language_code,
+  ]);
 
   // Helper function to map document type code to DocumentType enum string
   const mapDocumentTypeCodeToEnumType = (code: string): DocumentType => {
@@ -375,7 +414,6 @@ const NouveauDoc = () => {
                           <SelectValue placeholder="Sélectionner un sous-département" />
                         </SelectTrigger>
                         <SelectContent>
-                          {/* Removed SelectItem with empty value */}
                           {codeConfig?.subDepartments.map(subDept => (
                             <SelectItem key={subDept.code} value={subDept.code}>
                               {subDept.label}
@@ -424,6 +462,19 @@ const NouveauDoc = () => {
                         placeholder="Nom du responsable"
                       />
                     </div>
+                  </div>
+
+                  {/* Document Code Preview for Form */}
+                  <div className="space-y-2">
+                    <Label>Prévisualisation du Code Documentaire</Label>
+                    <Input
+                      value={previewQrCodeForm}
+                      readOnly
+                      className="font-mono bg-gray-100 text-gray-700"
+                    />
+                    <p className="text-xs text-gray-500">
+                      Ce code sera généré automatiquement lors de la sauvegarde. Le numéro de séquence sera attribué par le système.
+                    </p>
                   </div>
 
                   <div className="space-y-2">
@@ -564,7 +615,6 @@ const NouveauDoc = () => {
                           <SelectValue placeholder="Sélectionner un sous-département" />
                         </SelectTrigger>
                         <SelectContent>
-                          {/* Removed SelectItem with empty value */}
                           {codeConfig?.subDepartments.map(subDept => (
                             <SelectItem key={subDept.code} value={subDept.code}>
                               {subDept.label}
@@ -593,6 +643,19 @@ const NouveauDoc = () => {
                         </SelectContent>
                       </Select>
                     </div>
+                  </div>
+
+                  {/* Document Code Preview for Import */}
+                  <div className="space-y-2">
+                    <Label>Prévisualisation du Code Documentaire</Label>
+                    <Input
+                      value={previewQrCodeImport}
+                      readOnly
+                      className="font-mono bg-gray-100 text-gray-700"
+                    />
+                    <p className="text-xs text-gray-500">
+                      Ce code sera généré automatiquement lors de la sauvegarde. Le numéro de séquence sera attribué par le système.
+                    </p>
                   </div>
 
                   <div className="space-y-2">
