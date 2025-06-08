@@ -230,3 +230,24 @@ export const filterBySearchTerm = <T>(
     })
   );
 };
+
+export const generateDocumentCodePreview = (
+  company_code?: string,
+  scope_code?: string,
+  department_code?: string,
+  sub_department_code?: string,
+  document_type_code?: string,
+  language_code?: string
+): string => {
+  const parts = [
+    company_code || 'COMP',
+    scope_code || 'SCOPE',
+    department_code || 'DEPT',
+    sub_department_code || null, // Use null to filter out if not present
+    document_type_code || 'TYPE',
+    '001', // Placeholder for sequence number
+    language_code || 'LANG'
+  ].filter(Boolean); // Filter out null/undefined values
+
+  return parts.join('-');
+};
