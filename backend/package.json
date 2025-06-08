@@ -1,4 +1,16 @@
 {
+  "name": "aerodoc-backend",
+  "version": "1.0.0",
+  "description": "Backend for AeroDoc application",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "seed": "node src/seed.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
     "@types/uuid": "^10.0.0",
     "bcryptjs": "^3.0.2",
