@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -78,12 +77,12 @@ export const Dashboard = () => {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-gray-500 mt-1">
-            Vue d'ensemble des activités aéroportuaires
+            Vue d'overview des activités aéroportuaires
           </p>
         </div>
         <div className="flex items-center space-x-2 bg-white px-4 py-2 rounded-lg shadow-sm border">
           <Plane className="w-5 h-5 text-aviation-sky" />
-          <span className="text-sm font-medium">Enfidha - Monastir</span>
+          <span className="text-sm font-medium">Enfidha - Monastir - Général</span>
         </div>
       </div>
 

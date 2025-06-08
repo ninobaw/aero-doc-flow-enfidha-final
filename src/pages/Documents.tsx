@@ -15,6 +15,7 @@ const Documents = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [filterAirport, setFilterAirport] = useState<string>('all'); // New state for airport filter
 
   // ===========================================
   // DÉBUT INTÉGRATION BACKEND SUPABASE - PAGE DOCUMENTS
@@ -25,8 +26,9 @@ const Documents = () => {
                          doc.content?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType === 'all' || doc.type === filterType;
     const matchesStatus = filterStatus === 'all' || doc.status === filterStatus;
+    const matchesAirport = filterAirport === 'all' || doc.airport === filterAirport; // New filter condition
     
-    return matchesSearch && matchesType && matchesStatus;
+    return matchesSearch && matchesType && matchesStatus && matchesAirport;
   });
 
   const handleDelete = (id: string) => {
@@ -104,13 +106,17 @@ const Documents = () => {
                 </SelectContent>
               </Select>
 
-              <Button variant="outline" onClick={() => {
-                setSearchTerm('');
-                setFilterType('all');
-                setFilterStatus('all');
-              }}>
-                Réinitialiser
-              </Button>
+              <Select value={filterAirport} onValueChange={setFilterAirport}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Tous les aéroports" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les aéroports</SelectItem>
+                  <SelectItem value="ENFIDHA">Enfidha</SelectItem>
+                  <SelectItem value="MONASTIR">Monastir</SelectItem>
+                  <SelectItem value="GENERALE">Général</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </CardContent>
         </Card>

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,11 +10,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
 import { useFormulaires } from '@/hooks/useFormulaires';
+import { Airport } from '@/shared/types'; // Import Airport type
 
 interface FormulaireFormData {
   title: string;
   code: string;
-  airport: 'ENFIDHA' | 'MONASTIR';
+  airport: Airport; // Use Airport type
   category: string;
   description: string;
   instructions: string;
@@ -142,13 +142,14 @@ export const CreateFormulaireForm = () => {
 
             <div className="space-y-2">
               <Label htmlFor="airport">Aéroport *</Label>
-              <Select value={selectedAirport} onValueChange={(value: 'ENFIDHA' | 'MONASTIR') => setValue('airport', value)}>
+              <Select value={selectedAirport} onValueChange={(value: Airport) => setValue('airport', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Sélectionner un aéroport" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ENFIDHA">Enfidha</SelectItem>
                   <SelectItem value="MONASTIR">Monastir</SelectItem>
+                  <SelectItem value="GENERALE">Général</SelectItem>
                 </SelectContent>
               </Select>
             </div>

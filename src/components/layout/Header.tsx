@@ -1,4 +1,3 @@
-
 import { Search, User, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,7 +13,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { USER_ROLES } from '@/shared/constants';
+import { USER_ROLES, AIRPORTS } from '@/shared/constants'; // Import AIRPORTS
 import { NotificationDropdown } from '@/components/notifications/NotificationDropdown';
 
 export const Header = () => {
@@ -32,6 +31,7 @@ export const Header = () => {
   if (!user) return null;
 
   const roleLabel = USER_ROLES[user.role]?.label || user.role;
+  const airportName = AIRPORTS[user.airport]?.name || user.airport; // Get full airport name
 
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4">
@@ -64,7 +64,7 @@ export const Header = () => {
                     <Badge variant="secondary" className="text-xs">
                       {roleLabel}
                     </Badge>
-                    <span className="text-xs text-gray-500">{user.airport}</span>
+                    <span className="text-xs text-gray-500">{airportName}</span>
                   </div>
                 </div>
               </Button>
