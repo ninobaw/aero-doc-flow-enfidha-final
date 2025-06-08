@@ -14,7 +14,7 @@ const UserSchema = new Schema({
   profilePhoto: { type: String },
   airport: { 
     type: String, 
-    enum: ['ENFIDHA', 'MONASTIR'], 
+    enum: ['ENFIDHA', 'MONASTIR', 'GENERALE'], 
     required: true 
   },
   createdAt: { type: Date, default: Date.now },

@@ -30,7 +30,7 @@ const ProcesVerbalSchema = new Schema({
   meetingType: { type: String, required: true },
   airport: { 
     type: String, 
-    enum: ['ENFIDHA', 'MONASTIR'], 
+    enum: ['ENFIDHA', 'MONASTIR', 'GENERALE'], 
     required: true 
   },
   nextMeetingDate: { type: Date },

@@ -112,7 +112,8 @@ const Users = () => {
             { title: 'Total Utilisateurs', value: users.length, icon: UsersIcon, color: 'text-aviation-sky' },
             { title: 'Actifs', value: users.filter(u => u.is_active).length, icon: Shield, color: 'text-green-600' },
             { title: 'Enfidha', value: users.filter(u => u.airport === 'ENFIDHA').length, icon: Shield, color: 'text-blue-600' },
-            { title: 'Monastir', value: users.filter(u => u.airport === 'MONASTIR').length, icon: Shield, color: 'text-purple-600' }
+            { title: 'Monastir', value: users.filter(u => u.airport === 'MONASTIR').length, icon: Shield, color: 'text-purple-600' },
+            { title: 'Général', value: users.filter(u => u.airport === 'GENERALE').length, icon: Shield, color: 'text-indigo-600' } // Added General stat
           ].map((stat, index) => (
             <Card key={index}>
               <CardContent className="p-6">

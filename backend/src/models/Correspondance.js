@@ -38,7 +38,7 @@ const CorrespondanceSchema = new Schema({
   },
   airport: { 
     type: String, 
-    enum: ['ENFIDHA', 'MONASTIR'], 
+    enum: ['ENFIDHA', 'MONASTIR', 'GENERALE'], 
     required: true 
   },
   attachments: [{ type: String }],

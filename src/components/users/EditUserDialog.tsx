@@ -7,9 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { useUsers } from '@/hooks/useUsers';
 import { useToast } from '@/hooks/use-toast';
+import { Airport } from '@/shared/types'; // Import Airport type
 
 type UserRole = 'SUPER_ADMIN' | 'ADMINISTRATOR' | 'APPROVER' | 'USER' | 'VISITOR';
-type Airport = 'ENFIDHA' | 'MONASTIR';
 
 interface EditUserDialogProps {
   user: any;
@@ -29,7 +29,7 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, open, onOp
     department: '',
     position: '',
     role: 'USER' as UserRole,
-    airport: 'ENFIDHA' as Airport,
+    airport: 'ENFIDHA' as Airport, // Updated to use Airport type
     is_active: true,
   });
 
@@ -164,6 +164,7 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, open, onOp
                 <SelectContent>
                   <SelectItem value="ENFIDHA">Enfidha</SelectItem>
                   <SelectItem value="MONASTIR">Monastir</SelectItem>
+                  <SelectItem value="GENERALE">Général</SelectItem>
                 </SelectContent>
               </Select>
             </div>
