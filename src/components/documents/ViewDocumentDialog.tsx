@@ -17,6 +17,7 @@ import {
   Building2,
   BookOpen,
   FileDown,
+  CheckCircle, // Import CheckCircle icon
 } from 'lucide-react';
 import { formatDate, getAbsoluteFilePath } from '@/shared/utils';
 import { DocumentData } from '@/hooks/useDocuments';
@@ -148,6 +149,12 @@ export const ViewDocumentDialog: React.FC<ViewDocumentDialogProps> = ({ document
                   <FileDown className="w-4 h-4 mr-2 text-gray-500" />
                   <span>Téléchargements: {document.downloads_count}</span>
                 </div>
+                {document.approved_by && document.approved_at && (
+                  <div className="flex items-center text-green-700">
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    <span>Approuvé par {document.approved_by.first_name} {document.approved_by.last_name} le {formatDate(document.approved_at)}</span>
+                  </div>
+                )}
               </CardContent>
             </Card>
 

@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { FileText, Eye, Download, Calendar, User, Edit, Trash2 } from 'lucide-react';
+import { FileText, Eye, Download, Calendar, User, Edit, Trash2, CheckCircle } from 'lucide-react';
 import { formatDate, getAbsoluteFilePath } from '@/shared/utils';
 import type { DocumentData } from '@/hooks/useDocuments';
 import { ViewDocumentDialog } from '@/components/documents/ViewDocumentDialog'; // Import the new dialog
+import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
+import { useDocuments } from '@/hooks/useDocuments'; // Import useDocuments to update status
 
 interface DocumentsListProps {
   documents: DocumentData[];
@@ -17,6 +19,8 @@ interface DocumentsListProps {
 export const DocumentsList = ({ documents, isLoading, onEdit, onDelete }: DocumentsListProps) => {
   const [selectedDocumentForView, setSelectedDocumentForView] = useState<DocumentData | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const { user, hasPermission } = useAuth(); // Get user and hasPermission
+  const { updateDocument, isUpdating } = useDocuments(); // Get updateDocument mutation
 
   if (isLoading) {
     return (
@@ -90,6 +94,20 @@ export const DocumentsList = ({ documents, isLoading, onEdit, onDelete }: Docume
     setIsViewDialogOpen(true);
   };
 
+  const handleApproveDocument = (document: DocumentData) => {
+    if (!user) return; // Should not happen if ProtectedRoute is working
+
+    if (window.confirm(`Êtes-vous sûr de vouloir approuver le document "${document.title}" ?`)) {
+      updateDocument({
+        id: document.id,
+        status: 'ACTIVE',
+        approved_by_id: user.id, // Pass current user's ID as approver
+      });
+    }
+  };
+
+  const canApprove = hasPermission('approve_documents');
+
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -148,9 +166,16 @@ export const DocumentsList = ({ documents, isLoading, onEdit, onDelete }: Docume
                   </div>
                   <div className="flex items-center space-x-1">
                     <Calendar className="w-3 h-3" />
-                    <span>{formatDate(document.created_at)}</span>
+                    <span>Créé le: {formatDate(document.created_at)}</span>
                   </div>
                 </div>
+
+                {document.status === 'ACTIVE' && document.approved_by && document.approved_at && (
+                  <div className="flex items-center space-x-1 text-xs text-green-700">
+                    <CheckCircle className="w-3 h-3" />
+                    <span>Approuvé par {document.approved_by.first_name} {document.approved_by.last_name} le {formatDate(document.approved_at)}</span>
+                  </div>
+                )}
 
                 <div className="flex justify-between pt-2">
                   <div className="flex space-x-1">
@@ -177,6 +202,17 @@ export const DocumentsList = ({ documents, isLoading, onEdit, onDelete }: Docume
                     )}
                   </div>
                   <div className="flex space-x-1">
+                    {document.status === 'DRAFT' && canApprove && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handleApproveDocument(document)}
+                        disabled={isUpdating}
+                        className="bg-green-500 hover:bg-green-600 text-white"
+                      >
+                        <CheckCircle className="w-4 h-4" />
+                      </Button>
+                    )}
                     {onEdit && (
                       <Button variant="ghost" size="sm" onClick={() => onEdit(document)}>
                         <Edit className="w-4 h-4" />

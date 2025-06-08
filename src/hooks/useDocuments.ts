@@ -10,7 +10,7 @@ const API_BASE_URL = 'http://localhost:5000/api';
 export interface DocumentData {
   id: string;
   title: string;
-  type: 'FORMULAIRE_DOC' | 'CORRESPONDANCE' | 'PROCES_VERBAL' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL';
+  type: 'FORMULAIRE_DOC' | 'CORRESPONDANCE' | 'PROCES_VERBAL' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL' | 'TEMPLATE';
   content?: string;
   author_id: string;
   version: number;
@@ -27,7 +27,7 @@ export interface DocumentData {
     first_name: string;
     last_name: string;
   };
-  // New fields for document code components
+  // New codification fields
   company_code?: string;
   scope_code?: string;
   department_code?: string;
@@ -35,6 +35,13 @@ export interface DocumentData {
   document_type_code?: string;
   language_code?: string;
   sequence_number?: number;
+  tags?: string[]; // Added tags field
+  // Approval fields
+  approved_by?: {
+    first_name: string;
+    last_name: string;
+  };
+  approved_at?: string;
 }
 
 export const useDocuments = () => {
@@ -112,6 +119,8 @@ export const useDocuments = () => {
       document_type_code?: string;
       language_code?: string;
       sequence_number?: number;
+      tags?: string[]; // Include tags in updates
+      approved_by_id?: string; // New field for approval
     }) => {
       const response = await axios.put(`${API_BASE_URL}/documents/${id}`, updates);
       return response.data;
