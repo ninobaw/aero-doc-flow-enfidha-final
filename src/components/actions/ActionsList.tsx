@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -139,7 +138,7 @@ export const ActionsList = ({ actions, isLoading, onEdit }: ActionsListProps) =>
 
               <div className="flex items-center space-x-1 text-xs text-gray-500">
                 <Users className="w-3 h-3" />
-                <span>{action.assigned_to.length} assigné(s)</span>
+                <span>{(action.assigned_to || []).length} assigné(s)</span>
               </div>
 
               <div className="flex justify-between pt-2">
