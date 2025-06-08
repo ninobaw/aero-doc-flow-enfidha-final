@@ -5,16 +5,21 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Settings as SettingsIcon, Save, Bell, Shield, Globe, Database, Mail } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'; // Import Tabs components
+import { Settings as SettingsIcon, Save, Bell, Shield, Globe, Database, Mail, Code } from 'lucide-react'; // Import Code icon
 import { useState, useEffect } from 'react';
 import { useSettings } from '@/hooks/useSettings';
-import { Airport } from '@/shared/types'; // Import Airport type
+import { Airport } from '@/shared/types';
+import { DocumentCodeConfigManagement } from '@/components/settings/DocumentCodeConfigManagement'; // Import the new component
+import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
 
 const Settings = () => {
   const { settings, isLoading, updateSettings, isUpdating } = useSettings();
+  const { hasPermission } = useAuth(); // Get hasPermission from AuthContext
+
   const [formData, setFormData] = useState({
     company_name: '',
-    default_airport: 'ENFIDHA' as Airport, // Updated to use Airport type
+    default_airport: 'ENFIDHA' as Airport,
     language: 'fr',
     theme: 'light',
     email_notifications: true,
@@ -31,10 +36,6 @@ const Settings = () => {
     smtp_username: '',
     use_ssl: true,
   });
-
-  // ===========================================
-  // DÉBUT INTÉGRATION BACKEND SUPABASE - PAGE PARAMÈTRES
-  // ===========================================
 
   useEffect(() => {
     if (settings) {
@@ -69,10 +70,6 @@ const Settings = () => {
     setFormData(prev => ({ ...prev, [key]: value }));
   };
 
-  // ===========================================
-  // FIN INTÉGRATION BACKEND SUPABASE - PAGE PARAMÈTRES
-  // ===========================================
-
   if (isLoading) {
     return (
       <AppLayout>
@@ -98,9 +95,11 @@ const Settings = () => {
     );
   }
 
+  const canManageSettings = hasPermission('manage_settings');
+
   return (
     <AppLayout>
-      <form onSubmit={handleSave} className="space-y-6">
+      <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Paramètres</h1>
           <p className="text-gray-500 mt-1">
@@ -108,299 +107,352 @@ const Settings = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Paramètres généraux */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <SettingsIcon className="w-5 h-5 mr-2" />
-                Paramètres Généraux
-              </CardTitle>
-              <CardDescription>
-                Configuration générale de l'application
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="companyName">Nom de l'organisation</Label>
-                <Input
-                  id="companyName"
-                  value={formData.company_name}
-                  onChange={(e) => updateSetting('company_name', e.target.value)}
-                />
-              </div>
+        <Tabs defaultValue="general" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            <TabsTrigger value="general" className="flex items-center space-x-2">
+              <SettingsIcon className="w-4 h-4" />
+              <span>Général</span>
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="flex items-center space-x-2">
+              <Bell className="w-4 h-4" />
+              <span>Notifications</span>
+            </TabsTrigger>
+            <TabsTrigger value="security" className="flex items-center space-x-2">
+              <Shield className="w-4 h-4" />
+              <span>Sécurité</span>
+            </TabsTrigger>
+            {canManageSettings && ( // Only show this tab if user has permission
+              <TabsTrigger value="document-codes" className="flex items-center space-x-2">
+                <Code className="w-4 h-4" />
+                <span>Codes Doc</span>
+              </TabsTrigger>
+            )}
+          </TabsList>
 
-              <div className="space-y-2">
-                <Label htmlFor="defaultAirport">Aéroport par défaut</Label>
-                <Select 
-                  value={formData.default_airport} 
-                  onValueChange={(value: Airport) => updateSetting('default_airport', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ENFIDHA">Enfidha</SelectItem>
-                    <SelectItem value="MONASTIR">Monastir</SelectItem>
-                    <SelectItem value="GENERALE">Général</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+          <TabsContent value="general" className="space-y-6 mt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Paramètres généraux */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <SettingsIcon className="w-5 h-5 mr-2" />
+                    Paramètres Généraux
+                  </CardTitle>
+                  <CardDescription>
+                    Configuration générale de l'application
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="companyName">Nom de l'organisation</Label>
+                    <Input
+                      id="companyName"
+                      value={formData.company_name}
+                      onChange={(e) => updateSetting('company_name', e.target.value)}
+                    />
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="language">Langue</Label>
-                <Select 
-                  value={formData.language} 
-                  onValueChange={(value) => updateSetting('language', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="fr">Français</SelectItem>
-                    <SelectItem value="en">English</SelectItem>
-                    <SelectItem value="ar">العربية</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="defaultAirport">Aéroport par défaut</Label>
+                    <Select 
+                      value={formData.default_airport} 
+                      onValueChange={(value: Airport) => updateSetting('default_airport', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ENFIDHA">Enfidha</SelectItem>
+                        <SelectItem value="MONASTIR">Monastir</SelectItem>
+                        <SelectItem value="GENERALE">Général</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="theme">Thème</Label>
-                <Select 
-                  value={formData.theme} 
-                  onValueChange={(value) => updateSetting('theme', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="light">Clair</SelectItem>
-                    <SelectItem value="dark">Sombre</SelectItem>
-                    <SelectItem value="auto">Automatique</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
+                  <div className="space-y-2">
+                    <Label htmlFor="language">Langue</Label>
+                    <Select 
+                      value={formData.language} 
+                      onValueChange={(value) => updateSetting('language', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="fr">Français</SelectItem>
+                        <SelectItem value="en">English</SelectItem>
+                        <SelectItem value="ar">العربية</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-          {/* Paramètres de notification */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Bell className="w-5 h-5 mr-2" />
-                Notifications
-              </CardTitle>
-              <CardDescription>
-                Gérer vos préférences de notification
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Notifications par email</Label>
-                  <p className="text-sm text-gray-500">
-                    Recevoir des emails pour les actions importantes
-                  </p>
-                </div>
-                <Switch
-                  checked={formData.email_notifications}
-                  onCheckedChange={(checked) => updateSetting('email_notifications', checked)}
-                />
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="theme">Thème</Label>
+                    <Select 
+                      value={formData.theme} 
+                      onValueChange={(value) => updateSetting('theme', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="light">Clair</SelectItem>
+                        <SelectItem value="dark">Sombre</SelectItem>
+                        <SelectItem value="auto">Automatique</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </CardContent>
+              </Card>
 
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Notifications SMS</Label>
-                  <p className="text-sm text-gray-500">
-                    Recevoir des SMS pour les alertes urgentes
-                  </p>
-                </div>
-                <Switch
-                  checked={formData.sms_notifications}
-                  onCheckedChange={(checked) => updateSetting('sms_notifications', checked)}
-                />
-              </div>
+              {/* Paramètres des documents */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Database className="w-5 h-5 mr-2" />
+                    Documents
+                  </CardTitle>
+                  <CardDescription>
+                    Configuration de la gestion documentaire
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="documentRetention">Durée de rétention (jours)</Label>
+                    <Input
+                      id="documentRetention"
+                      type="number"
+                      value={formData.document_retention}
+                      onChange={(e) => updateSetting('document_retention', parseInt(e.target.value))}
+                    />
+                  </div>
 
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Notifications push</Label>
-                  <p className="text-sm text-gray-500">
-                    Notifications dans le navigateur
-                  </p>
-                </div>
-                <Switch
-                  checked={formData.push_notifications}
-                  onCheckedChange={(checked) => updateSetting('push_notifications', checked)}
-                />
-              </div>
-            </CardContent>
-          </Card>
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label>Archivage automatique</Label>
+                      <p className="text-sm text-gray-500">
+                        Archiver automatiquement les anciens documents
+                      </p>
+                    </div>
+                    <Switch
+                      checked={formData.auto_archive}
+                      onCheckedChange={(checked) => updateSetting('auto_archive', checked)}
+                    />
+                  </div>
 
-          {/* Paramètres de sécurité */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Shield className="w-5 h-5 mr-2" />
-                Sécurité
-              </CardTitle>
-              <CardDescription>
-                Configuration de la sécurité et des accès
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="sessionTimeout">Délai d'expiration de session (minutes)</Label>
-                <Input
-                  id="sessionTimeout"
-                  type="number"
-                  value={formData.session_timeout}
-                  onChange={(e) => updateSetting('session_timeout', parseInt(e.target.value))}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Authentification à deux facteurs</Label>
-                  <p className="text-sm text-gray-500">
-                    Exiger l'A2F pour tous les utilisateurs
-                  </p>
-                </div>
-                <Switch
-                  checked={formData.require_two_factor}
-                  onCheckedChange={(checked) => updateSetting('require_two_factor', checked)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="passwordExpiry">Expiration des mots de passe (jours)</Label>
-                <Input
-                  id="passwordExpiry"
-                  type="number"
-                  value={formData.password_expiry}
-                  onChange={(e) => updateSetting('password_expiry', parseInt(e.target.value))}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Paramètres des documents */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Database className="w-5 h-5 mr-2" />
-                Documents
-              </CardTitle>
-              <CardDescription>
-                Configuration de la gestion documentaire
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="documentRetention">Durée de rétention (jours)</Label>
-                <Input
-                  id="documentRetention"
-                  type="number"
-                  value={formData.document_retention}
-                  onChange={(e) => updateSetting('document_retention', parseInt(e.target.value))}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Archivage automatique</Label>
-                  <p className="text-sm text-gray-500">
-                    Archiver automatiquement les anciens documents
-                  </p>
-                </div>
-                <Switch
-                  checked={formData.auto_archive}
-                  onCheckedChange={(checked) => updateSetting('auto_archive', checked)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="maxFileSize">Taille max des fichiers (MB)</Label>
-                <Input
-                  id="maxFileSize"
-                  type="number"
-                  value={formData.max_file_size}
-                  onChange={(e) => updateSetting('max_file_size', parseInt(e.target.value))}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Configuration Email */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Mail className="w-5 h-5 mr-2" />
-              Configuration Email
-            </CardTitle>
-            <CardDescription>
-              Paramètres SMTP pour l'envoi d'emails
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="smtpHost">Serveur SMTP</Label>
-                <Input
-                  id="smtpHost"
-                  value={formData.smtp_host}
-                  onChange={(e) => updateSetting('smtp_host', e.target.value)}
-                  placeholder="smtp.example.com"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="smtpPort">Port SMTP</Label>
-                <Input
-                  id="smtpPort"
-                  type="number"
-                  value={formData.smtp_port}
-                  onChange={(e) => updateSetting('smtp_port', parseInt(e.target.value))}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="smtpUsername">Nom d'utilisateur</Label>
-                <Input
-                  id="smtpUsername"
-                  value={formData.smtp_username}
-                  onChange={(e) => updateSetting('smtp_username', e.target.value)}
-                />
-              </div>
-
-              <div className="flex items-center justify-between pt-6">
-                <div className="space-y-0.5">
-                  <Label>Utiliser SSL</Label>
-                  <p className="text-sm text-gray-500">
-                    Connexion sécurisée SSL/TLS
-                  </p>
-                </div>
-                <Switch
-                  checked={formData.use_ssl}
-                  onCheckedChange={(checked) => updateSetting('use_ssl', checked)}
-                />
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="maxFileSize">Taille max des fichiers (MB)</Label>
+                    <Input
+                      id="maxFileSize"
+                      type="number"
+                      value={formData.max_file_size}
+                      onChange={(e) => updateSetting('max_file_size', parseInt(e.target.value))}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-          </CardContent>
-        </Card>
+            {/* Bouton de sauvegarde pour les paramètres généraux */}
+            <div className="flex justify-end">
+              <Button 
+                type="submit" 
+                disabled={isUpdating}
+                className="bg-aviation-sky hover:bg-aviation-sky-dark"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                {isUpdating ? 'Sauvegarde...' : 'Sauvegarder les paramètres'}
+              </Button>
+            </div>
+          </TabsContent>
 
-        {/* Bouton de sauvegarde */}
-        <div className="flex justify-end">
-          <Button 
-            type="submit" 
-            disabled={isUpdating}
-            className="bg-aviation-sky hover:bg-aviation-sky-dark"
-          >
-            <Save className="w-4 h-4 mr-2" />
-            {isUpdating ? 'Sauvegarde...' : 'Sauvegarder les paramètres'}
-          </Button>
-        </div>
-      </form>
+          <TabsContent value="notifications" className="space-y-6 mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Bell className="w-5 h-5 mr-2" />
+                  Notifications
+                </CardTitle>
+                <CardDescription>
+                  Gérer vos préférences de notification
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Notifications par email</Label>
+                    <p className="text-sm text-gray-500">
+                      Recevoir des emails pour les actions importantes
+                    </p>
+                  </div>
+                  <Switch
+                    checked={formData.email_notifications}
+                    onCheckedChange={(checked) => updateSetting('email_notifications', checked)}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Notifications SMS</Label>
+                    <p className="text-sm text-gray-500">
+                      Recevoir des SMS pour les alertes urgentes
+                    </p>
+                  </div>
+                  <Switch
+                    checked={formData.sms_notifications}
+                    onCheckedChange={(checked) => updateSetting('sms_notifications', checked)}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Notifications push</Label>
+                    <p className="text-sm text-gray-500">
+                      Notifications dans le navigateur
+                    </p>
+                  </div>
+                  <Switch
+                    checked={formData.push_notifications}
+                    onCheckedChange={(checked) => updateSetting('push_notifications', checked)}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+            {/* Configuration Email */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Mail className="w-5 h-5 mr-2" />
+                  Configuration Email
+                </CardTitle>
+                <CardDescription>
+                  Paramètres SMTP pour l'envoi d'emails
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="smtpHost">Serveur SMTP</Label>
+                    <Input
+                      id="smtpHost"
+                      value={formData.smtp_host}
+                      onChange={(e) => updateSetting('smtp_host', e.target.value)}
+                      placeholder="smtp.example.com"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="smtpPort">Port SMTP</Label>
+                    <Input
+                      id="smtpPort"
+                      type="number"
+                      value={formData.smtp_port}
+                      onChange={(e) => updateSetting('smtp_port', parseInt(e.target.value))}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="smtpUsername">Nom d'utilisateur</Label>
+                    <Input
+                      id="smtpUsername"
+                      value={formData.smtp_username}
+                      onChange={(e) => updateSetting('smtp_username', e.target.value)}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between pt-6">
+                    <div className="space-y-0.5">
+                      <Label>Utiliser SSL</Label>
+                      <p className="text-sm text-gray-500">
+                        Connexion sécurisée SSL/TLS
+                      </p>
+                    </div>
+                    <Switch
+                      checked={formData.use_ssl}
+                      onCheckedChange={(checked) => updateSetting('use_ssl', checked)}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            {/* Bouton de sauvegarde pour les notifications */}
+            <div className="flex justify-end">
+              <Button 
+                type="submit" 
+                disabled={isUpdating}
+                className="bg-aviation-sky hover:bg-aviation-sky-dark"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                {isUpdating ? 'Sauvegarde...' : 'Sauvegarder les paramètres'}
+              </Button>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="security" className="space-y-6 mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Shield className="w-5 h-5 mr-2" />
+                  Sécurité
+                </CardTitle>
+                <CardDescription>
+                  Configuration de la sécurité et des accès
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="sessionTimeout">Délai d'expiration de session (minutes)</Label>
+                  <Input
+                    id="sessionTimeout"
+                    type="number"
+                    value={formData.session_timeout}
+                    onChange={(e) => updateSetting('session_timeout', parseInt(e.target.value))}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Authentification à deux facteurs</Label>
+                    <p className="text-sm text-gray-500">
+                      Exiger l'A2F pour tous les utilisateurs
+                    </p>
+                  </div>
+                  <Switch
+                    checked={formData.require_two_factor}
+                    onCheckedChange={(checked) => updateSetting('require_two_factor', checked)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="passwordExpiry">Expiration des mots de passe (jours)</Label>
+                  <Input
+                    id="passwordExpiry"
+                    type="number"
+                    value={formData.password_expiry}
+                    onChange={(e) => updateSetting('password_expiry', parseInt(e.target.value))}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+            {/* Bouton de sauvegarde pour la sécurité */}
+            <div className="flex justify-end">
+              <Button 
+                type="submit" 
+                disabled={isUpdating}
+                className="bg-aviation-sky hover:bg-aviation-sky-dark"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                {isUpdating ? 'Sauvegarde...' : 'Sauvegarder les paramètres'}
+              </Button>
+            </div>
+          </TabsContent>
+
+          {canManageSettings && (
+            <TabsContent value="document-codes" className="space-y-6 mt-6">
+              <DocumentCodeConfigManagement />
+            </TabsContent>
+          )}
+        </Tabs>
+      </div>
     </AppLayout>
   );
 };
