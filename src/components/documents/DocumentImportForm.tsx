@@ -11,22 +11,22 @@ import { useFileUpload } from '@/hooks/useFileUpload';
 import { useToast } from '@/hooks/use-toast';
 import { Airport } from '@/shared/types';
 import { useDocumentCodeConfig } from '@/hooks/useDocumentCodeConfig';
-import { generateDocumentCodePreview, mapDocumentTypeCodeToDocumentTypeEnum } from '@/shared/utils';
-import { useNavigate } from 'react-router-dom'; // Correct import for useNavigate
-import { useTemplates } from '@/hooks/useTemplates'; // Import useTemplates
+import { generateDocumentCodePreview, mapDocumentTypeCodeToDocumentTypeEnum, getAbsoluteFilePath } from '@/shared/utils'; // Import getAbsoluteFilePath
+import { useNavigate } from 'react-router-dom';
+import { useTemplates } from '@/hooks/useTemplates';
 
 export const DocumentImportForm: React.FC = () => {
   const { user } = useAuth();
   const { createDocument, isCreating } = useDocuments();
-  const { uploadFile, copyTemplate, uploading: isUploadingFile } = useFileUpload(); // Added copyTemplate
+  const { uploadFile, copyTemplate, uploading: isUploadingFile } = useFileUpload();
   const { config: codeConfig } = useDocumentCodeConfig();
-  const { templates, isLoading: isLoadingTemplates } = useTemplates(); // Fetch templates
+  const { templates, isLoading: isLoadingTemplates } = useTemplates();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null); // New state for selected template
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
 
   const initialDepartmentCode = useMemo(() => {
     if (user && codeConfig?.departments) {
@@ -127,7 +127,7 @@ export const DocumentImportForm: React.FC = () => {
       }));
       // Set preview URL for template if available
       if (template.file_path) {
-        setPreviewUrl(`${import.meta.env.VITE_API_BASE_URL}/uploads/${template.file_path}`);
+        setPreviewUrl(getAbsoluteFilePath(template.file_path)); // Use getAbsoluteFilePath
       }
     }
   };
