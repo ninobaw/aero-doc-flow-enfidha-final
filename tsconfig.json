@@ -12,7 +12,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx", // This is the crucial line for JSX transformation
+    "jsx": "react", // Changed from "react-jsx" to "react"
 
     /* Linting */
     "strict": true,
@@ -27,5 +27,4 @@
     }
   },
   "include": ["src"]
-  // Removed "references": [{ "path": "./tsconfig.node.json" }]
 }
