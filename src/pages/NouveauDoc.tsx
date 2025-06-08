@@ -41,11 +41,11 @@ const NouveauDoc = () => {
   const [formData, setFormData] = useState({
     title: '',
     company_code: 'TAVTUN', // Default company code
-    airport: user?.airport || 'ENFIDHA' as Airport, // Default to user's airport
+    airport: user?.airport || '' as Airport, // Default to user's airport, or empty string
     department_code: initialDepartmentCode,
     sub_department_code: '',
     document_type_code: '',
-    language_code: 'FR',
+    language_code: '', // Default to empty string
     version: '1.0',
     responsable: '',
     description: '',
@@ -56,11 +56,11 @@ const NouveauDoc = () => {
   const [importData, setImportData] = useState({
     title: '',
     company_code: 'TAVTUN', // Default company code
-    airport: user?.airport || 'ENFIDHA' as Airport, // Default to user's airport
+    airport: user?.airport || '' as Airport, // Default to user's airport, or empty string
     department_code: initialDepartmentCode,
     sub_department_code: '',
     document_type_code: '',
-    language_code: 'FR',
+    language_code: '', // Default to empty string
     description: ''
   });
 
@@ -296,6 +296,7 @@ const NouveauDoc = () => {
                           <SelectValue placeholder="Sélectionner un aéroport" />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="">Sélectionner...</SelectItem> {/* Added empty option */}
                           {codeConfig?.scopes.map(scope => (
                             <SelectItem key={scope.code} value={scope.code}>
                               {scope.label}
@@ -316,6 +317,7 @@ const NouveauDoc = () => {
                           <SelectValue placeholder="Sélectionner un type" />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="">Sélectionner...</SelectItem> {/* Added empty option */}
                           {codeConfig?.documentTypes.map(docType => (
                             <SelectItem key={docType.code} value={docType.code}>
                               {docType.label}
@@ -337,6 +339,7 @@ const NouveauDoc = () => {
                           <SelectValue placeholder="Sélectionner un département" />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="">Sélectionner...</SelectItem> {/* Added empty option */}
                           {codeConfig?.departments.map(dept => (
                             <SelectItem key={dept.code} value={dept.code}>
                               {dept.label}
@@ -382,6 +385,7 @@ const NouveauDoc = () => {
                           <SelectValue placeholder="Sélectionner une langue" />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="">Sélectionner...</SelectItem> {/* Added empty option */}
                           {codeConfig?.languages.map(lang => (
                             <SelectItem key={lang.code} value={lang.code}>
                               {lang.label}
@@ -485,6 +489,7 @@ const NouveauDoc = () => {
                           <SelectValue placeholder="Sélectionner un aéroport" />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="">Sélectionner...</SelectItem> {/* Added empty option */}
                           {codeConfig?.scopes.map(scope => (
                             <SelectItem key={scope.code} value={scope.code}>
                               {scope.label}
@@ -505,6 +510,7 @@ const NouveauDoc = () => {
                           <SelectValue placeholder="Sélectionner un type" />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="">Sélectionner...</SelectItem> {/* Added empty option */}
                           {codeConfig?.documentTypes.map(docType => (
                             <SelectItem key={docType.code} value={docType.code}>
                               {docType.label}
@@ -526,6 +532,7 @@ const NouveauDoc = () => {
                           <SelectValue placeholder="Sélectionner un département" />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="">Sélectionner...</SelectItem> {/* Added empty option */}
                           {codeConfig?.departments.map(dept => (
                             <SelectItem key={dept.code} value={dept.code}>
                               {dept.label}
@@ -571,6 +578,7 @@ const NouveauDoc = () => {
                           <SelectValue placeholder="Sélectionner une langue" />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="">Sélectionner...</SelectItem> {/* Added empty option */}
                           {codeConfig?.languages.map(lang => (
                             <SelectItem key={lang.code} value={lang.code}>
                               {lang.label}
