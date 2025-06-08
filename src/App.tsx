@@ -40,12 +40,7 @@ const App = () => (
                 <Documents />
               </ProtectedRoute>
             } />
-            {/* Removed /documents/nouveau route */}
-            <Route path="/documents/qualite" element={
-              <ProtectedRoute requiredPermission="view_documents">
-                <QualiteDoc />
-              </ProtectedRoute>
-            } />
+            {/* Removed /documents/qualite route as it's now handled by /documents */}
             <Route path="/documents/formulaires" element={
               <ProtectedRoute requiredPermission="manage_forms">
                 <FormulairesDoc />

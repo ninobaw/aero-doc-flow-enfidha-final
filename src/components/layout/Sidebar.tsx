@@ -40,13 +40,7 @@ const navigationItems: NavItem[] = [
     href: '/documents', // Link directly to the unified Documents page
     icon: FileText,
     children: [
-      // Removed 'Nouveau Doc' as it's now part of /documents tabs
-      {
-        title: 'Qualité Doc',
-        href: '/documents/qualite',
-        icon: FileCheck,
-        permission: 'view_documents'
-      },
+      // Removed 'Qualité Doc' as it's now part of /documents tabs
       {
         title: 'Formulaires Doc',
         href: '/documents/formulaires',
