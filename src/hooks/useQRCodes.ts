@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { useToast } from '@/hooks/use-toast';
+import { Airport } from '@/shared/types'; // Import Airport type
 
 const API_BASE_URL = 'http://localhost:5000/api';
 
@@ -14,6 +15,7 @@ export interface QRCodeData {
   document?: {
     title: string;
     type: string;
+    airport: Airport; // Added airport to document sub-object
     author: {
       first_name: string;
       last_name: string;
@@ -42,6 +44,7 @@ export const useQRCodes = () => {
         document: {
           title: doc.title,
           type: doc.type,
+          airport: doc.airport, // Pass airport from document
           author: doc.author
         }
       })) as QRCodeData[];

@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { Airport } from '@/shared/types'; // Import Airport type
 
 const API_BASE_URL = 'http://localhost:5000/api';
 
@@ -10,7 +11,7 @@ export interface AppSettings {
   id?: string;
   user_id: string;
   company_name: string;
-  default_airport: 'ENFIDHA' | 'MONASTIR';
+  default_airport: Airport; // Updated to use Airport type
   language: string;
   theme: string;
   email_notifications: boolean;

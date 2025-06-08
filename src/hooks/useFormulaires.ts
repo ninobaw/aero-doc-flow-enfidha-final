@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios'; // Import axios
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { Airport } from '@/shared/types'; // Import Airport type
 
 // Define your backend API base URL
 const API_BASE_URL = 'http://localhost:5000/api';
@@ -11,7 +12,7 @@ export interface FormulaireData {
   title: string;
   content: string; // This will store JSON string of code, category, description, instructions
   code?: string;
-  airport: 'ENFIDHA' | 'MONASTIR';
+  airport: Airport; // Updated to use Airport type
   category?: string;
   description?: string;
   instructions?: string;
@@ -59,7 +60,7 @@ export const useFormulaires = () => {
       title: string;
       content?: string;
       code?: string;
-      airport: 'ENFIDHA' | 'MONASTIR';
+      airport: Airport; // Updated to use Airport type
       category?: string;
       description?: string;
       instructions?: string;

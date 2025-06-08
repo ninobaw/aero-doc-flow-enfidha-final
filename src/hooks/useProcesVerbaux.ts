@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { ActionDecidee } from '@/components/actions/ActionsDecideesField';
+import { Airport } from '@/shared/types'; // Import Airport type
 
 const API_BASE_URL = 'http://localhost:5000/api';
 
@@ -15,7 +16,7 @@ export interface ProcesVerbalData {
   decisions: string;
   location: string;
   meeting_type: string;
-  airport: 'ENFIDHA' | 'MONASTIR';
+  airport: Airport; // Updated to use Airport type
   next_meeting_date?: string;
   actions_decidees?: ActionDecidee[];
   created_at: string;
@@ -51,7 +52,7 @@ export const useProcesVerbaux = () => {
       decisions: string;
       location: string;
       meeting_type: string;
-      airport: 'ENFIDHA' | 'MONASTIR';
+      airport: Airport; // Updated to use Airport type
       next_meeting_date?: string;
       actions_decidees?: ActionDecidee[];
     }) => {

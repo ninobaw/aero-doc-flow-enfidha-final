@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios'; // Import axios
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { Airport } from '@/shared/types'; // Import Airport type
 
 // Define your backend API base URL
 const API_BASE_URL = 'http://localhost:5000/api';
@@ -14,7 +15,7 @@ export interface DocumentData {
   author_id: string;
   version: number;
   status: 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
-  airport: 'ENFIDHA' | 'MONASTIR';
+  airport: Airport; // Updated to use Airport type
   file_path?: string;
   file_type?: string;
   qr_code: string;
@@ -46,7 +47,7 @@ export const useDocuments = () => {
       title: string;
       type: 'FORMULAIRE_DOC' | 'CORRESPONDANCE' | 'PROCES_VERBAL' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL';
       content?: string;
-      airport: 'ENFIDHA' | 'MONASTIR';
+      airport: Airport; // Updated to use Airport type
       file_path?: string;
       file_type?: string;
     }) => {
@@ -82,7 +83,7 @@ export const useDocuments = () => {
       type?: 'FORMULAIRE_DOC' | 'CORRESPONDANCE' | 'PROCES_VERBAL' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL';
       content?: string;
       status?: 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
-      airport?: 'ENFIDHA' | 'MONASTIR';
+      airport?: Airport; // Updated to use Airport type
       file_path?: string;
       file_type?: string;
       version?: number;

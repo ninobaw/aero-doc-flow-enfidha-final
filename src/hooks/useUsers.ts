@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { Airport } from '@/shared/types'; // Import Airport type
 
 const API_BASE_URL = 'http://localhost:5000/api'; // Your custom Node.js backend URL
 
@@ -14,7 +15,7 @@ export interface UserData {
   department?: string;
   position?: string;
   profile_photo?: string;
-  airport: 'ENFIDHA' | 'MONASTIR';
+  airport: Airport; // Updated to use Airport type
   role: 'SUPER_ADMIN' | 'ADMINISTRATOR' | 'APPROVER' | 'USER' | 'VISITOR';
   is_active: boolean;
   created_at: string;
@@ -43,7 +44,7 @@ export const useUsers = () => {
       phone?: string;
       department?: string;
       position?: string;
-      airport: 'ENFIDHA' | 'MONASTIR';
+      airport: Airport; // Updated to use Airport type
       role: 'SUPER_ADMIN' | 'ADMINISTRATOR' | 'APPROVER' | 'USER' | 'VISITOR';
       password: string;
     }) => {

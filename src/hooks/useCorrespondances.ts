@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { ActionDecidee } from '@/components/actions/ActionsDecideesField';
+import { Airport } from '@/shared/types'; // Import Airport type
 
 const API_BASE_URL = 'http://localhost:5000/api';
 
@@ -15,7 +16,7 @@ export interface CorrespondanceData {
   content: string;
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
   status: string;
-  airport: 'ENFIDHA' | 'MONASTIR';
+  airport: Airport; // Updated to use Airport type
   attachments?: string[];
   actions_decidees?: ActionDecidee[];
   created_at: string;
@@ -50,7 +51,7 @@ export const useCorrespondances = () => {
       subject: string;
       content: string;
       priority: CorrespondanceData['priority'];
-      airport: 'ENFIDHA' | 'MONASTIR';
+      airport: Airport; // Updated to use Airport type
       attachments?: string[];
       actions_decidees?: ActionDecidee[];
     }) => {
