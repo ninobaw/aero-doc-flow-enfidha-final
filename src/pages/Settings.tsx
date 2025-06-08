@@ -8,12 +8,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Settings as SettingsIcon, Save, Bell, Shield, Globe, Database, Mail } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useSettings } from '@/hooks/useSettings';
+import { Airport } from '@/shared/types'; // Import Airport type
 
 const Settings = () => {
   const { settings, isLoading, updateSettings, isUpdating } = useSettings();
   const [formData, setFormData] = useState({
     company_name: '',
-    default_airport: 'ENFIDHA' as 'ENFIDHA' | 'MONASTIR',
+    default_airport: 'ENFIDHA' as Airport, // Updated to use Airport type
     language: 'fr',
     theme: 'light',
     email_notifications: true,
@@ -133,7 +134,7 @@ const Settings = () => {
                 <Label htmlFor="defaultAirport">Aéroport par défaut</Label>
                 <Select 
                   value={formData.default_airport} 
-                  onValueChange={(value: 'ENFIDHA' | 'MONASTIR') => updateSetting('default_airport', value)}
+                  onValueChange={(value: Airport) => updateSetting('default_airport', value)}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -141,6 +142,7 @@ const Settings = () => {
                   <SelectContent>
                     <SelectItem value="ENFIDHA">Enfidha</SelectItem>
                     <SelectItem value="MONASTIR">Monastir</SelectItem>
+                    <SelectItem value="GENERALE">Général</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

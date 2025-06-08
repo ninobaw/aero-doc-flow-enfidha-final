@@ -1,4 +1,3 @@
-
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useState, useEffect } from 'react';
 import { formatDate } from '@/shared/utils';
 import { ProfilePhotoUpload } from '@/components/profile/ProfilePhotoUpload';
+import { Airport } from '@/shared/types'; // Import Airport type
 
 const Profile = () => {
   const { user } = useAuth();

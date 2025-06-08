@@ -1,17 +1,4 @@
-import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { UserPlus } from 'lucide-react';
-import { useUsers } from '@/hooks/useUsers';
-import { useToast } from '@/hooks/use-toast';
-
-type UserRole = 'SUPER_ADMIN' | 'ADMINISTRATOR' | 'APPROVER' | 'USER' | 'VISITOR';
-type Airport = 'ENFIDHA' | 'MONASTIR';
-
-export const CreateUserDialog: React.FC = () => {
+import React, { useState } => {
   const [open, setOpen] = useState(false);
   const { createUser, isCreating } = useUsers();
   const { toast } = useToast();
@@ -21,7 +8,7 @@ export const CreateUserDialog: React.FC = () => {
     firstName: '', // Changed from first_name
     lastName: '',  // Changed from last_name
     role: 'USER' as UserRole,
-    airport: 'ENFIDHA' as Airport,
+    airport: 'ENFIDHA' as Airport, // Updated to use Airport type
     phone: '',
     department: '',
     password: ''
@@ -201,6 +188,7 @@ export const CreateUserDialog: React.FC = () => {
                 <SelectContent>
                   <SelectItem value="ENFIDHA">Enfidha</SelectItem>
                   <SelectItem value="MONASTIR">Monastir</SelectItem>
+                  <SelectItem value="GENERALE">Général</SelectItem>
                 </SelectContent>
               </Select>
             </div>
