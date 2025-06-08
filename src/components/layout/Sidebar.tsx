@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -16,7 +15,8 @@ import {
   ChevronDown,
   ChevronRight,
   Plane,
-  FilePlus
+  FilePlus,
+  FileBadge // Icon for Templates
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -56,6 +56,12 @@ const navigationItems: NavItem[] = [
         href: '/documents/formulaires',
         icon: FileSpreadsheet,
         permission: 'manage_forms'
+      },
+      { // New item for Templates
+        title: 'Modèles',
+        href: '/documents/templates',
+        icon: FileBadge,
+        permission: 'manage_documents' // Assuming 'manage_documents' permission for templates
       }
     ]
   },

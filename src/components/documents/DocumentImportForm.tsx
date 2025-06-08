@@ -13,17 +13,20 @@ import { Airport } from '@/shared/types';
 import { useDocumentCodeConfig } from '@/hooks/useDocumentCodeConfig';
 import { generateDocumentCodePreview, mapDocumentTypeCodeToDocumentTypeEnum } from '@/shared/utils';
 import { useNavigate } from 'react-router-dom'; // Correct import for useNavigate
+import { useTemplates } from '@/hooks/useTemplates'; // Import useTemplates
 
 export const DocumentImportForm: React.FC = () => {
   const { user } = useAuth();
   const { createDocument, isCreating } = useDocuments();
-  const { uploadFile, uploading: isUploadingFile } = useFileUpload();
+  const { uploadFile, copyTemplate, uploading: isUploadingFile } = useFileUpload(); // Added copyTemplate
   const { config: codeConfig } = useDocumentCodeConfig();
+  const { templates, isLoading: isLoadingTemplates } = useTemplates(); // Fetch templates
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null); // New state for selected template
 
   const initialDepartmentCode = useMemo(() => {
     if (user && codeConfig?.departments) {
@@ -83,6 +86,7 @@ export const DocumentImportForm: React.FC = () => {
     const file = event.target.files?.[0];
     if (file) {
       setSelectedFile(file);
+      setSelectedTemplateId(null); // Clear selected template if a file is uploaded
       
       if (file.type.startsWith('image/') || file.type === 'application/pdf') {
         if (previewUrl) {
@@ -107,6 +111,27 @@ export const DocumentImportForm: React.FC = () => {
     setPreviewUrl(null);
   };
 
+  const handleTemplateSelect = (templateId: string) => {
+    setSelectedTemplateId(templateId);
+    setSelectedFile(null); // Clear selected file if a template is chosen
+    setPreviewUrl(null); // Clear preview
+    const template = templates.find(t => t.id === templateId);
+    if (template) {
+      setImportData(prev => ({
+        ...prev,
+        title: template.title,
+        description: template.content || '',
+        airport: template.airport,
+        // Attempt to map template type to document_type_code
+        document_type_code: codeConfig?.documentTypes.find(dt => dt.label === template.type)?.code || undefined,
+      }));
+      // Set preview URL for template if available
+      if (template.file_path) {
+        setPreviewUrl(`${import.meta.env.VITE_API_BASE_URL}/uploads/${template.file_path}`);
+      }
+    }
+  };
+
   const handleFileSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     
@@ -119,48 +144,81 @@ export const DocumentImportForm: React.FC = () => {
       return;
     }
 
-    if (!importData.title.trim() || !importData.airport || !importData.document_type_code || !importData.department_code || !importData.language_code || !selectedFile) {
+    if (!importData.title.trim() || !importData.airport || !importData.document_type_code || !importData.department_code || !importData.language_code) {
       toast({
         title: 'Champs manquants',
-        description: 'Veuillez remplir tous les champs obligatoires et sélectionner un fichier.',
+        description: 'Veuillez remplir tous les champs obligatoires.',
         variant: 'destructive',
       });
       return;
     }
 
-    const uploadedFile = await uploadFile(selectedFile, {
-      bucket: 'documents',
-      folder: 'uploads',
-      allowedTypes: ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx'],
-      maxSize: 10
-    });
+    let finalFilePath: string | undefined;
+    let finalFileType: string | undefined;
 
-    if (uploadedFile) {
-      const documentData = {
-        title: importData.title,
-        content: importData.description,
-        type: mapDocumentTypeCodeToDocumentTypeEnum(importData.document_type_code),
-        airport: importData.airport,
-        file_path: uploadedFile.path,
-        file_type: selectedFile.type,
-        company_code: importData.company_code,
-        scope_code: codeConfig?.scopes.find(s => s.code === importData.airport)?.code || importData.airport,
-        department_code: importData.department_code,
-        sub_department_code: importData.sub_department_code || undefined,
-        document_type_code: importData.document_type_code,
-        language_code: importData.language_code,
-      };
-
-      createDocument(documentData, {
-        onSuccess: () => {
-          toast({
-            title: 'Document importé',
-            description: 'Le document a été importé et enregistré avec succès.',
-          });
-          navigate('/documents');
-        }
+    if (selectedFile) {
+      const uploaded = await uploadFile(selectedFile, {
+        documentType: mapDocumentTypeCodeToDocumentTypeEnum(importData.document_type_code), // Use mapped type for folder
+        allowedTypes: ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx'],
+        maxSize: 10
       });
+      if (uploaded) {
+        finalFilePath = uploaded.path;
+        finalFileType = selectedFile.type;
+      } else {
+        return; // Stop if file upload failed
+      }
+    } else if (selectedTemplateId) {
+      const template = templates.find(t => t.id === selectedTemplateId);
+      if (template && template.file_path && template.file_type) {
+        const copied = await copyTemplate(template.file_path, mapDocumentTypeCodeToDocumentTypeEnum(importData.document_type_code)); // Copy template to new document type folder
+        if (copied) {
+          finalFilePath = copied.path;
+          finalFileType = template.file_type;
+        } else {
+          return; // Stop if template copy failed
+        }
+      } else {
+        toast({
+          title: 'Erreur de modèle',
+          description: 'Le modèle sélectionné n\'a pas de fichier associé.',
+          variant: 'destructive',
+        });
+        return;
+      }
+    } else {
+      toast({
+        title: 'Fichier manquant',
+        description: 'Veuillez sélectionner un fichier à importer ou un modèle.',
+        variant: 'destructive',
+      });
+      return;
     }
+
+    const documentData = {
+      title: importData.title,
+      content: importData.description,
+      type: mapDocumentTypeCodeToDocumentTypeEnum(importData.document_type_code),
+      airport: importData.airport,
+      file_path: finalFilePath,
+      file_type: finalFileType,
+      company_code: importData.company_code,
+      scope_code: codeConfig?.scopes.find(s => s.code === importData.airport)?.code || importData.airport,
+      department_code: importData.department_code,
+      sub_department_code: importData.sub_department_code || undefined,
+      document_type_code: importData.document_type_code,
+      language_code: importData.language_code,
+    };
+
+    createDocument(documentData, {
+      onSuccess: () => {
+        toast({
+          title: 'Document importé',
+          description: 'Le document a été importé et enregistré avec succès.',
+        });
+        navigate('/documents');
+      }
+    });
   };
 
   return (
@@ -318,36 +376,68 @@ export const DocumentImportForm: React.FC = () => {
       </div>
 
       <div className="space-y-4">
-        <Label>Fichier à importer</Label>
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-          <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600 mb-2">
-            Glissez-déposez votre fichier ici ou cliquez pour sélectionner
-          </p>
-          <p className="text-sm text-gray-500 mb-4">
-            Formats supportés: PDF, Word, Excel, PowerPoint
-          </p>
-          <Input
-            type="file"
-            onChange={handleFileUpload}
-            accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
-            className="hidden"
-            id="file-upload"
-          />
-          <Label htmlFor="file-upload" className="cursor-pointer">
-            <Button type="button" variant="outline">
-              Sélectionner un fichier
-            </Button>
-          </Label>
+        <Label>Source du fichier *</Label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Upload File Section */}
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+            <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-600 mb-2">
+              Glissez-déposez votre fichier ici ou cliquez pour sélectionner
+            </p>
+            <p className="text-sm text-gray-500 mb-4">
+              Formats supportés: PDF, Word, Excel, PowerPoint
+            </p>
+            <Input
+              type="file"
+              onChange={handleFileUpload}
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+              className="hidden"
+              id="file-upload"
+            />
+            <Label htmlFor="file-upload" className="cursor-pointer">
+              <Button type="button" variant="outline" disabled={!!selectedTemplateId}>
+                Sélectionner un fichier
+              </Button>
+            </Label>
+          </div>
+
+          {/* Select Template Section */}
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+            <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-600 mb-2">
+              Ou choisissez un modèle existant
+            </p>
+            <p className="text-sm text-gray-500 mb-4">
+              Utilisez un modèle pré-approuvé pour démarrer
+            </p>
+            <Select value={selectedTemplateId || ''} onValueChange={handleTemplateSelect} disabled={!!selectedFile || isLoadingTemplates}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner un modèle" />
+              </SelectTrigger>
+              <SelectContent>
+                {templates.length === 0 ? (
+                  <SelectItem value="no-templates" disabled>Aucun modèle disponible</SelectItem>
+                ) : (
+                  templates.map(template => (
+                    <SelectItem key={template.id} value={template.id}>
+                      {template.title} ({template.airport})
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
-        {selectedFile && (
+        {(selectedFile || selectedTemplateId) && (
           <div className="bg-gray-50 p-4 rounded-lg">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium">{selectedFile.name}</p>
+                <p className="font-medium">
+                  {selectedFile?.name || templates.find(t => t.id === selectedTemplateId)?.title || 'Fichier sélectionné'}
+                </p>
                 <p className="text-sm text-gray-500">
-                  {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                  {selectedFile ? (selectedFile.size / 1024 / 1024).toFixed(2) + ' MB' : 'Modèle sélectionné'}
                 </p>
               </div>
               <div className="flex space-x-2">
@@ -366,7 +456,10 @@ export const DocumentImportForm: React.FC = () => {
                   variant="outline" 
                   size="sm" 
                   type="button"
-                  onClick={removeFile}
+                  onClick={() => {
+                    removeFile();
+                    setSelectedTemplateId(null);
+                  }}
                 >
                   <X className="w-4 h-4" />
                 </Button>
@@ -382,7 +475,7 @@ export const DocumentImportForm: React.FC = () => {
         </Button>
         <Button
           type="submit"
-          disabled={isCreating || isUploadingFile || !importData.title.trim() || !importData.airport || !importData.document_type_code || !importData.department_code || !importData.language_code || !selectedFile}
+          disabled={isCreating || isUploadingFile || !importData.title.trim() || !importData.airport || !importData.document_type_code || !importData.department_code || !importData.language_code || (!selectedFile && !selectedTemplateId)}
           className="bg-aviation-sky hover:bg-aviation-sky-dark"
         >
           <Save className="w-4 h-4 mr-2" />
