@@ -1,7 +1,7 @@
 const { Router } = require('express');
 const { User } = require('../models/User');
 const { v4: uuidv4 } = require('uuid');
-const bcrypt = require('bcryptjs'); // Import bcryptjs
+const bcrypt = require('bcryptjs');
 
 const router = Router();
 
@@ -12,6 +12,23 @@ router.get('/', async (req, res) => {
     res.json(users);
   } catch (error) {
     console.error('Error fetching users:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// GET /api/users/:id
+router.get('/:id', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    // Exclude password from response
+    const userResponse = user.toObject();
+    delete userResponse.password;
+    res.json(userResponse);
+  } catch (error) {
+    console.error('Error fetching single user:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
