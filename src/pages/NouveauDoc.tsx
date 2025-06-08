@@ -41,11 +41,11 @@ const NouveauDoc = () => {
   const [formData, setFormData] = useState({
     title: '',
     company_code: 'TAVTUN', // Default company code
-    airport: user?.airport || '' as Airport, // Default to user's airport, or empty string
-    department_code: initialDepartmentCode,
+    airport: '' as Airport, // Initialiser à vide
+    department_code: '', // Initialiser à vide
     sub_department_code: '',
     document_type_code: '',
-    language_code: '', // Default to empty string
+    language_code: '', // Initialiser à vide
     version: '1.0',
     responsable: '',
     description: '',
@@ -56,23 +56,37 @@ const NouveauDoc = () => {
   const [importData, setImportData] = useState({
     title: '',
     company_code: 'TAVTUN', // Default company code
-    airport: user?.airport || '' as Airport, // Default to user's airport, or empty string
-    department_code: initialDepartmentCode,
+    airport: '' as Airport, // Initialiser à vide
+    department_code: '', // Initialiser à vide
     sub_department_code: '',
     document_type_code: '',
-    language_code: '', // Default to empty string
+    language_code: '', // Initialiser à vide
     description: ''
   });
 
-  // Update form data if initialDepartmentCode changes after initial render
+  // UseEffect pour définir les valeurs initiales une fois que user et codeConfig sont chargés
   useEffect(() => {
-    if (initialDepartmentCode && formData.department_code === '') {
-      setFormData(prev => ({ ...prev, department_code: initialDepartmentCode }));
+    if (user && codeConfig) {
+      const defaultAirport = user.airport || 'ENFIDHA'; // Fallback si user.airport est null/undefined
+      const defaultLanguage = 'FR'; // Langue par défaut
+
+      const foundDept = codeConfig.departments.find(d => d.label === user.department);
+      const userDepartmentCode = foundDept ? foundDept.code : '';
+
+      setFormData(prev => ({
+        ...prev,
+        airport: defaultAirport,
+        department_code: userDepartmentCode,
+        language_code: defaultLanguage,
+      }));
+      setImportData(prev => ({
+        ...prev,
+        airport: defaultAirport,
+        department_code: userDepartmentCode,
+        language_code: defaultLanguage,
+      }));
     }
-    if (initialDepartmentCode && importData.department_code === '') {
-      setImportData(prev => ({ ...prev, department_code: initialDepartmentCode }));
-    }
-  }, [initialDepartmentCode, formData.department_code, importData.department_code]);
+  }, [user, codeConfig]); // Dépend de user et codeConfig
 
   // Helper function to map document type code to DocumentType enum string
   const mapDocumentTypeCodeToEnumType = (code: string): DocumentType => {
@@ -296,7 +310,7 @@ const NouveauDoc = () => {
                           <SelectValue placeholder="Sélectionner un aéroport" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Sélectionner...</SelectItem> {/* Added empty option */}
+                          <SelectItem value="">Sélectionner...</SelectItem>
                           {codeConfig?.scopes.map(scope => (
                             <SelectItem key={scope.code} value={scope.code}>
                               {scope.label}
@@ -317,7 +331,7 @@ const NouveauDoc = () => {
                           <SelectValue placeholder="Sélectionner un type" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Sélectionner...</SelectItem> {/* Added empty option */}
+                          <SelectItem value="">Sélectionner...</SelectItem>
                           {codeConfig?.documentTypes.map(docType => (
                             <SelectItem key={docType.code} value={docType.code}>
                               {docType.label}
@@ -333,13 +347,13 @@ const NouveauDoc = () => {
                         value={formData.department_code}
                         onValueChange={(value: string) => setFormData(prev => ({ ...prev, department_code: value }))}
                         required
-                        disabled={!!user?.department && initialDepartmentCode !== ''} // Disable if user has a department
+                        disabled={!!user?.department && formData.department_code === initialDepartmentCode && initialDepartmentCode !== ''}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner un département" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Sélectionner...</SelectItem> {/* Added empty option */}
+                          <SelectItem value="">Sélectionner...</SelectItem>
                           {codeConfig?.departments.map(dept => (
                             <SelectItem key={dept.code} value={dept.code}>
                               {dept.label}
@@ -385,7 +399,7 @@ const NouveauDoc = () => {
                           <SelectValue placeholder="Sélectionner une langue" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Sélectionner...</SelectItem> {/* Added empty option */}
+                          <SelectItem value="">Sélectionner...</SelectItem>
                           {codeConfig?.languages.map(lang => (
                             <SelectItem key={lang.code} value={lang.code}>
                               {lang.label}
@@ -489,7 +503,7 @@ const NouveauDoc = () => {
                           <SelectValue placeholder="Sélectionner un aéroport" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Sélectionner...</SelectItem> {/* Added empty option */}
+                          <SelectItem value="">Sélectionner...</SelectItem>
                           {codeConfig?.scopes.map(scope => (
                             <SelectItem key={scope.code} value={scope.code}>
                               {scope.label}
@@ -510,7 +524,7 @@ const NouveauDoc = () => {
                           <SelectValue placeholder="Sélectionner un type" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Sélectionner...</SelectItem> {/* Added empty option */}
+                          <SelectItem value="">Sélectionner...</SelectItem>
                           {codeConfig?.documentTypes.map(docType => (
                             <SelectItem key={docType.code} value={docType.code}>
                               {docType.label}
@@ -526,13 +540,13 @@ const NouveauDoc = () => {
                         value={importData.department_code}
                         onValueChange={(value: string) => setImportData(prev => ({ ...prev, department_code: value }))}
                         required
-                        disabled={!!user?.department && initialDepartmentCode !== ''}
+                        disabled={!!user?.department && importData.department_code === initialDepartmentCode && initialDepartmentCode !== ''}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner un département" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Sélectionner...</SelectItem> {/* Added empty option */}
+                          <SelectItem value="">Sélectionner...</SelectItem>
                           {codeConfig?.departments.map(dept => (
                             <SelectItem key={dept.code} value={dept.code}>
                               {dept.label}
@@ -578,7 +592,7 @@ const NouveauDoc = () => {
                           <SelectValue placeholder="Sélectionner une langue" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Sélectionner...</SelectItem> {/* Added empty option */}
+                          <SelectItem value="">Sélectionner...</SelectItem>
                           {codeConfig?.languages.map(lang => (
                             <SelectItem key={lang.code} value={lang.code}>
                               {lang.label}
