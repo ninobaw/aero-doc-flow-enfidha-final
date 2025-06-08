@@ -32,20 +32,20 @@ const NouveauDoc = () => {
     if (user && codeConfig?.departments) {
       // Find the code that matches the user's department label
       const foundDept = codeConfig.departments.find(d => d.label === user.department);
-      return foundDept ? foundDept.code : '';
+      return foundDept ? foundDept.code : undefined; // Changed to undefined
     }
-    return '';
+    return undefined; // Changed to undefined
   }, [user, codeConfig]);
 
   // État pour le formulaire direct
   const [formData, setFormData] = useState({
     title: '',
     company_code: 'TAVTUN', // Default company code
-    airport: '' as Airport, // Initialiser à vide
-    department_code: '', // Initialiser à vide
-    sub_department_code: '',
-    document_type_code: '',
-    language_code: '', // Initialiser à vide
+    airport: undefined as Airport | undefined, // Changed to undefined
+    department_code: undefined as string | undefined, // Changed to undefined
+    sub_department_code: undefined as string | undefined, // Changed to undefined
+    document_type_code: undefined as string | undefined, // Changed to undefined
+    language_code: undefined as string | undefined, // Changed to undefined
     version: '1.0',
     responsable: '',
     description: '',
@@ -56,11 +56,11 @@ const NouveauDoc = () => {
   const [importData, setImportData] = useState({
     title: '',
     company_code: 'TAVTUN', // Default company code
-    airport: '' as Airport, // Initialiser à vide
-    department_code: '', // Initialiser à vide
-    sub_department_code: '',
-    document_type_code: '',
-    language_code: '', // Initialiser à vide
+    airport: undefined as Airport | undefined, // Changed to undefined
+    department_code: undefined as string | undefined, // Changed to undefined
+    sub_department_code: undefined as string | undefined, // Changed to undefined
+    document_type_code: undefined as string | undefined, // Changed to undefined
+    language_code: undefined as string | undefined, // Changed to undefined
     description: ''
   });
 
@@ -71,7 +71,7 @@ const NouveauDoc = () => {
       const defaultLanguage = 'FR'; // Langue par défaut
 
       const foundDept = codeConfig.departments.find(d => d.label === user.department);
-      const userDepartmentCode = foundDept ? foundDept.code : '';
+      const userDepartmentCode = foundDept ? foundDept.code : undefined; // Changed to undefined
 
       setFormData(prev => ({
         ...prev,
@@ -345,7 +345,7 @@ const NouveauDoc = () => {
                         value={formData.department_code}
                         onValueChange={(value: string) => setFormData(prev => ({ ...prev, department_code: value }))}
                         required
-                        disabled={!!user?.department && formData.department_code === initialDepartmentCode && initialDepartmentCode !== ''}
+                        disabled={!!user?.department && formData.department_code === initialDepartmentCode && initialDepartmentCode !== undefined}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner un département" />
@@ -358,7 +358,7 @@ const NouveauDoc = () => {
                           ))}
                         </SelectContent>
                       </Select>
-                      {user?.department && initialDepartmentCode !== '' && (
+                      {user?.department && initialDepartmentCode !== undefined && (
                         <p className="text-xs text-gray-500">
                           Département pré-rémpili ({user.department})
                         </p>
@@ -375,7 +375,7 @@ const NouveauDoc = () => {
                           <SelectValue placeholder="Sélectionner un sous-département" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value=""></SelectItem> {/* Keep this for "Aucun" option */}
+                          {/* Removed SelectItem with empty value */}
                           {codeConfig?.subDepartments.map(subDept => (
                             <SelectItem key={subDept.code} value={subDept.code}>
                               {subDept.label}
@@ -534,7 +534,7 @@ const NouveauDoc = () => {
                         value={importData.department_code}
                         onValueChange={(value: string) => setImportData(prev => ({ ...prev, department_code: value }))}
                         required
-                        disabled={!!user?.department && importData.department_code === initialDepartmentCode && initialDepartmentCode !== ''}
+                        disabled={!!user?.department && importData.department_code === initialDepartmentCode && initialDepartmentCode !== undefined}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner un département" />
@@ -547,7 +547,7 @@ const NouveauDoc = () => {
                           ))}
                         </SelectContent>
                       </Select>
-                      {user?.department && initialDepartmentCode !== '' && (
+                      {user?.department && initialDepartmentCode !== undefined && (
                         <p className="text-xs text-gray-500">
                           Département pré-rempli ({user.department})
                         </p>
@@ -564,7 +564,7 @@ const NouveauDoc = () => {
                           <SelectValue placeholder="Sélectionner un sous-département" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value=""></SelectItem> {/* Keep this for "Aucun" option */}
+                          {/* Removed SelectItem with empty value */}
                           {codeConfig?.subDepartments.map(subDept => (
                             <SelectItem key={subDept.code} value={subDept.code}>
                               {subDept.label}
