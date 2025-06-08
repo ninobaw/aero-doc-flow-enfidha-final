@@ -5,11 +5,15 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { QrCode, Search, Download, Eye, Plus } from 'lucide-react';
 import { useState } from 'react';
-import { useQRCodes } from '@/hooks/useQRCodes'; // Use the dedicated QR codes hook
+import { useQRCodes } from '@/hooks/useQRCodes';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { QRCodeGenerator } from '@/components/qr/QRCodeGenerator'; // Import the QRCodeGenerator component
 
 const QRCodes = () => {
   const { qrCodes, isLoading, generateQRCode: generateNewQRCode } = useQRCodes();
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedQRCodeData, setSelectedQRCodeData] = useState<any>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
 
   const filteredQRCodes = qrCodes.filter(qr => 
     qr.document?.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -28,6 +32,11 @@ const QRCodes = () => {
     link.href = qrUrl;
     link.download = `qr-${qrCodeData.document?.title.replace(/[^a-z0-9]/gi, '_').toLowerCase() || qrCodeData.id}.png`;
     link.click();
+  };
+
+  const handleViewQRCode = (qrData: any) => {
+    setSelectedQRCodeData(qrData);
+    setIsViewDialogOpen(true);
   };
 
   return (
@@ -99,7 +108,7 @@ const QRCodes = () => {
                   <div className="flex items-center justify-between">
                     <QrCode className="w-5 h-5 text-aviation-sky" />
                     <Badge variant="outline">
-                      {qrData.document?.airport || 'N/A'} {/* Assuming airport might be available on document */}
+                      {qrData.document?.airport || 'N/A'}
                     </Badge>
                   </div>
                   <CardTitle className="text-lg line-clamp-2">
@@ -132,7 +141,12 @@ const QRCodes = () => {
 
                     {/* Actions */}
                     <div className="flex space-x-2 w-full">
-                      <Button variant="outline" size="sm" className="flex-1">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1"
+                        onClick={() => handleViewQRCode(qrData)} // Open dialog on click
+                      >
                         <Eye className="w-4 h-4 mr-1" />
                         Voir
                       </Button>
@@ -151,6 +165,24 @@ const QRCodes = () => {
               </Card>
             ))}
           </div>
+        )}
+
+        {/* Dialog for viewing QR Code details */}
+        {selectedQRCodeData && (
+          <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Détails du QR Code</DialogTitle>
+              </DialogHeader>
+              <QRCodeGenerator 
+                documentId={selectedQRCodeData.document_id} 
+                documentTitle={selectedQRCodeData.document?.title || 'Document'}
+                // The onQRCodeGenerated prop is not strictly needed here as we are viewing existing QR codes
+                // but it's part of the component's interface.
+                onQRCodeGenerated={() => {}} 
+              />
+            </DialogContent>
+          </Dialog>
         )}
       </div>
     </AppLayout>
