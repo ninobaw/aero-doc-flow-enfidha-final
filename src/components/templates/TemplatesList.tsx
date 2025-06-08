@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FileText, Download, Trash2, Eye, FilePlus } from 'lucide-react';
-import { formatDate } from '@/shared/utils';
+import { formatDate, getAbsoluteFilePath } from '@/shared/utils'; // Import getAbsoluteFilePath
 import type { TemplateData } from '@/hooks/useTemplates';
 import { useTemplates } from '@/hooks/useTemplates';
 import { useFileUpload } from '@/hooks/useFileUpload'; // To delete the actual file
@@ -122,7 +122,7 @@ export const TemplatesList = ({ templates, isLoading }: TemplatesListProps) => {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      onClick={() => window.open(`${import.meta.env.VITE_API_BASE_URL}/uploads/${template.file_path}`, '_blank')}
+                      onClick={() => window.open(getAbsoluteFilePath(template.file_path), '_blank')} // Use getAbsoluteFilePath
                     >
                       <Eye className="w-4 h-4 mr-1" />
                       Visualiser
@@ -134,7 +134,7 @@ export const TemplatesList = ({ templates, isLoading }: TemplatesListProps) => {
                       size="sm" 
                       onClick={() => {
                         const link = document.createElement('a');
-                        link.href = `${import.meta.env.VITE_API_BASE_URL}/uploads/${template.file_path}`;
+                        link.href = getAbsoluteFilePath(template.file_path); // Use getAbsoluteFilePath
                         link.download = template.title; // Suggest filename
                         document.body.appendChild(link);
                         link.click();

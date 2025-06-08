@@ -264,3 +264,10 @@ export const mapDocumentTypeCodeToDocumentTypeEnum = (code: string): DocumentTyp
     default: return DocumentType.GENERAL; // Fallback
   }
 };
+
+// New utility function to get absolute file path
+export const getAbsoluteFilePath = (relativePath: string): string => {
+  // Ensure VITE_API_BASE_URL is defined in your .env file (e.g., VITE_API_BASE_URL=http://localhost:5000)
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+  return `${baseUrl}/uploads/${relativePath}`;
+};

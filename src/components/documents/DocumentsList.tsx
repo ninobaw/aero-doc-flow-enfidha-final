@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FileText, Eye, Download, Calendar, User, Edit, Trash2 } from 'lucide-react';
-import { formatDate } from '@/shared/utils';
+import { formatDate, getAbsoluteFilePath } from '@/shared/utils'; // Import getAbsoluteFilePath
 import type { DocumentData } from '@/hooks/useDocuments';
 
 interface DocumentsListProps {
@@ -138,7 +138,18 @@ export const DocumentsList = ({ documents, isLoading, onEdit, onDelete }: Docume
                     Voir
                   </Button>
                   {document.file_path && (
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => {
+                        const link = document.createElement('a');
+                        link.href = getAbsoluteFilePath(document.file_path); // Use getAbsoluteFilePath
+                        link.download = document.title; // Suggest filename
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                      }}
+                    >
                       <Download className="w-4 h-4 mr-1" />
                       Télécharger
                     </Button>
