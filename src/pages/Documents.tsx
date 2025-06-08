@@ -4,15 +4,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FileText, Plus, Search, Filter, Upload } from 'lucide-react';
+import { FileText, Plus, Search, Filter } from 'lucide-react'; // Removed Upload icon
 import { DocumentsList } from '@/components/documents/DocumentsList';
 import { useDocuments, DocumentData } from '@/hooks/useDocuments';
 import { useNavigate } from 'react-router-dom';
 import { EditDocumentDialog } from '@/components/documents/EditDocumentDialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DocumentCreationForm } from '@/components/documents/DocumentCreationForm';
-import { DocumentImportForm } from '@/components/documents/DocumentImportForm';
-import { TagInput } from '@/components/ui/TagInput'; // Import TagInput
+// Removed DocumentImportForm import
+import { TagInput } from '@/components/ui/TagInput';
 
 const Documents = () => {
   const navigate = useNavigate();
@@ -21,7 +21,7 @@ const Documents = () => {
   const [filterType, setFilterType] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterAirport, setFilterAirport] = useState<string>('all');
-  const [filterTags, setFilterTags] = useState<string[]>([]); // New state for tag filter
+  const [filterTags, setFilterTags] = useState<string[]>([]);
 
   const [selectedDocumentForEdit, setSelectedDocumentForEdit] = useState<DocumentData | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -29,12 +29,11 @@ const Documents = () => {
   const filteredDocuments = documents.filter(doc => {
     const matchesSearch = doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          doc.content?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         doc.qr_code.toLowerCase().includes(searchTerm.toLowerCase()); // Search by QR code as well
+                         doc.qr_code.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType === 'all' || doc.type === filterType;
     const matchesStatus = filterStatus === 'all' || doc.status === filterStatus;
     const matchesAirport = filterAirport === 'all' || doc.airport === filterAirport;
     
-    // Filter by tags: document must have ALL selected tags
     const matchesTags = filterTags.length === 0 || 
                         (doc.tags && filterTags.every(tag => doc.tags.includes(tag)));
 
@@ -71,7 +70,7 @@ const Documents = () => {
         </div>
 
         <Tabs defaultValue="list" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 max-w-lg">
+          <TabsList className="grid w-full grid-cols-2 max-w-lg"> {/* Changed grid-cols-3 to grid-cols-2 */}
             <TabsTrigger value="list" className="flex items-center space-x-2">
               <FileText className="w-4 h-4" />
               <span>Liste des documents</span>
@@ -80,10 +79,7 @@ const Documents = () => {
               <Plus className="w-4 h-4" />
               <span>Créer un document</span>
             </TabsTrigger>
-            <TabsTrigger value="import" className="flex items-center space-x-2">
-              <Upload className="w-4 h-4" />
-              <span>Importer un document</span>
-            </TabsTrigger>
+            {/* Removed "Importer un document" tab */}
           </TabsList>
 
           <TabsContent value="list" className="mt-6">
@@ -184,22 +180,7 @@ const Documents = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="import" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Upload className="w-5 h-5 mr-2 text-aviation-sky" />
-                  Importer un document
-                </CardTitle>
-                <CardDescription>
-                  Téléchargez un fichier ou utilisez un modèle pour créer un nouveau document.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <DocumentImportForm />
-              </CardContent>
-            </Card>
-          </TabsContent>
+          {/* Removed "import" tab content */}
         </Tabs>
       </div>
 
