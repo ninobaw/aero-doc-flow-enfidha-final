@@ -12,7 +12,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react", // Changed from "react-jsx" to "react"
+    "jsx": "react-jsx", // Assuré d'être "react-jsx"
 
     /* Linting */
     "strict": true,
