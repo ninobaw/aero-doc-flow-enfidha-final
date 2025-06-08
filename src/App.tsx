@@ -19,6 +19,7 @@ import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import Templates from "./pages/Templates"; // Import the new Templates page
+import { TestAuthComponent } from "@/components/TestAuthComponent"; // Import the new test component
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,8 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
+        {/* Test component for AuthContext */}
+        <TestAuthComponent /> 
         <Toaster />
         <Sonner />
         <BrowserRouter>
