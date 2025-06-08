@@ -4,15 +4,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FileText, Plus, Search, Filter } from 'lucide-react'; // Removed Upload icon
+import { FileText, Plus, Search, Filter, CalendarIcon } from 'lucide-react';
 import { DocumentsList } from '@/components/documents/DocumentsList';
 import { useDocuments, DocumentData } from '@/hooks/useDocuments';
 import { useNavigate } from 'react-router-dom';
 import { EditDocumentDialog } from '@/components/documents/EditDocumentDialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DocumentCreationForm } from '@/components/documents/DocumentCreationForm';
-// Removed DocumentImportForm import
 import { TagInput } from '@/components/ui/TagInput';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 
 const Documents = () => {
   const navigate = useNavigate();
@@ -22,6 +26,9 @@ const Documents = () => {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterAirport, setFilterAirport] = useState<string>('all');
   const [filterTags, setFilterTags] = useState<string[]>([]);
+  const [filterAuthor, setFilterAuthor] = useState<string>(''); // New state for author filter
+  const [filterStartDate, setFilterStartDate] = useState<Date | undefined>(undefined); // New state for start date
+  const [filterEndDate, setFilterEndDate] = useState<Date | undefined>(undefined); // New state for end date
 
   const [selectedDocumentForEdit, setSelectedDocumentForEdit] = useState<DocumentData | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -37,7 +44,14 @@ const Documents = () => {
     const matchesTags = filterTags.length === 0 || 
                         (doc.tags && filterTags.every(tag => doc.tags.includes(tag)));
 
-    return matchesSearch && matchesType && matchesStatus && matchesAirport && matchesTags;
+    const matchesAuthor = filterAuthor === '' || 
+                          (doc.author && `${doc.author.first_name} ${doc.author.last_name}`.toLowerCase().includes(filterAuthor.toLowerCase()));
+
+    const docCreatedAt = new Date(doc.created_at);
+    const matchesStartDate = !filterStartDate || docCreatedAt >= filterStartDate;
+    const matchesEndDate = !filterEndDate || docCreatedAt <= filterEndDate;
+
+    return matchesSearch && matchesType && matchesStatus && matchesAirport && matchesTags && matchesAuthor && matchesStartDate && matchesEndDate;
   });
 
   const handleDelete = (id: string) => {
@@ -57,6 +71,9 @@ const Documents = () => {
     setFilterStatus('all');
     setFilterAirport('all');
     setFilterTags([]);
+    setFilterAuthor(''); // Reset author filter
+    setFilterStartDate(undefined); // Reset start date
+    setFilterEndDate(undefined); // Reset end date
   };
 
   return (
@@ -70,7 +87,7 @@ const Documents = () => {
         </div>
 
         <Tabs defaultValue="list" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 max-w-lg"> {/* Changed grid-cols-3 to grid-cols-2 */}
+          <TabsList className="grid w-full grid-cols-2 max-w-lg">
             <TabsTrigger value="list" className="flex items-center space-x-2">
               <FileText className="w-4 h-4" />
               <span>Liste des documents</span>
@@ -79,7 +96,6 @@ const Documents = () => {
               <Plus className="w-4 h-4" />
               <span>Créer un document</span>
             </TabsTrigger>
-            {/* Removed "Importer un document" tab */}
           </TabsList>
 
           <TabsContent value="list" className="mt-6">
@@ -142,6 +158,61 @@ const Documents = () => {
                     </SelectContent>
                   </Select>
 
+                  {/* New filter for Author */}
+                  <Input
+                    placeholder="Filtrer par auteur..."
+                    value={filterAuthor}
+                    onChange={(e) => setFilterAuthor(e.target.value)}
+                  />
+
+                  {/* New filter for Start Date */}
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !filterStartDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {filterStartDate ? format(filterStartDate, "PPP", { locale: fr }) : "Date de début"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={filterStartDate}
+                        onSelect={setFilterStartDate}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+
+                  {/* New filter for End Date */}
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !filterEndDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {filterEndDate ? format(filterEndDate, "PPP", { locale: fr }) : "Date de fin"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={filterEndDate}
+                        onSelect={setFilterEndDate}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+
                   <div className="md:col-span-3">
                     <TagInput
                       tags={filterTags}
@@ -179,8 +250,6 @@ const Documents = () => {
               </CardContent>
             </Card>
           </TabsContent>
-
-          {/* Removed "import" tab content */}
         </Tabs>
       </div>
 
