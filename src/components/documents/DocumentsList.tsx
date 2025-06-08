@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FileText, Eye, Download, Calendar, User, Edit, Trash2 } from 'lucide-react';
-import { formatDate, getAbsoluteFilePath } from '@/shared/utils'; // Import getAbsoluteFilePath
+import { formatDate, getAbsoluteFilePath } from '@/shared/utils';
 import type { DocumentData } from '@/hooks/useDocuments';
 
 interface DocumentsListProps {
@@ -75,7 +75,7 @@ export const DocumentsList = ({ documents, isLoading, onEdit, onDelete }: Docume
       case 'CORRESPONDANCE': return 'Correspondance';
       case 'PROCES_VERBAL': return 'Procès-Verbal';
       case 'FORMULAIRE_DOC': return 'Formulaire';
-      case 'TEMPLATE': return 'Modèle'; // Added TEMPLATE type
+      case 'TEMPLATE': return 'Modèle';
       default: return type;
     }
   };
@@ -118,6 +118,16 @@ export const DocumentsList = ({ documents, isLoading, onEdit, onDelete }: Docume
                 </p>
               )}
 
+              {document.tags && document.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {document.tags.map((tag, index) => (
+                    <Badge key={index} variant="outline" className="text-xs">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+
               <div className="flex items-center justify-between text-xs text-gray-500">
                 <div className="flex items-center space-x-1">
                   <User className="w-3 h-3" />
@@ -143,8 +153,8 @@ export const DocumentsList = ({ documents, isLoading, onEdit, onDelete }: Docume
                       size="sm" 
                       onClick={() => {
                         const link = document.createElement('a');
-                        link.href = getAbsoluteFilePath(document.file_path); // Use getAbsoluteFilePath
-                        link.download = document.title; // Suggest filename
+                        link.href = getAbsoluteFilePath(document.file_path);
+                        link.download = document.title;
                         document.body.appendChild(link);
                         link.click();
                         document.body.removeChild(link);

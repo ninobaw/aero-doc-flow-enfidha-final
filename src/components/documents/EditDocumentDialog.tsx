@@ -11,7 +11,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Airport, DocumentType } from '@/shared/types';
 import { useDocumentCodeConfig } from '@/hooks/useDocumentCodeConfig';
 import { useAuth } from '@/contexts/AuthContext';
-import { generateDocumentCodePreview } from '@/shared/utils'; // Import the new utility
+import { generateDocumentCodePreview } from '@/shared/utils';
+import { TagInput } from '@/components/ui/TagInput'; // Import TagInput
 
 interface EditDocumentDialogProps {
   document: DocumentData | null;
@@ -36,7 +37,8 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
     version: '',
     responsable: '',
     description: '',
-    content: ''
+    content: '',
+    tags: [] as string[], // Add tags to form data
   });
 
   useEffect(() => {
@@ -52,7 +54,8 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
         version: document.version?.toString() || '1.0',
         responsable: '', // Assuming no 'responsable' field in DocumentData directly
         description: document.content || '', // Using content as description for now
-        content: document.content || ''
+        content: document.content || '',
+        tags: document.tags || [], // Load existing tags
       });
     }
   }, [document]);
@@ -101,6 +104,7 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
       document_type_code: formData.document_type_code,
       language_code: formData.language_code,
       version: parseFloat(formData.version),
+      tags: formData.tags, // Include tags in the update
       // Note: responsable is not directly mapped to backend Document model
       // file_path and file_type are not handled in this edit dialog for simplicity
     };
@@ -332,6 +336,19 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
               placeholder="Saisissez le contenu complet du document..."
               rows={8}
             />
+          </div>
+
+          {/* Tag Input */}
+          <div className="space-y-2">
+            <Label htmlFor="tags">Tags</Label>
+            <TagInput
+              tags={formData.tags}
+              onTagsChange={(newTags) => setFormData(prev => ({ ...prev, tags: newTags }))}
+              placeholder="Ajouter des tags (ex: sécurité, maintenance)"
+            />
+            <p className="text-xs text-gray-500">
+              Appuyez sur Entrée pour ajouter un tag.
+            </p>
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">
