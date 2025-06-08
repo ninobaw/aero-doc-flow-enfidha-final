@@ -13,8 +13,8 @@ export default defineConfig(({ mode }) => ({
     react({
       jsxRuntime: 'automatic' // Explicitly set JSX runtime
     }),
-    mode === 'development' &&
-    componentTagger(),
+    // Temporarily disabled to debug JSX parsing issue
+    // mode === 'development' && componentTagger(),
   ].filter(Boolean),
   resolve: {
     alias: {
