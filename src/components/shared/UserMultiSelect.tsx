@@ -24,12 +24,13 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
   const { users, isLoading: isLoadingUsers } = useUsers();
   const [open, setOpen] = useState(false);
 
-  console.log('UserMultiSelect: users', users, 'isLoadingUsers', isLoadingUsers);
+  console.log('UserMultiSelect render: selectedUserIds (from prop)', selectedUserIds);
 
   const toggleUser = (userId: string) => {
     const newSelectedUserIds = selectedUserIds.includes(userId)
       ? selectedUserIds.filter((id) => id !== userId)
       : [...selectedUserIds, userId];
+    console.log('toggleUser called for:', userId, 'New selected IDs:', newSelectedUserIds);
     onUserIdsChange(newSelectedUserIds);
   };
 
@@ -58,7 +59,10 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={(newOpen) => {
+      console.log('Popover onOpenChange:', newOpen);
+      setOpen(newOpen);
+    }}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -81,28 +85,30 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
               <CommandEmpty>Aucun utilisateur trouvé.</CommandEmpty>
             ) : (
               <CommandGroup>
-                {users.filter(user => user.isActive).map((user) => (
-                  <CommandItem
-                    key={user.id}
-                    value={`${user.firstName} ${user.lastName} ${user.email}`}
-                    onSelect={() => {
-                      // onSelect est déclenché par le clavier ou la souris
-                      toggleUser(user.id);
-                    }}
-                    onMouseDown={(e) => {
-                      // Empêche la popover de se fermer lors du clic sur un élément
-                      e.preventDefault(); 
-                    }}
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        selectedUserIds.includes(user.id) ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    {user.firstName} {user.lastName} ({user.email})
-                  </CommandItem>
-                ))}
+                {users.filter(user => user.isActive).map((user) => {
+                  console.log('CommandItem render for user:', user.id, 'Is currently selected?', selectedUserIds.includes(user.id));
+                  return (
+                    <CommandItem
+                      key={user.id}
+                      value={`${user.firstName} ${user.lastName} ${user.email}`}
+                      onSelect={() => {
+                        toggleUser(user.id);
+                      }}
+                      onMouseDown={(e) => {
+                        e.preventDefault(); 
+                        e.stopPropagation(); // Ajout de stopPropagation ici
+                      }}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          selectedUserIds.includes(user.id) ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      {user.firstName} {user.lastName} ({user.email})
+                    </CommandItem>
+                  );
+                })}
               </CommandGroup>
             )}
           </CommandList>
