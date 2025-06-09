@@ -36,15 +36,15 @@ export const ViewUserDialog: React.FC<ViewUserDialogProps> = ({ user, open, onOp
           {/* Photo et informations principales */}
           <div className="flex items-start space-x-6">
             <Avatar className="w-20 h-20">
-              <AvatarImage src={user.profile_photo} />
+              <AvatarImage src={user.profilePhoto} /> {/* Changed from profile_photo to profilePhoto */}
               <AvatarFallback className="bg-aviation-sky text-white text-lg">
-                {user.firstName?.[0]}{user.lastName?.[0]} {/* Changed from first_name, last_name */}
+                {user.firstName?.[0]}{user.lastName?.[0]}
               </AvatarFallback>
             </Avatar>
             
             <div className="flex-1">
               <h3 className="text-xl font-semibold text-gray-900">
-                {user.firstName} {user.lastName} {/* Changed from first_name, last_name */}
+                {user.firstName} {user.lastName}
               </h3>
               <div className="mt-2 space-y-2">
                 <div className="flex items-center text-gray-600">
@@ -63,14 +63,14 @@ export const ViewUserDialog: React.FC<ViewUserDialogProps> = ({ user, open, onOp
                 </div>
                 <div className="flex items-center text-gray-600">
                   <Calendar className="w-4 h-4 mr-2" />
-                  Créé le {new Date(user.created_at).toLocaleDateString('fr-FR')}
+                  Créé le {new Date(user.createdAt).toLocaleDateString('fr-FR')} {/* Changed from created_at to createdAt */}
                 </div>
               </div>
             </div>
             
             <div className="flex flex-col items-end space-y-2">
-              <Badge className={user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
-                {user.is_active ? 'Actif' : 'Inactif'}
+              <Badge className={user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}> {/* Changed from is_active to isActive */}
+                {user.isActive ? 'Actif' : 'Inactif'} {/* Changed from is_active to isActive */}
               </Badge>
               <Badge className={roleInfo.color}>
                 {roleInfo.label}
@@ -102,7 +102,7 @@ export const ViewUserDialog: React.FC<ViewUserDialogProps> = ({ user, open, onOp
           {/* Permissions */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center text-lg">
+              <CardTitle className="text-lg flex items-center">
                 <Shield className="w-5 h-5 mr-2" />
                 Rôle et Permissions
               </CardTitle>
@@ -118,14 +118,14 @@ export const ViewUserDialog: React.FC<ViewUserDialogProps> = ({ user, open, onOp
           </Card>
 
           {/* Historique de connexion */}
-          {user.last_login && (
+          {user.lastLogin && ( {/* Changed from last_login to lastLogin */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Dernière Activité</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600">
-                  Dernière connexion le {new Date(user.last_login).toLocaleDateString('fr-FR')} à {new Date(user.last_login).toLocaleTimeString('fr-FR')}
+                  Dernière connexion le {new Date(user.lastLogin).toLocaleDateString('fr-FR')} à {new Date(user.lastLogin).toLocaleTimeString('fr-FR')} {/* Changed from last_login to lastLogin */}
                 </p>
               </CardContent>
             </Card>

@@ -23,7 +23,7 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
   const { users, isLoading: isLoadingUsers } = useUsers();
   const [open, setOpen] = useState(false);
 
-  console.log('UserMultiSelect: users', users, 'isLoadingUsers', isLoadingUsers); // <-- Ajoutez cette ligne
+  console.log('UserMultiSelect: users', users, 'isLoadingUsers', isLoadingUsers);
 
   const toggleUser = (userId: string) => {
     const newSelectedUserIds = selectedUserIds.includes(userId)
@@ -80,7 +80,7 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
               <CommandEmpty>Aucun utilisateur trouvé.</CommandEmpty>
             ) : (
               <CommandGroup>
-                {users.filter(user => user.is_active).map((user) => (
+                {users.filter(user => user.isActive).map((user) => ( {/* Changed from user.is_active to user.isActive */}
                   <CommandItem
                     key={user.id}
                     value={`${user.firstName} ${user.lastName} ${user.email}`}

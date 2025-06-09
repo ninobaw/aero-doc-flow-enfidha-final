@@ -22,29 +22,29 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, open, onOp
   const { toast } = useToast();
   
   const [formData, setFormData] = useState({
-    firstName: '', // Changed from first_name
-    lastName: '',  // Changed from last_name
+    firstName: '',
+    lastName: '',
     email: '',
     phone: '',
     department: '',
     position: '',
     role: 'USER' as UserRole,
-    airport: 'ENFIDHA' as Airport, // Updated to use Airport type
-    is_active: true,
+    airport: 'ENFIDHA' as Airport,
+    isActive: true, // Changed from is_active to isActive
   });
 
   useEffect(() => {
     if (user) {
       setFormData({
-        firstName: user.firstName || '', // Changed from first_name
-        lastName: user.lastName || '',   // Changed from last_name
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
         email: user.email || '',
         phone: user.phone || '',
         department: user.department || '',
         position: user.position || '',
         role: user.role || 'USER',
         airport: user.airport || 'ENFIDHA',
-        is_active: user.is_active ?? true,
+        isActive: user.isActive ?? true, // Changed from is_active to isActive
       });
     }
   }, [user]);
@@ -52,7 +52,7 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, open, onOp
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.firstName || !formData.lastName || !formData.email) { // Changed from first_name, last_name
+    if (!formData.firstName || !formData.lastName || !formData.email) {
       toast({
         title: "Erreur",
         description: "Veuillez remplir tous les champs obligatoires",
@@ -172,11 +172,11 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, open, onOp
 
           <div className="flex items-center space-x-2">
             <Switch
-              id="is_active"
-              checked={formData.is_active}
-              onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+              id="isActive" {/* Changed from is_active to isActive */}
+              checked={formData.isActive} {/* Changed from is_active to isActive */}
+              onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })} {/* Changed from is_active to isActive */}
             />
-            <Label htmlFor="is_active">Compte actif</Label>
+            <Label htmlFor="isActive">Compte actif</Label> {/* Changed from is_active to isActive */}
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">
