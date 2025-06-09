@@ -4,7 +4,7 @@ const { Schema, model } = require('mongoose');
 const ActionDecideeSchema = new Schema({
   titre: { type: String, required: true },
   description: { type: String },
-  responsable: { type: String, required: true },
+  responsable: [{ type: String, required: true }], // Changed to array of Strings
   echeance: { type: String, required: true },
   priorite: { 
     type: String, 

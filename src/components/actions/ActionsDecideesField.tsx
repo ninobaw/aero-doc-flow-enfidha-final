@@ -7,11 +7,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, X, UserPlus } from 'lucide-react';
 import { useUsers } from '@/hooks/useUsers'; // Import useUsers hook
+import { UserMultiSelect } from '@/components/shared/UserMultiSelect'; // Import UserMultiSelect
 
 export interface ActionDecidee {
   titre: string;
   description: string;
-  responsable: string; // Stores user ID
+  responsable: string[]; // Changed to array of user IDs
   echeance: string;
   priorite: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
   statut: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED';
@@ -34,7 +35,7 @@ export const ActionsDecideesField: React.FC<ActionsDecideesFieldProps> = ({
   const [newAction, setNewAction] = useState<ActionDecidee>({
     titre: '',
     description: '',
-    responsable: '',
+    responsable: [], // Initialize as empty array
     echeance: '',
     priorite: 'MEDIUM',
     statut: 'PENDING',
@@ -42,13 +43,13 @@ export const ActionsDecideesField: React.FC<ActionsDecideesFieldProps> = ({
   });
 
   const addAction = () => {
-    if (!newAction.titre.trim() || !newAction.responsable) return; // Ensure responsible is selected
+    if (!newAction.titre.trim() || newAction.responsable.length === 0) return; // Ensure at least one responsible is selected
     
     onChange([...actions, { ...newAction }]);
     setNewAction({
       titre: '',
       description: '',
-      responsable: '',
+      responsable: [],
       echeance: '',
       priorite: 'MEDIUM',
       statut: 'PENDING',
@@ -77,7 +78,7 @@ export const ActionsDecideesField: React.FC<ActionsDecideesFieldProps> = ({
             variant="outline" 
             size="sm" 
             onClick={addAction}
-            disabled={disabled || !newAction.titre.trim() || !newAction.responsable}
+            disabled={disabled || !newAction.titre.trim() || newAction.responsable.length === 0}
           >
             <Plus className="w-4 h-4 mr-1" />
             Ajouter une action
@@ -130,27 +131,13 @@ export const ActionsDecideesField: React.FC<ActionsDecideesFieldProps> = ({
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="new-action-responsable">Responsable principal</Label>
-              <Select 
-                value={newAction.responsable} 
-                onValueChange={(value) => setNewAction({ ...newAction, responsable: value })}
-                disabled={disabled || isLoadingUsers}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Assigner à..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {isLoadingUsers ? (
-                    <SelectItem value="loading" disabled>Chargement des utilisateurs...</SelectItem>
-                  ) : (
-                    users.filter(user => user.is_active).map((user) => (
-                      <SelectItem key={user.id} value={user.id}>
-                        {user.firstName} {user.lastName}
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="new-action-responsable">Responsable(s) principal(aux)</Label>
+              <UserMultiSelect
+                selectedUserIds={newAction.responsable}
+                onUserIdsChange={(ids) => setNewAction({ ...newAction, responsable: ids })}
+                disabled={disabled}
+                placeholder="Sélectionner un ou plusieurs responsables"
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="new-action-echeance">Échéance</Label>
@@ -190,7 +177,7 @@ export const ActionsDecideesField: React.FC<ActionsDecideesFieldProps> = ({
                 <h4 className="font-medium text-gray-900">{action.titre}</h4>
                 <p className="text-sm text-gray-600 mt-1">{action.description}</p>
                 <div className="mt-2 flex items-center space-x-4 text-sm text-gray-500">
-                  <span>Responsable: {getUserFullName(action.responsable)}</span>
+                  <span>Responsable(s): {action.responsable.map(getUserFullName).join(', ')}</span>
                   <span>Échéance: {action.echeance}</span>
                   <span className={`px-2 py-1 rounded text-xs ${
                     action.priorite === 'URGENT' ? 'bg-red-100 text-red-800' :
