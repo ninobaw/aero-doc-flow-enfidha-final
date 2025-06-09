@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import * as React from 'react'; // Changed from import React
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
@@ -80,7 +81,7 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
               <CommandEmpty>Aucun utilisateur trouvé.</CommandEmpty>
             ) : (
               <CommandGroup>
-                {users.filter(user => user.isActive).map((user) => ( {/* Changed from user.is_active to user.isActive */}
+                {users.filter(user => user.isActive).map((user) => (
                   <CommandItem
                     key={user.id}
                     value={`${user.firstName} ${user.lastName} ${user.email}`}
