@@ -245,10 +245,10 @@ router.put('/:id', async (req, res) => {
       }
 
       // Notify responsible parties if actions_decidees were changed
-      const oldActionIds = new Set(oldCorrespondance.actionsDecidees.map(a => a.titre));
-      const newActionIds = new Set(correspondance.actionsDecidees.map(a => a.titre));
+      const oldActionTitles = new Set(oldCorrespondance.actionsDecidees.map(a => a.titre));
+      const newActionTitles = new Set(correspondance.actionsDecidees.map(a => a.titre));
 
-      const addedActions = correspondance.actionsDecidees.filter(action => !oldActionIds.has(action.titre));
+      const addedActions = correspondance.actionsDecidees.filter(action => !oldActionTitles.has(action.titre));
       const updatedActions = correspondance.actionsDecidees.filter(action => {
         const oldAction = oldCorrespondance.actionsDecidees.find(oa => oa.titre === action.titre);
         return oldAction && JSON.stringify(oldAction) !== JSON.stringify(action);
