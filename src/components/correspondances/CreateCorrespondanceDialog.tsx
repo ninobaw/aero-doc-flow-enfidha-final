@@ -85,6 +85,11 @@ export const CreateCorrespondanceDialog = () => {
     let finalFileType: string | undefined;
 
     if (selectedFile) {
+      console.log('Frontend: Préparation de l\'upload du fichier avec les options suivantes:');
+      console.log('  documentType: correspondances');
+      console.log('  airportCode:', formData.airport);
+      console.log('  correspondenceType:', formData.type);
+
       const uploaded = await uploadFile(selectedFile, {
         documentType: 'correspondances', // Base folder for all correspondences
         airportCode: formData.airport, // Pass the selected airport
