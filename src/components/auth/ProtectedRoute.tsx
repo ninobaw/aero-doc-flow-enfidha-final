@@ -1,13 +1,13 @@
-
-import { useAuth } from '@/contexts/AuthContext';
+import React from 'react';
 import { LoginForm } from './LoginForm';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requiredPermission?: string;
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = React.memo(({ 
   children, 
   requiredPermission 
 }) => {
@@ -37,4 +37,4 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   return <>{children}</>;
-};
+});
