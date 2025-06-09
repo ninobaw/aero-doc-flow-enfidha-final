@@ -1,6 +1,6 @@
 const { Router } = require('express');
-const { User } = require('../models/User'); // Changed to require
-const { v4: uuidv4 } = require('uuid');
+const { User } = require('../models/User.js'); // Changed to require with .js extension
+const { v4: uuidv4 } = require('uuid'); // uuid is a CommonJS module, no change needed here
 const bcrypt = require('bcryptjs'); // Changed to require
 
 const router = Router();
@@ -111,4 +111,4 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-module.exports = router; // Changed to module.exports
+module.exports = router;
