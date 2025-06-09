@@ -30,7 +30,7 @@ export const ActionsDecideesField: React.FC<ActionsDecideesFieldProps> = ({
   onChange,
   disabled = false
 }) => {
-  const { users, isLoading: isLoadingUsers } = useUsers(); // Fetch users
+  const { users, isLoading: isLoadingUsers } = useUsers();
   
   const [newAction, setNewAction] = useState<ActionDecidee>({
     titre: '',
@@ -52,7 +52,7 @@ export const ActionsDecideesField: React.FC<ActionsDecideesFieldProps> = ({
       responsable: [],
       echeance: '',
       priorite: 'MEDIUM',
-      statut: 'PENDING',
+      statut: 'PENDied',
       collaborateurs: []
     });
   };
