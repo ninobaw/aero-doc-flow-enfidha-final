@@ -8,17 +8,17 @@ const API_BASE_URL = 'http://localhost:5000/api';
 export interface ProfileData {
   id: string;
   email: string;
-  first_name: string;
-  last_name: string;
+  firstName: string; // Changed from first_name
+  lastName: string;  // Changed from last_name
   phone?: string;
   department?: string;
   position?: string;
-  profile_photo?: string;
-  airport: 'ENFIDHA' | 'MONASTIR';
+  profilePhoto?: string; // Changed from profile_photo
+  airport: 'ENFIDHA' | 'MONASTIR' | 'GENERALE'; // Added GENERALE
   role: 'SUPER_ADMIN' | 'ADMINISTRATOR' | 'APPROVER' | 'USER' | 'VISITOR';
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
+  isActive: boolean; // Changed from is_active
+  createdAt: string;
+  updatedAt: string;
 }
 
 export const useProfile = () => {
@@ -46,7 +46,7 @@ export const useProfile = () => {
   console.log('useProfile: isLoading:', isLoading, 'profile:', profile, 'error:', error);
 
   const updateProfile = useMutation({
-    mutationFn: async (updates: Partial<Omit<ProfileData, 'id' | 'created_at' | 'updated_at' | 'email' | 'role' | 'airport' | 'is_active'>>) => {
+    mutationFn: async (updates: Partial<Omit<ProfileData, 'id' | 'createdAt' | 'updatedAt' | 'email' | 'role' | 'airport' | 'isActive'>>) => {
       if (!user?.id) throw new Error('Utilisateur non connecté');
       console.log(`useProfile: Updating profile for user ID: ${user.id} with updates:`, updates);
       const response = await axios.put(`${API_BASE_URL}/users/${user.id}`, updates);

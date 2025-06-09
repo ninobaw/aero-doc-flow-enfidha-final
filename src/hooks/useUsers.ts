@@ -14,12 +14,12 @@ export interface UserData {
   phone?: string;
   department?: string;
   position?: string;
-  profile_photo?: string;
+  profilePhoto?: string; // Changed from profile_photo
   airport: Airport; // Updated to use Airport type
   role: 'SUPER_ADMIN' | 'ADMINISTRATOR' | 'APPROVER' | 'USER' | 'VISITOR';
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
+  isActive: boolean; // Changed from is_active
+  createdAt: string;
+  updatedAt: string;
 }
 
 export const useUsers = () => {
@@ -31,7 +31,7 @@ export const useUsers = () => {
     queryKey: ['users'],
     queryFn: async () => {
       const response = await axios.get(`${API_BASE_URL}/users`);
-      console.log('Données utilisateurs reçues:', response.data); // <-- Ajoutez cette ligne
+      console.log('Données utilisateurs reçues:', response.data);
       return response.data as UserData[];
     },
     enabled: !!user,
@@ -40,17 +40,16 @@ export const useUsers = () => {
   const createUser = useMutation({
     mutationFn: async (userData: {
       email: string;
-      firstName: string; // Changed from first_name
-      lastName: string;  // Changed from last_name
+      firstName: string;
+      lastName: string;
       phone?: string;
       department?: string;
       position?: string;
-      airport: Airport; // Updated to use Airport type
+      airport: Airport;
       role: 'SUPER_ADMIN' | 'ADMINISTRATOR' | 'APPROVER' | 'USER' | 'VISITOR';
       password: string;
     }) => {
       console.log('Création utilisateur via backend Node.js avec données:', userData);
-      // This call goes to your Node.js backend, which should then handle Supabase admin user creation
       const response = await axios.post(`${API_BASE_URL}/users`, userData);
       console.log('Utilisateur créé par backend Node.js:', response.data);
       return response.data;
@@ -96,7 +95,6 @@ export const useUsers = () => {
 
   const deleteUser = useMutation({
     mutationFn: async (id: string) => {
-      // Soft delete: set is_active to false
       await axios.delete(`${API_BASE_URL}/users/${id}`);
     },
     onSuccess: () => {

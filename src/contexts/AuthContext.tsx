@@ -43,14 +43,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const mappedUser: User = {
         id: loggedInUser.id,
         email: loggedInUser.email,
-        firstName: loggedInUser.firstName,
-        lastName: loggedInUser.lastName,
+        firstName: loggedInUser.firstName, // Use camelCase
+        lastName: loggedInUser.lastName,   // Use camelCase
         role: loggedInUser.role as UserRole,
-        profilePhoto: loggedInUser.profilePhoto,
+        profilePhoto: loggedInUser.profilePhoto, // Use camelCase
         airport: loggedInUser.airport as Airport, // Cast to Airport type
         createdAt: new Date(loggedInUser.createdAt),
         updatedAt: new Date(loggedInUser.updatedAt),
-        isActive: loggedInUser.isActive,
+        isActive: loggedInUser.isActive, // Use camelCase
         phone: loggedInUser.phone,
         department: loggedInUser.department,
       };
