@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,6 +13,7 @@ import { fr } from 'date-fns/locale';
 import { useActions } from '@/hooks/useActions';
 import { useDocuments } from '@/hooks/useDocuments';
 import { useNavigate } from 'react-router-dom';
+import { UserMultiSelect } from '@/components/shared/UserMultiSelect'; // Import UserMultiSelect
 
 export const CreateActionForm = () => {
   const navigate = useNavigate();
@@ -33,7 +33,7 @@ export const CreateActionForm = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.title || !formData.description || !formData.due_date) {
+    if (!formData.title || !formData.description || !formData.due_date || formData.assigned_to.length === 0) { // Added check for assigned_to
       return;
     }
 
@@ -157,13 +157,23 @@ export const CreateActionForm = () => {
             </Popover>
           </div>
 
+          <div>
+            <Label htmlFor="assigned_to">Assigné à</Label>
+            <UserMultiSelect
+              selectedUserIds={formData.assigned_to}
+              onUserIdsChange={(ids) => setFormData({ ...formData, assigned_to: ids })}
+              placeholder="Sélectionner un ou plusieurs utilisateurs"
+              disabled={isCreating}
+            />
+          </div>
+
           <div className="flex justify-end space-x-4">
             <Button type="button" variant="outline" onClick={() => navigate('/actions')}>
               Annuler
             </Button>
             <Button 
               type="submit" 
-              disabled={isCreating || !formData.title || !formData.description || !formData.due_date}
+              disabled={isCreating || !formData.title || !formData.description || !formData.due_date || formData.assigned_to.length === 0}
               className="bg-aviation-sky hover:bg-aviation-sky-dark"
             >
               <Save className="w-4 h-4 mr-2" />

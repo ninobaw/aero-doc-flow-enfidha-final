@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -14,6 +13,7 @@ import { fr } from 'date-fns/locale';
 import { useActions } from '@/hooks/useActions';
 import { useUsers } from '@/hooks/useUsers';
 import { cn } from '@/lib/utils';
+import { UserMultiSelect } from '@/components/shared/UserMultiSelect'; // Import UserMultiSelect
 
 export const CreateActionDialog = () => {
   const [open, setOpen] = useState(false);
@@ -34,7 +34,7 @@ export const CreateActionDialog = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.title || !formData.description) {
+    if (!formData.title || !formData.description || formData.assigned_to.length === 0) { // Added check for assigned_to
       return;
     }
 
@@ -155,52 +155,19 @@ export const CreateActionDialog = () => {
 
           <div>
             <Label htmlFor="assigned_to">Assigné à</Label>
-            <Select onValueChange={(value) => {
-              if (!formData.assigned_to.includes(value)) {
-                setFormData({ ...formData, assigned_to: [...formData.assigned_to, value] });
-              }
-            }}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner des utilisateurs" />
-              </SelectTrigger>
-              <SelectContent>
-                {users.filter(user => user.is_active).map((user) => (
-                  <SelectItem key={user.id} value={user.id}>
-                    {user.first_name} {user.last_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {formData.assigned_to.length > 0 && (
-              <div className="mt-2 space-y-1">
-                {formData.assigned_to.map((userId) => {
-                  const user = users.find(u => u.id === userId);
-                  return user ? (
-                    <div key={userId} className="flex items-center justify-between bg-gray-100 p-2 rounded">
-                      <span>{user.first_name} {user.last_name}</span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setFormData({ 
-                          ...formData, 
-                          assigned_to: formData.assigned_to.filter(id => id !== userId) 
-                        })}
-                      >
-                        ×
-                      </Button>
-                    </div>
-                  ) : null;
-                })}
-              </div>
-            )}
+            <UserMultiSelect
+              selectedUserIds={formData.assigned_to}
+              onUserIdsChange={(ids) => setFormData({ ...formData, assigned_to: ids })}
+              placeholder="Sélectionner un ou plusieurs utilisateurs"
+              disabled={isCreating}
+            />
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Annuler
             </Button>
-            <Button type="submit" disabled={isCreating}>
+            <Button type="submit" disabled={isCreating || !formData.title || !formData.description || formData.assigned_to.length === 0}> {/* Added check for assigned_to */}
               {isCreating ? 'Création...' : 'Créer l\'action'}
             </Button>
           </div>
