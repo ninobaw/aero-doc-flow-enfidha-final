@@ -28,7 +28,10 @@ const storage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const newFileName = file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname);
+    // Use originalname, but add a unique suffix before the extension
+    const originalNameWithoutExt = path.parse(file.originalname).name;
+    const extension = path.extname(file.originalname);
+    const newFileName = `${originalNameWithoutExt}-${uniqueSuffix}${extension}`;
     cb(null, newFileName);
   }
 });
@@ -48,7 +51,7 @@ router.post('/file', upload.single('file'), (req, res) => {
 
   const { documentType, airportCode, correspondenceType } = req.body;
   const originalTempPath = req.file.path;
-  const fileName = req.file.filename;
+  const fileName = req.file.filename; // This now includes the original name + unique suffix
 
   let finalTargetDir = path.join(uploadsDir, documentType.toLowerCase());
 
@@ -78,8 +81,8 @@ router.post('/file', upload.single('file'), (req, res) => {
     console.log(`Fichier déplacé vers: ${relativePath}`);
     res.status(200).json({
       message: 'File uploaded and moved successfully',
-      fileName: fileName,
-      filePath: relativePath, // e.g., 'correspondances/MONASTIR/Arrivee/file-12345.pdf'
+      fileName: fileName, // Send back the new unique filename
+      filePath: relativePath, // e.g., 'correspondances/MONASTIR/Arrivee/rapport-12345.pdf'
       fileUrl: `/uploads/${relativePath}` // URL to access the file
     });
   });
@@ -95,12 +98,11 @@ router.post('/template', upload.single('templateFile'), (req, res) => {
     console.error('Aucun fichier modèle uploadé.');
     return res.status(400).json({ message: 'No template file uploaded.' });
   }
-  // For templates, the temporary folder is the final destination as per previous logic
   const filePath = path.relative(uploadsDir, req.file.path);
   console.log(`Fichier modèle uploadé: ${req.file.filename}, Chemin relatif: ${filePath}`);
   res.status(200).json({
     message: 'Template uploaded successfully',
-    fileName: req.file.filename,
+    fileName: req.file.filename, // Send back the new unique filename
     filePath: filePath,
     fileUrl: `/uploads/${filePath}`
   });
