@@ -1,8 +1,8 @@
 const { Router } = require('express');
-const { Document } = require('../models/Document');
-const { User } = require('../models/User');
-const { Action } = require('../models/Action');
-const { ActivityLog } = require('../models/ActivityLog');
+const { Document } = require('../models/Document.js');
+const { User } = require('../models/User.js');
+const { Action } = require('../models/Action.js');
+const { ActivityLog } = require('../models/ActivityLog.js');
 
 const router = Router();
 
