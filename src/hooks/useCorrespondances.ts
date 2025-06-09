@@ -10,6 +10,8 @@ const API_BASE_URL = 'http://localhost:5000/api';
 export interface CorrespondanceData {
   id: string;
   document_id: string;
+  type: 'INCOMING' | 'OUTGOING'; // New field
+  code?: string; // New field
   from_address: string;
   to_address: string;
   subject: string;
@@ -20,6 +22,8 @@ export interface CorrespondanceData {
   attachments?: string[];
   actions_decidees?: ActionDecidee[];
   tags?: string[]; // Added tags field
+  file_path?: string; // New field
+  file_type?: string; // New field
   created_at: string;
   document?: {
     title: string;
@@ -47,6 +51,8 @@ export const useCorrespondances = () => {
   const createCorrespondanceWithDocument = useMutation({
     mutationFn: async (data: {
       title: string;
+      type: 'INCOMING' | 'OUTGOING'; // New field
+      code?: string; // New field
       from_address: string;
       to_address: string;
       subject: string;
@@ -56,6 +62,8 @@ export const useCorrespondances = () => {
       attachments?: string[];
       actions_decidees?: ActionDecidee[];
       tags?: string[]; // Added tags to mutation data
+      file_path?: string; // New field
+      file_type?: string; // New field
     }) => {
       if (!user?.id) throw new Error('Utilisateur non connecté');
 

@@ -22,6 +22,12 @@ const ActionDecideeSchema = new Schema({
 const CorrespondanceSchema = new Schema({
   _id: { type: String, required: true },
   documentId: { type: String, ref: 'Document', required: true },
+  type: { // New field: INCOMING or OUTGOING
+    type: String,
+    enum: ['INCOMING', 'OUTGOING'],
+    required: true,
+  },
+  code: { type: String }, // New field: Manual code for now
   fromAddress: { type: String, required: true },
   toAddress: { type: String, required: true },
   subject: { type: String, required: true },
@@ -44,6 +50,8 @@ const CorrespondanceSchema = new Schema({
   attachments: [{ type: String }],
   actionsDecidees: [ActionDecideeSchema],
   tags: [{ type: String }], // New field for tags
+  filePath: { type: String }, // New field for uploaded file path
+  fileType: { type: String }, // New field for uploaded file type
   createdAt: { type: Date, default: Date.now },
 });
 
