@@ -8,22 +8,22 @@ const API_BASE_URL = 'http://localhost:5000/api';
 export interface ProfileData {
   id: string;
   email: string;
-  firstName: string; // Changed from first_name
-  lastName: string;  // Changed from last_name
+  firstName: string;
+  lastName: string;
   phone?: string;
   department?: string;
   position?: string;
-  profilePhoto?: string; // Changed from profile_photo
-  airport: 'ENFIDHA' | 'MONASTIR' | 'GENERALE'; // Added GENERALE
+  profilePhoto?: string;
+  airport: 'ENFIDHA' | 'MONASTIR' | 'GENERALE';
   role: 'SUPER_ADMIN' | 'ADMINISTRATOR' | 'APPROVER' | 'USER' | 'VISITOR';
-  isActive: boolean; // Changed from is_active
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
 export const useProfile = () => {
   const { toast } = useToast();
-  const { user } = useAuth(); // Get user from local AuthContext
+  const { user } = useAuth();
 
   console.log('useProfile: user from AuthContext:', user);
 
@@ -41,7 +41,7 @@ export const useProfile = () => {
       console.log('useProfile: Profile data fetched:', response.data);
       return response.data as ProfileData;
     },
-    enabled: !!user?.id, // Only fetch if user is logged in
+    enabled: !!user?.id,
   });
 
   console.log('useProfile: isLoading:', isLoading, 'profile:', profile, 'error:', error);
