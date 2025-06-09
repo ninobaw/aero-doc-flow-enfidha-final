@@ -13,51 +13,29 @@ if (!fs.existsSync(uploadsDir)) {
   console.log(`Dossier 'uploads' créé à: ${uploadsDir}`);
 }
 
-// Multer storage configuration
+// Define a temporary directory for initial Multer uploads
+const tempUploadsDir = path.join(uploadsDir, 'temp');
+if (!fs.existsSync(tempUploadsDir)) {
+  fs.mkdirSync(tempUploadsDir);
+  console.log(`Dossier temporaire 'uploads/temp' créé à: ${tempUploadsDir}`);
+}
+
+// Multer storage configuration for temporary storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    console.log('--- Multer Destination Debug ---');
-    console.log('req.body:', req.body); // Log the entire req.body
-    console.log('req.file:', file); // Log the file object
-
-    const documentType = req.body.documentType || 'general'; // e.g., 'correspondances', 'formulaires'
-    const airportCode = req.body.airportCode; // e.g., 'ENFIDHA', 'MONASTIR', 'GENERALE'
-    const correspondenceType = req.body.correspondenceType; // e.g., 'INCOMING', 'OUTGOING'
-
-    console.log(`Parsed: documentType='${documentType}', airportCode='${airportCode}', correspondenceType='${correspondenceType}'`);
-
-    let targetDir = path.join(uploadsDir, documentType.toLowerCase());
-
-    // Special handling for 'correspondances' to create nested folders
-    if (documentType.toLowerCase() === 'correspondances' && airportCode && correspondenceType) {
-      const typeFolder = correspondenceType === 'INCOMING' ? 'Arrivee' : 'Depart';
-      targetDir = path.join(uploadsDir, 'correspondances', airportCode, typeFolder);
-      console.log(`Conditional path for correspondence: ${targetDir}`);
-    } else if (documentType.toLowerCase() === 'templates') {
-      // Templates go into a specific 'templates' folder directly under uploads
-      targetDir = path.join(uploadsDir, 'templates');
-      console.log(`Conditional path for template: ${targetDir}`);
-    } else {
-      console.log(`Fallback path: ${targetDir}`);
-    }
-
-    // Create directories recursively if they don't exist
-    fs.mkdirSync(targetDir, { recursive: true });
-    console.log(`Dossier d'upload créé ou vérifié: ${targetDir}`);
-    cb(null, targetDir);
-    console.log('--- End Multer Destination Debug ---');
+    // Always save to the temporary directory first
+    cb(null, tempUploadsDir);
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     const newFileName = file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname);
-    console.log(`Nom de fichier généré: ${newFileName}`);
     cb(null, newFileName);
   }
 });
 
 const upload = multer({ storage: storage });
 
-// POST /api/uploads/file - Upload a single file
+// POST /api/uploads/file - Upload a single file and move it to final destination
 router.post('/file', upload.single('file'), (req, res) => {
   console.log('Requête POST /api/uploads/file reçue.');
   console.log('req.file (after multer processing):', req.file);
@@ -67,14 +45,43 @@ router.post('/file', upload.single('file'), (req, res) => {
     console.error('Aucun fichier uploadé.');
     return res.status(400).json({ message: 'No file uploaded.' });
   }
-  // filePath should be relative to the base 'uploads' directory
-  const filePath = path.relative(uploadsDir, req.file.path); 
-  console.log(`Fichier uploadé: ${req.file.filename}, Chemin relatif: ${filePath}`);
-  res.status(200).json({
-    message: 'File uploaded successfully',
-    fileName: req.file.filename,
-    filePath: filePath, // e.g., 'correspondances/MONASTIR/Arrivee/file-12345.pdf'
-    fileUrl: `/uploads/${filePath}` // URL to access the file
+
+  const { documentType, airportCode, correspondenceType } = req.body;
+  const originalTempPath = req.file.path;
+  const fileName = req.file.filename;
+
+  let finalTargetDir = path.join(uploadsDir, documentType.toLowerCase());
+
+  // Determine final target directory based on documentType and other fields
+  if (documentType.toLowerCase() === 'correspondances' && airportCode && correspondenceType) {
+    const typeFolder = correspondenceType === 'INCOMING' ? 'Arrivee' : 'Depart';
+    finalTargetDir = path.join(uploadsDir, 'correspondances', airportCode, typeFolder);
+  } else if (documentType.toLowerCase() === 'templates') {
+    finalTargetDir = path.join(uploadsDir, 'templates');
+  }
+  // For other document types, they go directly under uploads/<documentType>
+
+  // Ensure the final target directory exists
+  fs.mkdirSync(finalTargetDir, { recursive: true });
+  console.log(`Dossier cible final créé ou vérifié: ${finalTargetDir}`);
+
+  const finalFilePath = path.join(finalTargetDir, fileName);
+
+  // Move the file from temporary to final destination
+  fs.rename(originalTempPath, finalFilePath, (err) => {
+    if (err) {
+      console.error('Erreur lors du déplacement du fichier:', err);
+      return res.status(500).json({ message: 'Failed to move file to final destination.' });
+    }
+
+    const relativePath = path.relative(uploadsDir, finalFilePath);
+    console.log(`Fichier déplacé vers: ${relativePath}`);
+    res.status(200).json({
+      message: 'File uploaded and moved successfully',
+      fileName: fileName,
+      filePath: relativePath, // e.g., 'correspondances/MONASTIR/Arrivee/file-12345.pdf'
+      fileUrl: `/uploads/${relativePath}` // URL to access the file
+    });
   });
 });
 
@@ -88,6 +95,7 @@ router.post('/template', upload.single('templateFile'), (req, res) => {
     console.error('Aucun fichier modèle uploadé.');
     return res.status(400).json({ message: 'No template file uploaded.' });
   }
+  // For templates, the temporary folder is the final destination as per previous logic
   const filePath = path.relative(uploadsDir, req.file.path);
   console.log(`Fichier modèle uploadé: ${req.file.filename}, Chemin relatif: ${filePath}`);
   res.status(200).json({
