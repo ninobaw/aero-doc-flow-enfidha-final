@@ -85,7 +85,11 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
                   <CommandItem
                     key={user.id}
                     value={`${user.firstName} ${user.lastName} ${user.email}`}
-                    onSelect={() => toggleUser(user.id)}
+                    onSelect={(e) => {
+                      // Empêche la fermeture automatique du popover après la sélection
+                      e.preventDefault(); 
+                      toggleUser(user.id);
+                    }}
                   >
                     <Check
                       className={cn(
