@@ -30,7 +30,7 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, open, onOp
     position: '',
     role: 'USER' as UserRole,
     airport: 'ENFIDHA' as Airport,
-    isActive: true, // Changed from is_active to isActive
+    isActive: true,
   });
 
   useEffect(() => {
@@ -44,7 +44,7 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, open, onOp
         position: user.position || '',
         role: user.role || 'USER',
         airport: user.airport || 'ENFIDHA',
-        isActive: user.isActive ?? true, // Changed from is_active to isActive
+        isActive: user.isActive ?? true,
       });
     }
   }, [user]);
@@ -172,11 +172,11 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, open, onOp
 
           <div className="flex items-center space-x-2">
             <Switch
-              id="isActive" {/* Changed from is_active to isActive */}
-              checked={formData.isActive} {/* Changed from is_active to isActive */}
-              onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })} {/* Changed from is_active to isActive */}
+              id="isActive"
+              checked={formData.isActive}
+              onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
             />
-            <Label htmlFor="isActive">Compte actif</Label> {/* Changed from is_active to isActive */}
+            <Label htmlFor="isActive">Compte actif</Label>
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">

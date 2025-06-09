@@ -39,7 +39,7 @@ const Users = () => {
   const handleToggleUserStatus = (userId: string) => {
     const user = users.find(u => u.id === userId);
     if (user) {
-      updateUser({ id: userId, isActive: !user.isActive }); {/* Changed from is_active to isActive */}
+      updateUser({ id: userId, isActive: !user.isActive });
     }
   };
 
@@ -110,7 +110,7 @@ const Users = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {[
             { title: 'Total Utilisateurs', value: users.length, icon: UsersIcon, color: 'text-aviation-sky' },
-            { title: 'Actifs', value: users.filter(u => u.isActive).length, icon: Shield, color: 'text-green-600' }, {/* Changed from u.is_active to u.isActive */}
+            { title: 'Actifs', value: users.filter(u => u.isActive).length, icon: Shield, color: 'text-green-600' },
             { title: 'Enfidha', value: users.filter(u => u.airport === 'ENFIDHA').length, icon: Shield, color: 'text-blue-600' },
             { title: 'Monastir', value: users.filter(u => u.airport === 'MONASTIR').length, icon: Shield, color: 'text-purple-600' },
             { title: 'Général', value: users.filter(u => u.airport === 'GENERALE').length, icon: Shield, color: 'text-indigo-600' }
@@ -178,7 +178,7 @@ const Users = () => {
                     <TableCell>
                       <div className="flex items-center space-x-3">
                         <Avatar className="h-8 w-8">
-                          <AvatarImage src={user.profilePhoto} /> {/* Changed from profile_photo to profilePhoto */}
+                          <AvatarImage src={user.profilePhoto} />
                           <AvatarFallback className="bg-aviation-sky text-white text-xs">
                             {user.firstName?.[0]}{user.lastName?.[0]}
                           </AvatarFallback>
@@ -211,7 +211,7 @@ const Users = () => {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-sm text-gray-500">
-                      {new Date(user.createdAt).toLocaleDateString('fr-FR')} {/* Changed from created_at to createdAt */}
+                      {new Date(user.createdAt).toLocaleDateString('fr-FR')}
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>

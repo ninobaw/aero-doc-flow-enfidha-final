@@ -9,15 +9,15 @@ const API_BASE_URL = 'http://localhost:5000/api'; // Your custom Node.js backend
 export interface UserData {
   id: string;
   email: string;
-  firstName: string; // Changed from first_name
-  lastName: string;  // Changed from last_name
+  firstName: string;
+  lastName: string;
   phone?: string;
   department?: string;
   position?: string;
-  profilePhoto?: string; // Changed from profile_photo
-  airport: Airport; // Updated to use Airport type
+  profilePhoto?: string;
+  airport: Airport;
   role: 'SUPER_ADMIN' | 'ADMINISTRATOR' | 'APPROVER' | 'USER' | 'VISITOR';
-  isActive: boolean; // Changed from is_active
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }

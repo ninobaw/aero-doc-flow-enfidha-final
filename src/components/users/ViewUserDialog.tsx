@@ -36,7 +36,7 @@ export const ViewUserDialog: React.FC<ViewUserDialogProps> = ({ user, open, onOp
           {/* Photo et informations principales */}
           <div className="flex items-start space-x-6">
             <Avatar className="w-20 h-20">
-              <AvatarImage src={user.profilePhoto} /> {/* Changed from profile_photo to profilePhoto */}
+              <AvatarImage src={user.profilePhoto} />
               <AvatarFallback className="bg-aviation-sky text-white text-lg">
                 {user.firstName?.[0]}{user.lastName?.[0]}
               </AvatarFallback>
@@ -63,14 +63,14 @@ export const ViewUserDialog: React.FC<ViewUserDialogProps> = ({ user, open, onOp
                 </div>
                 <div className="flex items-center text-gray-600">
                   <Calendar className="w-4 h-4 mr-2" />
-                  Créé le {new Date(user.createdAt).toLocaleDateString('fr-FR')} {/* Changed from created_at to createdAt */}
+                  Créé le {new Date(user.createdAt).toLocaleDateString('fr-FR')}
                 </div>
               </div>
             </div>
             
             <div className="flex flex-col items-end space-y-2">
-              <Badge className={user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}> {/* Changed from is_active to isActive */}
-                {user.isActive ? 'Actif' : 'Inactif'} {/* Changed from is_active to isActive */}
+              <Badge className={user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                {user.isActive ? 'Actif' : 'Inactif'}
               </Badge>
               <Badge className={roleInfo.color}>
                 {roleInfo.label}
@@ -118,14 +118,14 @@ export const ViewUserDialog: React.FC<ViewUserDialogProps> = ({ user, open, onOp
           </Card>
 
           {/* Historique de connexion */}
-          {user.lastLogin && ( {/* Changed from last_login to lastLogin */}
+          {user.lastLogin && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Dernière Activité</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600">
-                  Dernière connexion le {new Date(user.lastLogin).toLocaleDateString('fr-FR')} à {new Date(user.lastLogin).toLocaleTimeString('fr-FR')} {/* Changed from last_login to lastLogin */}
+                  Dernière connexion le {new Date(user.lastLogin).toLocaleDateString('fr-FR')} à {new Date(user.lastLogin).toLocaleTimeString('fr-FR')}
                 </p>
               </CardContent>
             </Card>
