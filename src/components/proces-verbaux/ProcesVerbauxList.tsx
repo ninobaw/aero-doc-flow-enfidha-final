@@ -96,7 +96,7 @@ export const ProcesVerbauxList = ({ procesVerbaux, isLoading, onEdit }: ProcesVe
                 </div>
                 <div className="flex items-center space-x-1">
                   <User className="w-3 h-3" />
-                  <span>{pv.document?.author?.first_name} {pv.document?.author?.last_name}</span>
+                  <span>{pv.document?.author?.firstName} {pv.document?.author?.lastName}</span>
                 </div>
               </div>
 

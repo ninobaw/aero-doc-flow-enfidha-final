@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -127,7 +126,7 @@ export const FormulairesList = ({ formulaires, isLoading }: FormulairesListProps
                   <div className="flex items-center space-x-1">
                     <User className="w-3 h-3" />
                     <span>
-                      {formulaire.author?.first_name} {formulaire.author?.last_name}
+                      {formulaire.author?.firstName} {formulaire.author?.lastName}
                     </span>
                   </div>
                   <div className="flex items-center space-x-1">
