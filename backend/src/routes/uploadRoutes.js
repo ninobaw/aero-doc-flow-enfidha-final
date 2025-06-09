@@ -16,9 +16,15 @@ if (!fs.existsSync(uploadsDir)) {
 // Multer storage configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
+    console.log('--- Multer Destination Debug ---');
+    console.log('req.body:', req.body); // Log the entire req.body
+    console.log('req.file:', file); // Log the file object
+
     const documentType = req.body.documentType || 'general'; // e.g., 'correspondances', 'formulaires'
     const airportCode = req.body.airportCode; // e.g., 'ENFIDHA', 'MONASTIR', 'GENERALE'
     const correspondenceType = req.body.correspondenceType; // e.g., 'INCOMING', 'OUTGOING'
+
+    console.log(`Parsed: documentType='${documentType}', airportCode='${airportCode}', correspondenceType='${correspondenceType}'`);
 
     let targetDir = path.join(uploadsDir, documentType.toLowerCase());
 
@@ -26,16 +32,20 @@ const storage = multer.diskStorage({
     if (documentType.toLowerCase() === 'correspondances' && airportCode && correspondenceType) {
       const typeFolder = correspondenceType === 'INCOMING' ? 'Arrivee' : 'Depart';
       targetDir = path.join(uploadsDir, 'correspondances', airportCode, typeFolder);
+      console.log(`Conditional path for correspondence: ${targetDir}`);
     } else if (documentType.toLowerCase() === 'templates') {
       // Templates go into a specific 'templates' folder directly under uploads
       targetDir = path.join(uploadsDir, 'templates');
+      console.log(`Conditional path for template: ${targetDir}`);
+    } else {
+      console.log(`Fallback path: ${targetDir}`);
     }
-    // For other document types, they go directly under uploads/<documentType>
 
     // Create directories recursively if they don't exist
     fs.mkdirSync(targetDir, { recursive: true });
     console.log(`Dossier d'upload créé ou vérifié: ${targetDir}`);
     cb(null, targetDir);
+    console.log('--- End Multer Destination Debug ---');
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -50,8 +60,8 @@ const upload = multer({ storage: storage });
 // POST /api/uploads/file - Upload a single file
 router.post('/file', upload.single('file'), (req, res) => {
   console.log('Requête POST /api/uploads/file reçue.');
-  console.log('req.file:', req.file);
-  console.log('req.body:', req.body);
+  console.log('req.file (after multer processing):', req.file);
+  console.log('req.body (after multer processing):', req.body);
 
   if (!req.file) {
     console.error('Aucun fichier uploadé.');
