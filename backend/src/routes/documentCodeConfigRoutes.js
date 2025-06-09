@@ -1,6 +1,6 @@
 const { Router } = require('express');
-const { DocumentCodeConfig } = require('../models/DocumentCodeConfig');
-const { v4: uuidv4 } = require('uuid');
+const { DocumentCodeConfig } = require('../models/DocumentCodeConfig.js'); // Changed to require with .js extension
+const { v4: uuidv4 } = require('uuid'); // uuid is a CommonJS module, no change needed here
 
 const router = Router();
 

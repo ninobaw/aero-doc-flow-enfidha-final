@@ -1,10 +1,10 @@
 const { Router } = require('express');
-const { Report } = require('../models/Report');
-const { Document } = require('../models/Document');
-const { User } = require('../models/User');
-const { Action } = require('../models/Action');
-const { Correspondance } = require('../models/Correspondance');
-const { v4: uuidv4 } = require('uuid');
+const { Report } = require('../models/Report.js'); // Changed to require with .js extension
+const { Document } = require('../models/Document.js'); // Changed to require with .js extension
+const { User } = require('../models/User.js'); // Changed to require with .js extension
+const { Action } = require('../models/Action.js'); // Changed to require with .js extension
+const { Correspondance } = require('../models/Correspondance.js'); // Changed to require with .js extension
+const { v4: uuidv4 } = require('uuid'); // uuid is a CommonJS module, no change needed here
 
 const router = Router();
 

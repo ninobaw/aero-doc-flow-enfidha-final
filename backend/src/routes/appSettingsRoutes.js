@@ -1,6 +1,6 @@
 const { Router } = require('express');
-const { AppSettings } = require('../models/AppSettings');
-const { v4: uuidv4 } = require('uuid');
+const { AppSettings } = require('../models/AppSettings.js'); // Changed to require with .js extension
+const { v4: uuidv4 } = require('uuid'); // uuid is a CommonJS module, no change needed here
 
 const router = Router();
 

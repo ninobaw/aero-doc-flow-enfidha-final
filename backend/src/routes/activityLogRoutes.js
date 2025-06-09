@@ -1,7 +1,7 @@
 const { Router } = require('express');
-const { ActivityLog } = require('../models/ActivityLog');
-const { User } = require('../models/User'); // To populate user details
-const { v4: uuidv4 } = require('uuid');
+const { ActivityLog } = require('../models/ActivityLog.js'); // Changed to require with .js extension
+const { User } = require('../models/User.js'); // Changed to require with .js extension
+const { v4: uuidv4 } = require('uuid'); // uuid is a CommonJS module, no change needed here
 
 const router = Router();
 
