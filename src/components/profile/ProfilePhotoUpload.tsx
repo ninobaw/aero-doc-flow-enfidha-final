@@ -26,22 +26,21 @@ export const ProfilePhotoUpload = ({ profile }: ProfilePhotoUploadProps) => {
       
       // Validate file type and size using the hook's internal validation
       const uploaded = await uploadFile(file, {
-        bucket: 'profiles', // Logical bucket name
-        folder: 'avatars',
+        documentType: 'profiles', // Logical bucket name
         allowedTypes: ['image/jpeg', 'image/png', 'image/gif'],
         maxSize: 5 // 5MB
       });
 
       if (uploaded) {
         // Simulate deletion of old photo if it exists
-        if (profile?.profile_photo) {
+        if (profile?.profilePhoto) {
           // In a real scenario, you'd extract the path from the old URL
           // For simulation, we'll just call deleteFile with a dummy path
-          await deleteFile('profiles', 'old-avatar-path'); 
+          await deleteFile('profiles/old-avatar-path'); 
         }
         
         // Update the profile with the new photo URL
-        updateProfile({ profile_photo: uploaded.url });
+        updateProfile({ profilePhoto: uploaded.url });
 
         toast({
           title: 'Photo mise à jour',
@@ -64,13 +63,13 @@ export const ProfilePhotoUpload = ({ profile }: ProfilePhotoUploadProps) => {
 
   const removePhoto = async () => {
     try {
-      if (profile?.profile_photo) {
+      if (profile?.profilePhoto) {
         // Simulate deletion
-        await deleteFile('profiles', 'current-avatar-path'); // Use a dummy path for simulation
+        await deleteFile('profiles/current-avatar-path'); // Use a dummy path for simulation
       }
 
       // Update the profile to remove the photo
-      updateProfile({ profile_photo: null });
+      updateProfile({ profilePhoto: null });
 
       toast({
         title: 'Photo supprimée',
@@ -91,9 +90,9 @@ export const ProfilePhotoUpload = ({ profile }: ProfilePhotoUploadProps) => {
     <div className="flex flex-col items-center space-y-4">
       <div className="relative">
         <Avatar className="w-24 h-24">
-          <AvatarImage src={profile?.profile_photo} alt="Photo de profil" />
+          <AvatarImage src={profile?.profilePhoto} alt="Photo de profil" />
           <AvatarFallback className="bg-aviation-sky text-white text-xl">
-            {profile?.first_name?.[0]}{profile?.last_name?.[0]}
+            {profile?.firstName?.[0]}{profile?.lastName?.[0]}
           </AvatarFallback>
         </Avatar>
         
@@ -122,7 +121,7 @@ export const ProfilePhotoUpload = ({ profile }: ProfilePhotoUploadProps) => {
             </label>
           </Button>
           
-          {profile?.profile_photo && (
+          {profile?.profilePhoto && (
             <Button
               size="sm"
               variant="outline"

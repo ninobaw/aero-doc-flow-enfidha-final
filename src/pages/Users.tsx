@@ -39,7 +39,7 @@ const Users = () => {
   const handleToggleUserStatus = (userId: string) => {
     const user = users.find(u => u.id === userId);
     if (user) {
-      updateUser({ id: userId, is_active: !user.is_active });
+      updateUser({ id: userId, isActive: !user.isActive }); {/* Changed from is_active to isActive */}
     }
   };
 
@@ -67,8 +67,8 @@ const Users = () => {
   };
 
   const filteredUsers = users.filter(user => {
-    const firstName = user.firstName || ''; // Use user.firstName and provide fallback
-    const lastName = user.lastName || '';   // Use user.lastName and provide fallback
+    const firstName = user.firstName || '';
+    const lastName = user.lastName || '';
     const email = user.email || '';
     const department = user.department || '';
 
@@ -110,10 +110,10 @@ const Users = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {[
             { title: 'Total Utilisateurs', value: users.length, icon: UsersIcon, color: 'text-aviation-sky' },
-            { title: 'Actifs', value: users.filter(u => u.is_active).length, icon: Shield, color: 'text-green-600' },
+            { title: 'Actifs', value: users.filter(u => u.isActive).length, icon: Shield, color: 'text-green-600' }, {/* Changed from u.is_active to u.isActive */}
             { title: 'Enfidha', value: users.filter(u => u.airport === 'ENFIDHA').length, icon: Shield, color: 'text-blue-600' },
             { title: 'Monastir', value: users.filter(u => u.airport === 'MONASTIR').length, icon: Shield, color: 'text-purple-600' },
-            { title: 'Général', value: users.filter(u => u.airport === 'GENERALE').length, icon: Shield, color: 'text-indigo-600' } // Added General stat
+            { title: 'Général', value: users.filter(u => u.airport === 'GENERALE').length, icon: Shield, color: 'text-indigo-600' }
           ].map((stat, index) => (
             <Card key={index}>
               <CardContent className="p-6">
@@ -178,7 +178,7 @@ const Users = () => {
                     <TableCell>
                       <div className="flex items-center space-x-3">
                         <Avatar className="h-8 w-8">
-                          <AvatarImage src={user.profile_photo} />
+                          <AvatarImage src={user.profilePhoto} /> {/* Changed from profile_photo to profilePhoto */}
                           <AvatarFallback className="bg-aviation-sky text-white text-xs">
                             {user.firstName?.[0]}{user.lastName?.[0]}
                           </AvatarFallback>
@@ -203,15 +203,15 @@ const Users = () => {
                     </TableCell>
                     <TableCell>
                       <Badge 
-                        className={user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}
+                        className={user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}
                         onClick={() => canManageUsers && handleToggleUserStatus(user.id)}
                         style={{ cursor: canManageUsers ? 'pointer' : 'default' }}
                       >
-                        {user.is_active ? 'Actif' : 'Inactif'}
+                        {user.isActive ? 'Actif' : 'Inactif'}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-sm text-gray-500">
-                      {new Date(user.created_at).toLocaleDateString('fr-FR')}
+                      {new Date(user.createdAt).toLocaleDateString('fr-FR')} {/* Changed from created_at to createdAt */}
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
@@ -240,7 +240,7 @@ const Users = () => {
                                 onClick={() => handleToggleUserStatus(user.id)}
                               >
                                 <Trash2 className="mr-2 h-4 w-4" />
-                                {user.is_active ? 'Désactiver' : 'Activer'}
+                                {user.isActive ? 'Désactiver' : 'Activer'}
                               </DropdownMenuItem>
                             </>
                           )}

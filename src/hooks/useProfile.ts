@@ -24,9 +24,10 @@ export interface ProfileData {
 export const useProfile = () => {
   const { toast } = useToast();
   const { user } = useAuth(); // Get user from local AuthContext
-  const queryClient = useQueryClient();
 
   console.log('useProfile: user from AuthContext:', user);
+
+  const queryClient = useQueryClient();
 
   const { data: profile, isLoading, error } = useQuery({
     queryKey: ['profile', user?.id],
