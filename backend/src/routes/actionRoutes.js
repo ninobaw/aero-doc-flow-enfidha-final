@@ -1,6 +1,6 @@
 const { Router } = require('express');
-const { Action } = require('../models/Action');
-const { Document } = require('../models/Document'); // To populate parent document details
+const { Action } = require('../models/Action.js'); // Changed to .js extension
+const { Document } = require('../models/Document.js'); // Changed to .js extension
 const { v4: uuidv4 } = require('uuid');
 
 const router = Router();
