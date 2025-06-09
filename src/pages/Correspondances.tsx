@@ -4,16 +4,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Mail, Plus, Search, Filter } from 'lucide-react';
+import { Mail, Plus, Search, Filter, Tag } from 'lucide-react'; // Import Tag icon
 import { CorrespondancesList } from '@/components/correspondances/CorrespondancesList';
 import { CreateCorrespondanceDialog } from '@/components/correspondances/CreateCorrespondanceDialog';
 import { useCorrespondances } from '@/hooks/useCorrespondances';
+import { TagInput } from '@/components/ui/TagInput'; // Import TagInput
 
 const Correspondances = () => {
   const { correspondances, isLoading } = useCorrespondances();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterPriority, setFilterPriority] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [filterTags, setFilterTags] = useState<string[]>([]); // New state for tag filter
 
   const filteredCorrespondances = correspondances.filter(corr => {
     const matchesSearch = corr.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -23,7 +25,11 @@ const Correspondances = () => {
     const matchesPriority = filterPriority === 'all' || corr.priority === filterPriority;
     const matchesStatus = filterStatus === 'all' || corr.status === filterStatus;
     
-    return matchesSearch && matchesPriority && matchesStatus;
+    // New tag filtering logic
+    const matchesTags = filterTags.length === 0 || 
+                        (corr.tags && filterTags.every(tag => corr.tags.includes(tag)));
+    
+    return matchesSearch && matchesPriority && matchesStatus && matchesTags;
   });
 
   return (
@@ -49,7 +55,7 @@ const Correspondances = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="relative">
+              <div className="relative md:col-span-2"> {/* Span 2 columns for search */}
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
                   placeholder="Rechercher dans les correspondances..."
@@ -85,11 +91,21 @@ const Correspondances = () => {
                 </SelectContent>
               </Select>
 
+              {/* New TagInput for filtering */}
+              <div className="md:col-span-3"> {/* Span 3 columns for tags */}
+                <TagInput
+                  tags={filterTags}
+                  onTagsChange={setFilterTags}
+                  placeholder="Filtrer par tags (ex: urgent, réunion, suivi)"
+                />
+              </div>
+
               <Button variant="outline" onClick={() => {
                 setSearchTerm('');
                 setFilterPriority('all');
                 setFilterStatus('all');
-              }}>
+                setFilterTags([]); // Reset tags filter
+              }} className="md:col-span-1"> {/* Span 1 column for reset */}
                 Réinitialiser
               </Button>
             </div>

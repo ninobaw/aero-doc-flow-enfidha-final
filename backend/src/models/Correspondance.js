@@ -43,6 +43,7 @@ const CorrespondanceSchema = new Schema({
   },
   attachments: [{ type: String }],
   actionsDecidees: [ActionDecideeSchema],
+  tags: [{ type: String }], // New field for tags
   createdAt: { type: Date, default: Date.now },
 });
 
