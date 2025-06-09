@@ -1,4 +1,4 @@
-import * as React from 'react'; // Changed from import React
+import * as React from 'react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -37,19 +37,19 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
     if (selectedUserIds.length === 0) {
       return placeholder;
     }
-    const names = selectedUserIds
+    // Map selected IDs to full user objects, then to JSX elements
+    const selectedUsers = selectedUserIds
       .map((id) => users.find((user) => user.id === id))
-      .filter(Boolean)
-      .map((user) => `${user?.firstName} ${user?.lastName}`);
+      .filter(Boolean); // Filter out any null/undefined if user not found
     
     return (
       <div className="flex flex-wrap gap-1">
-        {names.map((name, index) => (
-          <Badge key={index} variant="secondary" className="flex items-center">
-            {name}
+        {selectedUsers.map((user) => (
+          <Badge key={user!.id} variant="secondary" className="flex items-center">
+            {user!.firstName} {user!.lastName}
             <X className="ml-1 h-3 w-3 cursor-pointer" onClick={(e) => {
               e.stopPropagation();
-              toggleUser(selectedUserIds[index]); // Remove by index, assuming order is preserved
+              toggleUser(user!.id); // Pass the actual user ID
             }} />
           </Badge>
         ))}
