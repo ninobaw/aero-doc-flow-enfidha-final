@@ -48,7 +48,7 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
           <Badge key={user!.id} variant="secondary" className="flex items-center">
             {user!.firstName} {user!.lastName}
             <X className="ml-1 h-3 w-3 cursor-pointer" onClick={(e) => {
-              e.stopPropagation();
+              e.stopPropagation(); // Empêche la fermeture du popover lors du clic sur le 'X'
               toggleUser(user!.id); // Pass the actual user ID
             }} />
           </Badge>
@@ -85,10 +85,13 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
                   <CommandItem
                     key={user.id}
                     value={`${user.firstName} ${user.lastName} ${user.email}`}
-                    onSelect={(e) => {
-                      // Empêche la fermeture automatique du popover après la sélection
-                      e.preventDefault(); 
+                    onSelect={() => {
+                      // onSelect est déclenché par le clavier ou la souris
                       toggleUser(user.id);
+                    }}
+                    onMouseDown={(e) => {
+                      // Empêche la popover de se fermer lors du clic sur un élément
+                      e.preventDefault(); 
                     }}
                   >
                     <Check
