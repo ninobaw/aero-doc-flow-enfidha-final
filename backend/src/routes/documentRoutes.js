@@ -1,9 +1,9 @@
 const { Router } = require('express');
-const { Document } = require('../models/Document');
-const { User } = require('../models/User'); // To populate author details
-const { DocumentCodeConfig } = require('../models/DocumentCodeConfig'); // Import DocumentCodeConfig model
-const { ActivityLog } = require('../models/ActivityLog'); // Import ActivityLog model
-const { v4: uuidv4 } = require('uuid');
+const { Document } = require('../models/Document.js'); // Changed to require with .js extension
+const { User } = require('../models/User.js'); // Changed to require with .js extension
+const { DocumentCodeConfig } = require('../models/DocumentCodeConfig.js'); // Changed to require with .js extension
+const { ActivityLog } = require('../models/ActivityLog.js'); // Changed to require with .js extension
+const { v4: uuidv4 } = require('uuid'); // uuid is a CommonJS module, no change needed here
 
 const router = Router();
 

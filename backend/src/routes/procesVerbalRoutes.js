@@ -1,8 +1,8 @@
 const { Router } = require('express');
-const { ProcesVerbal } = require('../models/ProcesVerbal');
-const { Document } = require('../models/Document'); // To populate parent document details
-const { Notification } = require('../models/Notification'); // Import Notification model
-const { v4: uuidv4 } = require('uuid');
+const { ProcesVerbal } = require('../models/ProcesVerbal.js'); // Changed to require with .js extension
+const { Document } = require('../models/Document.js'); // Changed to require with .js extension
+const { Notification } = require('../models/Notification.js'); // Changed to require with .js extension
+const { v4: uuidv4 } = require('uuid'); // uuid is a CommonJS module, no change needed here
 
 const router = Router();
 
@@ -203,10 +203,14 @@ router.put('/:id', async (req, res) => {
       });
 
       for (const action of addedActions) {
-        await createNotification(action.responsable, 'Nouvelle action assignée', `Une nouvelle action "${action.titre}" du procès-verbal "${documentTitle}" vous a été assignée.`);
+        if (Array.isArray(action.responsable) && action.responsable.length > 0) {
+          await createNotification(action.responsable[0], 'Nouvelle action assignée', `Une nouvelle action "${action.titre}" du procès-verbal "${documentTitle}" vous a été assignée.`);
+        }
       }
       for (const action of updatedActions) {
-        await createNotification(action.responsable, 'Action mise à jour', `L'action "${action.titre}" du procès-verbal "${documentTitle}" a été mise à jour.`);
+        if (Array.isArray(action.responsable) && action.responsable.length > 0) {
+          await createNotification(action.responsable[0], 'Action mise à jour', `L'action "${action.titre}" du procès-verbal "${documentTitle}" a été mise à jour.`);
+        }
       }
     }
     // --- End Notifications ---
