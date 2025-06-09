@@ -16,13 +16,26 @@ if (!fs.existsSync(uploadsDir)) {
 // Multer storage configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const documentType = req.body.documentType || 'general'; // Get document type from request body
-    const typeDir = path.join(uploadsDir, documentType.toLowerCase());
-    if (!fs.existsSync(typeDir)) {
-      fs.mkdirSync(typeDir);
-      console.log(`Sous-dossier d'upload créé: ${typeDir}`);
+    const documentType = req.body.documentType || 'general'; // e.g., 'correspondances', 'formulaires'
+    const airportCode = req.body.airportCode; // e.g., 'ENFIDHA', 'MONASTIR', 'GENERALE'
+    const correspondenceType = req.body.correspondenceType; // e.g., 'INCOMING', 'OUTGOING'
+
+    let targetDir = path.join(uploadsDir, documentType.toLowerCase());
+
+    // Special handling for 'correspondances' to create nested folders
+    if (documentType.toLowerCase() === 'correspondances' && airportCode && correspondenceType) {
+      const typeFolder = correspondenceType === 'INCOMING' ? 'Arrivee' : 'Depart';
+      targetDir = path.join(uploadsDir, 'correspondances', airportCode, typeFolder);
+    } else if (documentType.toLowerCase() === 'templates') {
+      // Templates go into a specific 'templates' folder directly under uploads
+      targetDir = path.join(uploadsDir, 'templates');
     }
-    cb(null, typeDir);
+    // For other document types, they go directly under uploads/<documentType>
+
+    // Create directories recursively if they don't exist
+    fs.mkdirSync(targetDir, { recursive: true });
+    console.log(`Dossier d'upload créé ou vérifié: ${targetDir}`);
+    cb(null, targetDir);
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -44,12 +57,13 @@ router.post('/file', upload.single('file'), (req, res) => {
     console.error('Aucun fichier uploadé.');
     return res.status(400).json({ message: 'No file uploaded.' });
   }
-  const filePath = path.relative(uploadsDir, req.file.path); // Store path relative to uploadsDir
+  // filePath should be relative to the base 'uploads' directory
+  const filePath = path.relative(uploadsDir, req.file.path); 
   console.log(`Fichier uploadé: ${req.file.filename}, Chemin relatif: ${filePath}`);
   res.status(200).json({
     message: 'File uploaded successfully',
     fileName: req.file.filename,
-    filePath: filePath, // e.g., 'formulaires/file-12345.pdf'
+    filePath: filePath, // e.g., 'correspondances/MONASTIR/Arrivee/file-12345.pdf'
     fileUrl: `/uploads/${filePath}` // URL to access the file
   });
 });
@@ -86,14 +100,14 @@ router.post('/copy-template', (req, res) => {
   }
 
   const sourcePath = path.join(uploadsDir, templateFilePath);
-  const targetDir = path.join(uploadsDir, documentType.toLowerCase());
+  const targetDir = path.join(uploadsDir, documentType.toLowerCase()); // Target directory based on documentType
 
   if (!fs.existsSync(sourcePath)) {
     console.error(`Fichier modèle source non trouvé: ${sourcePath}`);
     return res.status(404).json({ message: 'Template file not found.' });
   }
   if (!fs.existsSync(targetDir)) {
-    fs.mkdirSync(targetDir);
+    fs.mkdirSync(targetDir, { recursive: true }); // Create recursively
     console.log(`Dossier cible pour la copie créé: ${targetDir}`);
   }
 
@@ -118,7 +132,7 @@ router.post('/copy-template', (req, res) => {
 
 // DELETE /api/uploads/file - Delete a file
 router.delete('/file', (req, res) => {
-  const { filePath } = req.body; // Expecting relative path, e.g., 'formulaires/file-123.pdf'
+  const { filePath } = req.body; // Expecting relative path, e.g., 'correspondances/MONASTIR/Arrivee/file-123.pdf'
   console.log('Requête DELETE /api/uploads/file reçue pour:', filePath);
 
   if (!filePath) {
