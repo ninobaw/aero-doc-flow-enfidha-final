@@ -38,7 +38,7 @@ export const ActionsDecideesField: React.FC<ActionsDecideesFieldProps> = ({
     responsable: [], // Initialize as empty array
     echeance: '',
     priorite: 'MEDIUM',
-    statut: 'PENDING',
+    statut: 'PENDING', // Fixed typo here
     collaborateurs: []
   });
 
@@ -52,7 +52,7 @@ export const ActionsDecideesField: React.FC<ActionsDecideesFieldProps> = ({
       responsable: [],
       echeance: '',
       priorite: 'MEDIUM',
-      statut: 'PENDied',
+      statut: 'PENDING', // Fixed typo here
       collaborateurs: []
     });
   };
