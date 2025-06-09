@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,15 +6,16 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, X, UserPlus } from 'lucide-react';
+import { useUsers } from '@/hooks/useUsers'; // Import useUsers hook
 
 export interface ActionDecidee {
   titre: string;
   description: string;
-  responsable: string;
+  responsable: string; // Stores user ID
   echeance: string;
   priorite: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
   statut: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED';
-  collaborateurs?: string[];
+  collaborateurs?: string[]; // Stores user IDs
 }
 
 interface ActionsDecideesFieldProps {
@@ -29,6 +29,8 @@ export const ActionsDecideesField: React.FC<ActionsDecideesFieldProps> = ({
   onChange,
   disabled = false
 }) => {
+  const { users, isLoading: isLoadingUsers } = useUsers(); // Fetch users
+  
   const [newAction, setNewAction] = useState<ActionDecidee>({
     titre: '',
     description: '',
@@ -40,7 +42,7 @@ export const ActionsDecideesField: React.FC<ActionsDecideesFieldProps> = ({
   });
 
   const addAction = () => {
-    if (!newAction.titre.trim()) return;
+    if (!newAction.titre.trim() || !newAction.responsable) return; // Ensure responsible is selected
     
     onChange([...actions, { ...newAction }]);
     setNewAction({
@@ -59,11 +61,10 @@ export const ActionsDecideesField: React.FC<ActionsDecideesFieldProps> = ({
     onChange(updatedActions);
   };
 
-  const updateAction = (index: number, field: keyof ActionDecidee, value: any) => {
-    const updatedActions = actions.map((action, i) => 
-      i === index ? { ...action, [field]: value } : action
-    );
-    onChange(updatedActions);
+  // Helper to get user full name from ID
+  const getUserFullName = (userId: string) => {
+    const user = users.find(u => u.id === userId);
+    return user ? `${user.firstName} ${user.lastName}` : userId;
   };
 
   return (
@@ -76,7 +77,7 @@ export const ActionsDecideesField: React.FC<ActionsDecideesFieldProps> = ({
             variant="outline" 
             size="sm" 
             onClick={addAction}
-            disabled={disabled || !newAction.titre.trim()}
+            disabled={disabled || !newAction.titre.trim() || !newAction.responsable}
           >
             <Plus className="w-4 h-4 mr-1" />
             Ajouter une action
@@ -133,15 +134,21 @@ export const ActionsDecideesField: React.FC<ActionsDecideesFieldProps> = ({
               <Select 
                 value={newAction.responsable} 
                 onValueChange={(value) => setNewAction({ ...newAction, responsable: value })}
-                disabled={disabled}
+                disabled={disabled || isLoadingUsers}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Assigner à..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ahmed.benali">Ahmed Ben Ali</SelectItem>
-                  <SelectItem value="fatma.trabelsi">Fatma Trabelsi</SelectItem>
-                  <SelectItem value="mohamed.sassi">Mohamed Sassi</SelectItem>
+                  {isLoadingUsers ? (
+                    <SelectItem value="loading" disabled>Chargement des utilisateurs...</SelectItem>
+                  ) : (
+                    users.filter(user => user.is_active).map((user) => (
+                      <SelectItem key={user.id} value={user.id}>
+                        {user.firstName} {user.lastName}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -183,7 +190,7 @@ export const ActionsDecideesField: React.FC<ActionsDecideesFieldProps> = ({
                 <h4 className="font-medium text-gray-900">{action.titre}</h4>
                 <p className="text-sm text-gray-600 mt-1">{action.description}</p>
                 <div className="mt-2 flex items-center space-x-4 text-sm text-gray-500">
-                  <span>Responsable: {action.responsable}</span>
+                  <span>Responsable: {getUserFullName(action.responsable)}</span>
                   <span>Échéance: {action.echeance}</span>
                   <span className={`px-2 py-1 rounded text-xs ${
                     action.priorite === 'URGENT' ? 'bg-red-100 text-red-800' :

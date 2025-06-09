@@ -19,6 +19,7 @@ export interface CorrespondanceData {
   airport: Airport; // Updated to use Airport type
   attachments?: string[];
   actions_decidees?: ActionDecidee[];
+  tags?: string[]; // Added tags field
   created_at: string;
   document?: {
     title: string;
@@ -54,6 +55,7 @@ export const useCorrespondances = () => {
       airport: Airport; // Updated to use Airport type
       attachments?: string[];
       actions_decidees?: ActionDecidee[];
+      tags?: string[]; // Added tags to mutation data
     }) => {
       if (!user?.id) throw new Error('Utilisateur non connecté');
 

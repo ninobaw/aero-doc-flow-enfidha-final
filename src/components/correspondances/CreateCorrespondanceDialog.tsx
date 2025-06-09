@@ -9,6 +9,7 @@ import { Plus } from 'lucide-react';
 import { useCorrespondances } from '@/hooks/useCorrespondances';
 import { ActionsDecideesField, ActionDecidee } from '@/components/actions/ActionsDecideesField';
 import { Airport } from '@/shared/types'; // Import Airport type
+import { TagInput } from '@/components/ui/TagInput'; // Import TagInput
 
 export const CreateCorrespondanceDialog = () => {
   const [open, setOpen] = useState(false);
@@ -23,6 +24,7 @@ export const CreateCorrespondanceDialog = () => {
     priority: 'MEDIUM' as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT',
     airport: 'ENFIDHA' as Airport, // Updated to use Airport type
     actions_decidees: [] as ActionDecidee[],
+    tags: [] as string[], // Add tags to form data
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -43,6 +45,7 @@ export const CreateCorrespondanceDialog = () => {
           priority: 'MEDIUM',
           airport: 'ENFIDHA',
           actions_decidees: [],
+          tags: [], // Reset tags
         });
         setOpen(false);
       }
@@ -146,6 +149,19 @@ export const CreateCorrespondanceDialog = () => {
               placeholder="Contenu de la correspondance..."
               rows={6}
             />
+          </div>
+
+          {/* Tags Input */}
+          <div>
+            <Label htmlFor="tags">Tags</Label>
+            <TagInput
+              tags={formData.tags}
+              onTagsChange={(newTags) => setFormData({ ...formData, tags: newTags })}
+              placeholder="Ajouter des tags (ex: urgent, réunion, suivi)"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Appuyez sur Entrée pour ajouter un tag.
+            </p>
           </div>
 
           <ActionsDecideesField

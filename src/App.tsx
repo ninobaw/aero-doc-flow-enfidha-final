@@ -1,4 +1,5 @@
 import React from 'react'; // Added this line
+import 'react/jsx-runtime'; // Ensure the module is explicitly imported
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -45,7 +46,11 @@ const App = () => (
                 <Documents />
               </ProtectedRoute>
             } />
-            {/* Removed /documents/qualite route as it's now handled by /documents */}
+            <Route path="/documents/qualite" element={
+              <ProtectedRoute requiredPermission="view_documents">
+                <QualiteDoc />
+              </ProtectedRoute>
+            } />
             <Route path="/documents/formulaires" element={
               <ProtectedRoute requiredPermission="manage_forms">
                 <FormulairesDoc />
@@ -86,7 +91,7 @@ const App = () => (
                 <Reports />
               </ProtectedRoute>
             } />
-            <Route path="/audit-logs" element={ {/* New route for Audit Logs */}
+            <Route path="/audit-logs" element={/* New route for Audit Logs */
               <ProtectedRoute requiredPermission="manage_settings">
                 <AuditLogs />
               </ProtectedRoute>
