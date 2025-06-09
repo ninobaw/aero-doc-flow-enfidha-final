@@ -200,8 +200,6 @@ export const DocumentImportForm: React.FC = () => {
       content: importData.description,
       type: mapDocumentTypeCodeToDocumentTypeEnum(importData.document_type_code),
       airport: importData.airport,
-      file_path: finalFilePath,
-      file_type: finalFileType,
       company_code: importData.company_code,
       scope_code: codeConfig?.scopes.find(s => s.code === importData.airport)?.code || importData.airport,
       department_code: importData.department_code,
