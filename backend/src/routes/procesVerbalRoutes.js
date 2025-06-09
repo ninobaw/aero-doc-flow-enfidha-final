@@ -1,9 +1,28 @@
 const { Router } = require('express');
 const { ProcesVerbal } = require('../models/ProcesVerbal');
 const { Document } = require('../models/Document'); // To populate parent document details
+const { Notification } = require('../models/Notification'); // Import Notification model
 const { v4: uuidv4 } = require('uuid');
 
 const router = Router();
+
+// Helper function to create a notification
+const createNotification = async (userId, title, message, type = 'info') => {
+  try {
+    const newNotification = new Notification({
+      _id: uuidv4(),
+      userId,
+      title,
+      message,
+      type,
+      isRead: false,
+    });
+    await newNotification.save();
+    console.log(`Notification created for user ${userId}: ${title}`);
+  } catch (error) {
+    console.error('Error creating notification:', error);
+  }
+};
 
 // GET /api/proces-verbaux
 router.get('/', async (req, res) => {
@@ -101,6 +120,16 @@ router.post('/', async (req, res) => {
       } : null,
       actions_decidees: populatedProcesVerbal.actionsDecidees,
     };
+
+    // --- Notifications for new proces verbal ---
+    await createNotification(author_id, 'Nouveau procès-verbal créé', `Le procès-verbal "${title}" a été créé.`);
+    if (actions_decidees && actions_decidees.length > 0) {
+      for (const action of actions_decidees) {
+        await createNotification(action.responsable, 'Nouvelle action assignée', `Une action "${action.titre}" du procès-verbal "${title}" vous a été assignée.`);
+      }
+    }
+    // --- End Notifications ---
+
     res.status(201).json(formattedProcesVerbal);
   } catch (error) {
     console.error('Error creating proces verbal:', error);
@@ -119,6 +148,11 @@ router.put('/:id', async (req, res) => {
   if (updates.actions_decidees) { updates.actionsDecidees = updates.actions_decidees; delete updates.actions_decidees; }
 
   try {
+    const oldProcesVerbal = await ProcesVerbal.findById(id);
+    if (!oldProcesVerbal) {
+      return res.status(404).json({ message: 'Proces Verbal not found' });
+    }
+
     const procesVerbal = await ProcesVerbal.findByIdAndUpdate(id, updates, { new: true })
       .populate({
         path: 'documentId',
@@ -144,6 +178,39 @@ router.put('/:id', async (req, res) => {
       } : null,
       actions_decidees: procesVerbal.actionsDecidees,
     };
+
+    // --- Notifications for updated proces verbal ---
+    const changedFields = Object.keys(updates).filter(key =>
+      JSON.stringify(updates[key]) !== JSON.stringify(oldProcesVerbal.toObject()[key])
+    );
+
+    if (changedFields.length > 0) {
+      const documentTitle = (await Document.findById(procesVerbal.documentId))?.title || 'Procès-Verbal';
+      const authorId = (await Document.findById(procesVerbal.documentId))?.authorId;
+
+      if (authorId) {
+        await createNotification(authorId, 'Procès-verbal mis à jour', `Le procès-verbal "${documentTitle}" a été mis à jour. Champs modifiés: ${changedFields.join(', ')}.`);
+      }
+
+      // Notify responsible parties if actions_decidees were changed
+      const oldActionTitles = new Set(oldProcesVerbal.actionsDecidees.map(a => a.titre));
+      const newActionTitles = new Set(procesVerbal.actionsDecidees.map(a => a.titre));
+
+      const addedActions = procesVerbal.actionsDecidees.filter(action => !oldActionTitles.has(action.titre));
+      const updatedActions = procesVerbal.actionsDecidees.filter(action => {
+        const oldAction = oldProcesVerbal.actionsDecidees.find(oa => oa.titre === action.titre);
+        return oldAction && JSON.stringify(oldAction) !== JSON.stringify(action);
+      });
+
+      for (const action of addedActions) {
+        await createNotification(action.responsable, 'Nouvelle action assignée', `Une nouvelle action "${action.titre}" du procès-verbal "${documentTitle}" vous a été assignée.`);
+      }
+      for (const action of updatedActions) {
+        await createNotification(action.responsable, 'Action mise à jour', `L'action "${action.titre}" du procès-verbal "${documentTitle}" a été mise à jour.`);
+      }
+    }
+    // --- End Notifications ---
+
     res.json(formattedProcesVerbal);
   } catch (error) {
     console.error('Error updating proces verbal:', error);
