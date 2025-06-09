@@ -1,15 +1,24 @@
-const { Router } = require('express');
-const { User } = require('../models/User');
-const { v4: uuidv4 } = require('uuid');
-const bcrypt = require('bcryptjs');
+import { Router } from 'express';
+import { User } from '../models/User';
+import { v4 as uuidv4 } from 'uuid';
+import bcrypt from 'bcryptjs'; // Use import for ES module compatibility
 
 const router = Router();
+
+// Helper to format user object for consistent frontend consumption
+const formatUserResponse = (userDoc) => {
+  const userObject = userDoc.toObject();
+  delete userObject.password; // Ensure password is never sent
+  userObject.id = userObject._id; // Explicitly map _id to id
+  return userObject;
+};
 
 // GET /api/users
 router.get('/', async (req, res) => {
   try {
     const users = await User.find({});
-    res.json(users);
+    const formattedUsers = users.map(user => formatUserResponse(user));
+    res.json(formattedUsers);
   } catch (error) {
     console.error('Error fetching users:', error);
     res.status(500).json({ message: 'Server error' });
@@ -23,10 +32,7 @@ router.get('/:id', async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    // Exclude password from response
-    const userResponse = user.toObject();
-    delete userResponse.password;
-    res.json(userResponse);
+    res.json(formatUserResponse(user));
   } catch (error) {
     console.error('Error fetching single user:', error);
     res.status(500).json({ message: 'Server error' });
@@ -55,7 +61,7 @@ router.post('/', async (req, res) => {
       email,
       firstName,
       lastName,
-      password: hashedPassword, // Store hashed password
+      password: hashedPassword,
       role,
       airport,
       phone,
@@ -65,10 +71,7 @@ router.post('/', async (req, res) => {
 
     await newUser.save();
     
-    // Exclude password from response
-    const userResponse = newUser.toObject();
-    delete userResponse.password;
-    res.status(201).json(userResponse);
+    res.status(201).json(formatUserResponse(newUser));
   } catch (error) {
     console.error('Error creating user:', error);
     res.status(500).json({ message: 'Server error' });
@@ -85,7 +88,7 @@ router.put('/:id', async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    res.json(user);
+    res.json(formatUserResponse(user));
   } catch (error) {
     console.error('Error updating user:', error);
     res.status(500).json({ message: 'Server error' });
@@ -101,11 +104,11 @@ router.delete('/:id', async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    res.json({ message: 'User deactivated successfully', user });
+    res.json({ message: 'User deactivated successfully', user: formatUserResponse(user) });
   } catch (error) {
     console.error('Error deactivating user:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-module.exports = router;
+export default router;
