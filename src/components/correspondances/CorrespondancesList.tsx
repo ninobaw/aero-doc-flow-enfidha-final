@@ -1,8 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Mail, Eye, Calendar, User, ArrowRight, Tag } from 'lucide-react'; // Import Tag icon
-import { formatDate } from '@/shared/utils';
+import { Mail, Eye, Calendar, User, ArrowRight, Tag, FileDown } from 'lucide-react'; // Import FileDown icon
+import { formatDate, getAbsoluteFilePath } from '@/shared/utils'; // Import getAbsoluteFilePath
 import type { CorrespondanceData } from '@/hooks/useCorrespondances';
 import { useUsers } from '@/hooks/useUsers'; // Import useUsers to resolve assignee names
 
@@ -71,6 +71,14 @@ export const CorrespondancesList = ({ correspondances, isLoading }: Correspondan
     }
   };
 
+  const getTypeBadgeColor = (type: string) => {
+    switch (type) {
+      case 'INCOMING': return 'bg-purple-100 text-purple-800';
+      case 'OUTGOING': return 'bg-indigo-100 text-indigo-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   const getAssigneeName = (userId: string) => {
     const user = users.find(u => u.id === userId);
     return user ? `${user.firstName} ${user.lastName}` : 'Utilisateur inconnu';
@@ -87,6 +95,11 @@ export const CorrespondancesList = ({ correspondances, isLoading }: Correspondan
                 <Badge variant="outline" className="text-xs">
                   {correspondance.airport}
                 </Badge>
+                {correspondance.type && (
+                  <Badge className={`text-xs ${getTypeBadgeColor(correspondance.type)}`}>
+                    {correspondance.type === 'INCOMING' ? 'Entrante' : 'Sortante'}
+                  </Badge>
+                )}
               </div>
               <div className="flex space-x-1">
                 <Badge className={`text-xs ${getPriorityColor(correspondance.priority)}`}>
@@ -106,6 +119,11 @@ export const CorrespondancesList = ({ correspondances, isLoading }: Correspondan
                 <ArrowRight className="w-3 h-3" />
                 <span className="font-medium">{correspondance.to_address}</span>
               </div>
+              {correspondance.code && (
+                <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded mt-1 inline-block">
+                  Code: {correspondance.code}
+                </span>
+              )}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -153,7 +171,34 @@ export const CorrespondancesList = ({ correspondances, isLoading }: Correspondan
                 )}
               </div>
 
-              <div className="flex justify-end pt-2">
+              <div className="flex justify-end pt-2 space-x-2">
+                {correspondance.file_path && (
+                  <>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => window.open(getAbsoluteFilePath(correspondance.file_path!), '_blank')}
+                    >
+                      <Eye className="w-4 h-4 mr-1" />
+                      Visualiser
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => {
+                        const link = document.createElement('a');
+                        link.href = getAbsoluteFilePath(correspondance.file_path!);
+                        link.download = `correspondance-${correspondance.code || correspondance.id}.${correspondance.file_type?.split('/')[1] || 'file'}`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                      }}
+                    >
+                      <FileDown className="w-4 h-4 mr-1" />
+                      Télécharger
+                    </Button>
+                  </>
+                )}
                 <Button variant="outline" size="sm">
                   <Eye className="w-4 h-4 mr-1" />
                   Voir détails

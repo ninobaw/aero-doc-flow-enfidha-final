@@ -5,39 +5,106 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus } from 'lucide-react';
+import { Plus, Upload, FileText, Eye, X, Save } from 'lucide-react';
 import { useCorrespondances } from '@/hooks/useCorrespondances';
 import { ActionsDecideesField, ActionDecidee } from '@/components/actions/ActionsDecideesField';
 import { Airport } from '@/shared/types'; // Import Airport type
 import { TagInput } from '@/components/ui/TagInput'; // Import TagInput
+import { useFileUpload } from '@/hooks/useFileUpload'; // Import useFileUpload
+import { useToast } from '@/hooks/use-toast'; // Import useToast
+import { getAbsoluteFilePath } from '@/shared/utils'; // Import getAbsoluteFilePath
 
 export const CreateCorrespondanceDialog = () => {
   const [open, setOpen] = useState(false);
   const { createCorrespondance, isCreating } = useCorrespondances();
+  const { uploadFile, uploading: isUploadingFile } = useFileUpload();
+  const { toast } = useToast();
   
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
   const [formData, setFormData] = useState({
     title: '',
+    type: 'OUTGOING' as 'INCOMING' | 'OUTGOING', // Default to OUTGOING
+    code: '',
     from_address: '',
     to_address: '',
     subject: '',
     content: '',
     priority: 'MEDIUM' as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT',
-    airport: 'ENFIDHA' as Airport, // Updated to use Airport type
+    airport: 'ENFIDHA' as Airport,
     actions_decidees: [] as ActionDecidee[],
-    tags: [] as string[], // Add tags to form data
+    tags: [] as string[],
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      if (file.type.startsWith('image/') || file.type === 'application/pdf') {
+        if (previewUrl) {
+          URL.revokeObjectURL(previewUrl);
+        }
+        const url = URL.createObjectURL(file);
+        setPreviewUrl(url);
+      } else {
+        if (previewUrl) {
+          URL.revokeObjectURL(previewUrl);
+        }
+        setPreviewUrl(null);
+      }
+    }
+  };
+
+  const removeFile = () => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    setSelectedFile(null);
+    setPreviewUrl(null);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.title || !formData.from_address || !formData.to_address || !formData.subject) {
+    if (!formData.title || !formData.from_address || !formData.to_address || !formData.subject || !formData.type || !formData.airport) {
+      toast({
+        title: 'Champs manquants',
+        description: 'Veuillez remplir tous les champs obligatoires (Titre, De, À, Objet, Type, Aéroport).',
+        variant: 'destructive',
+      });
       return;
     }
 
-    createCorrespondance(formData, {
+    let finalFilePath: string | undefined;
+    let finalFileType: string | undefined;
+
+    if (selectedFile) {
+      const documentTypeFolder = formData.type === 'INCOMING' ? 'incoming' : 'outgoing';
+      const uploaded = await uploadFile(selectedFile, {
+        documentType: documentTypeFolder, // 'incoming' or 'outgoing'
+        allowedTypes: ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.jpg', '.jpeg', '.png'],
+        maxSize: 10 // 10MB
+      });
+      if (uploaded) {
+        finalFilePath = uploaded.path;
+        finalFileType = selectedFile.type;
+      } else {
+        // If file upload failed, stop the form submission
+        return;
+      }
+    }
+
+    createCorrespondance({
+      ...formData,
+      file_path: finalFilePath,
+      file_type: finalFileType,
+    }, {
       onSuccess: () => {
         setFormData({
           title: '',
+          type: 'OUTGOING',
+          code: '',
           from_address: '',
           to_address: '',
           subject: '',
@@ -45,8 +112,9 @@ export const CreateCorrespondanceDialog = () => {
           priority: 'MEDIUM',
           airport: 'ENFIDHA',
           actions_decidees: [],
-          tags: [], // Reset tags
+          tags: [],
         });
+        removeFile(); // Also clear the selected file
         setOpen(false);
       }
     });
@@ -94,6 +162,30 @@ export const CreateCorrespondanceDialog = () => {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
+              <Label htmlFor="type">Type de correspondance *</Label>
+              <Select value={formData.type} onValueChange={(value: 'INCOMING' | 'OUTGOING') => setFormData({ ...formData, type: value })} required>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner le type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="INCOMING">Entrante</SelectItem>
+                  <SelectItem value="OUTGOING">Sortante</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="code">Code (Manuel)</Label>
+              <Input
+                id="code"
+                value={formData.code}
+                onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                placeholder="Ex: CORR-2024-001"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
               <Label htmlFor="from_address">De *</Label>
               <Input
                 id="from_address"
@@ -116,8 +208,8 @@ export const CreateCorrespondanceDialog = () => {
           </div>
 
           <div>
-            <Label htmlFor="airport">Aéroport</Label>
-            <Select value={formData.airport} onValueChange={(value: Airport) => setFormData({ ...formData, airport: value })}>
+            <Label htmlFor="airport">Aéroport *</Label>
+            <Select value={formData.airport} onValueChange={(value: Airport) => setFormData({ ...formData, airport: value })} required>
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionner un aéroport" />
               </SelectTrigger>
@@ -164,17 +256,79 @@ export const CreateCorrespondanceDialog = () => {
             </p>
           </div>
 
+          {/* File Upload Section */}
+          <div className="space-y-4">
+            <Label>Fichier joint (optionnel)</Label>
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+              <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600 mb-2">
+                Glissez-déposez votre fichier ici ou cliquez pour sélectionner
+              </p>
+              <p className="text-sm text-gray-500 mb-4">
+                Formats supportés: PDF, Word, Excel, Images (max 10MB)
+              </p>
+              <Input
+                type="file"
+                onChange={handleFileUpload}
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png"
+                className="hidden"
+                id="correspondance-file-upload"
+              />
+              <Label htmlFor="correspondance-file-upload" className="cursor-pointer">
+                <Button type="button" variant="outline">
+                  Sélectionner un fichier
+                </Button>
+              </Label>
+            </div>
+
+            {selectedFile && (
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">{selectedFile.name}</p>
+                    <p className="text-sm text-gray-500">
+                      {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                    </p>
+                  </div>
+                  <div className="flex space-x-2">
+                    {previewUrl && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        type="button"
+                        onClick={() => window.open(previewUrl, '_blank')}
+                      >
+                        <Eye className="w-4 h-4 mr-2" />
+                        Prévisualiser
+                      </Button>
+                    )}
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      type="button"
+                      onClick={removeFile}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
           <ActionsDecideesField
             actions={formData.actions_decidees}
             onChange={(actions) => setFormData({ ...formData, actions_decidees: actions })}
+            disabled={isCreating || isUploadingFile}
           />
 
           <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={isCreating || isUploadingFile}>
               Annuler
             </Button>
-            <Button type="submit" disabled={isCreating}>
-              {isCreating ? 'Création...' : 'Créer'}
+            <Button type="submit" disabled={isCreating || isUploadingFile}>
+              <Save className="w-4 h-4 mr-2" />
+              {isCreating || isUploadingFile ? 'Création...' : 'Créer'}
             </Button>
           </div>
         </form>
