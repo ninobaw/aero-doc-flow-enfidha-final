@@ -5,9 +5,11 @@ import { useToast } from '@/hooks/use-toast';
 const API_BASE_URL = 'http://localhost:5000/api';
 
 export interface UploadOptions {
-  documentType: string; // Used by backend to create subfolders (e.g., 'formulaires', 'general')
+  documentType: string; // Used by backend to create subfolders (e.g., 'formulaires', 'general', 'correspondances')
   allowedTypes?: string[];
   maxSize?: number; // en MB
+  airportCode?: string; // New: for specific document types like correspondences
+  correspondenceType?: 'INCOMING' | 'OUTGOING'; // New: for correspondences
 }
 
 export const useFileUpload = () => {
@@ -42,6 +44,12 @@ export const useFileUpload = () => {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('documentType', options.documentType); // Pass document type for folder organization
+      if (options.airportCode) { // Pass airport code if provided
+        formData.append('airportCode', options.airportCode);
+      }
+      if (options.correspondenceType) { // Pass correspondence type if provided
+        formData.append('correspondenceType', options.correspondenceType);
+      }
 
       console.log('Envoi de la requête POST à:', `${API_BASE_URL}/uploads/file`);
       const response = await axios.post(`${API_BASE_URL}/uploads/file`, formData, {
@@ -82,7 +90,7 @@ export const useFileUpload = () => {
 
   const uploadTemplate = async (
     file: File,
-    options: Omit<UploadOptions, 'documentType'> // Templates go into a 'templates' folder
+    options: Omit<UploadOptions, 'documentType' | 'airportCode' | 'correspondenceType'> // Templates go into a 'templates' folder
   ): Promise<{ url: string; path: string } | null> => {
     try {
       setUploading(true);

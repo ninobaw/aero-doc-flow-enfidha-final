@@ -85,9 +85,10 @@ export const CreateCorrespondanceDialog = () => {
     let finalFileType: string | undefined;
 
     if (selectedFile) {
-      const documentTypeFolder = formData.type === 'INCOMING' ? 'incoming' : 'outgoing';
       const uploaded = await uploadFile(selectedFile, {
-        documentType: documentTypeFolder, // 'incoming' or 'outgoing'
+        documentType: 'correspondances', // Base folder for all correspondences
+        airportCode: formData.airport, // Pass the selected airport
+        correspondenceType: formData.type, // Pass the correspondence type (INCOMING/OUTGOING)
         allowedTypes: ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.jpg', '.jpeg', '.png'],
         maxSize: 10 // 10MB
       });
