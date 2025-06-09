@@ -5,9 +5,11 @@ import { useToast } from '@/hooks/use-toast';
 const API_BASE_URL = 'http://localhost:5000/api';
 
 export interface UploadOptions {
-  documentType: string; // Used by backend to create subfolders (e.g., 'formulaires', 'general')
+  mainFolder: string; // e.g., 'correspondances', 'profiles', 'documents', 'templates'
+  subFolder1?: string; // e.g., airport name for correspondences/documents, or user ID for profiles
+  subFolder2?: string; // e.g., 'incoming'/'outgoing' for correspondences
   allowedTypes?: string[];
-  maxSize?: number; // en MB
+  maxSize?: number; // in MB
 }
 
 export const useFileUpload = () => {
@@ -23,7 +25,7 @@ export const useFileUpload = () => {
       setUploading(true);
       setProgress(0);
 
-      console.log('Début de l\'upload du fichier:', file.name, 'Type:', options.documentType);
+      console.log('Début de l\'upload du fichier:', file.name, 'Options:', options);
 
       // Client-side validation (redundant with backend, but good for UX)
       if (options.allowedTypes && options.allowedTypes.length > 0) {
@@ -41,7 +43,13 @@ export const useFileUpload = () => {
 
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('documentType', options.documentType); // Pass document type for folder organization
+      formData.append('mainFolder', options.mainFolder);
+      if (options.subFolder1) {
+        formData.append('subFolder1', options.subFolder1);
+      }
+      if (options.subFolder2) {
+        formData.append('subFolder2', options.subFolder2);
+      }
 
       console.log('Envoi de la requête POST à:', `${API_BASE_URL}/uploads/file`);
       const response = await axios.post(`${API_BASE_URL}/uploads/file`, formData, {
@@ -82,80 +90,47 @@ export const useFileUpload = () => {
 
   const uploadTemplate = async (
     file: File,
-    options: Omit<UploadOptions, 'documentType'> // Templates go into a 'templates' folder
+    options: Omit<UploadOptions, 'mainFolder' | 'subFolder1' | 'subFolder2'> // Templates go into a 'templates' folder
   ): Promise<{ url: string; path: string } | null> => {
-    try {
-      setUploading(true);
-      setProgress(0);
-
-      console.log('Début de l\'upload du modèle:', file.name);
-
-      if (options.allowedTypes && options.allowedTypes.length > 0) {
-        const isValidType = options.allowedTypes.some(type => 
-          file.type.startsWith(type.replace('.', '')) || file.name.toLowerCase().endsWith(type)
-        );
-        if (!isValidType) {
-          throw new Error(`Type de fichier non autorisé. Types acceptés: ${options.allowedTypes.join(', ')}`);
-        }
-      }
-
-      if (options.maxSize && file.size > options.maxSize * 1024 * 1024) {
-        throw new Error(`Fichier trop volumineux. Taille maximum: ${options.maxSize}MB`);
-      }
-
-      const formData = new FormData();
-      formData.append('templateFile', file);
-      formData.append('documentType', 'templates'); // Hardcode 'templates' for template uploads
-
-      console.log('Envoi de la requête POST à:', `${API_BASE_URL}/uploads/template`);
-      const response = await axios.post(`${API_BASE_URL}/uploads/template`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        onUploadProgress: (event) => {
-          if (event.total) {
-            setProgress(Math.round((100 * event.loaded) / event.total));
-          }
-        },
-      });
-
-      console.log('Réponse de l\'upload de modèle:', response.data);
-      toast({
-        title: 'Modèle uploadé',
-        description: 'Le modèle a été uploadé avec succès.',
-      });
-
-      return {
-        url: `${API_BASE_URL}${response.data.fileUrl}`,
-        path: response.data.filePath
-      };
-
-    } catch (error: any) {
-      console.error('Erreur upload modèle:', error.response?.data || error.message);
-      toast({
-        title: 'Erreur d\'upload modèle',
-        description: error.response?.data?.message || error.message || 'Erreur lors de l\'upload du modèle.',
-        variant: 'destructive',
-      });
-      return null;
-    } finally {
-      setUploading(false);
-      setProgress(0);
-    }
+    // This function will now use the generic uploadFile, fixing the mainFolder to 'templates'
+    return uploadFile(file, {
+      mainFolder: 'templates',
+      ...options,
+    });
   };
 
   const copyTemplate = async (
-    templateFilePath: string,
-    documentType: string
+    templateFilePath: string, // This is the relative path from 'uploads'
+    targetDocumentType: string, // This is the DocumentType enum value (e.g., 'CORRESPONDANCE', 'FORMULAIRE_DOC')
+    targetAirport?: string, // Optional: for specific document types like CORRESPONDANCE
+    targetCorrespondenceType?: 'incoming' | 'outgoing' // Optional: for CORRESPONDANCE
   ): Promise<{ url: string; path: string } | null> => {
     try {
       setUploading(true);
       setProgress(0); // Reset progress for copy operation
 
-      console.log('Début de la copie du modèle:', templateFilePath, 'vers le type:', documentType);
+      console.log('Début de la copie du modèle:', templateFilePath, 'vers le type:', targetDocumentType);
+      
+      // Determine the target main folder and subfolders based on document type
+      let mainFolder = 'documents'; // Default for general documents
+      let subFolder1: string | undefined;
+      let subFolder2: string | undefined;
+
+      if (targetDocumentType === 'CORRESPONDANCE') {
+        mainFolder = 'correspondances';
+        subFolder1 = targetAirport;
+        subFolder2 = targetCorrespondenceType;
+      } else if (targetDocumentType === 'FORMULAIRE_DOC') {
+        mainFolder = 'formulaires';
+        subFolder1 = targetAirport; // Assuming forms might also be organized by airport
+      }
+      // Add other document types as needed
+
       const response = await axios.post(`${API_BASE_URL}/uploads/copy-template`, {
         templateFilePath,
-        documentType,
+        mainFolder, // Pass new mainFolder
+        subFolder1, // Pass new subFolder1
+        subFolder2, // Pass new subFolder2
       });
 
       console.log('Réponse de la copie du modèle:', response.data);
