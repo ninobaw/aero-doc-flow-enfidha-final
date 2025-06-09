@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react'; // Import useRef
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +20,8 @@ export const CreateCorrespondanceDialog = () => {
   const { uploadFile, uploading: isUploadingFile } = useFileUpload();
   const { toast } = useToast();
   
+  const fileInputRef = useRef<HTMLInputElement>(null); // Create a ref for the file input
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
@@ -62,6 +64,9 @@ export const CreateCorrespondanceDialog = () => {
     }
     setSelectedFile(null);
     setPreviewUrl(null);
+    if (fileInputRef.current) { // Clear the file input value
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -273,12 +278,15 @@ export const CreateCorrespondanceDialog = () => {
                 accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png"
                 className="hidden"
                 id="correspondance-file-upload"
+                ref={fileInputRef} // Attach the ref here
               />
-              <Label htmlFor="correspondance-file-upload" className="cursor-pointer">
-                <Button type="button" variant="outline">
-                  Sélectionner un fichier
-                </Button>
-              </Label>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()} // Trigger click via ref
+              >
+                Sélectionner un fichier
+              </Button>
             </div>
 
             {selectedFile && (
