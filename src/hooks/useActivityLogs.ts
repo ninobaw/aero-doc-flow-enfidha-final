@@ -13,8 +13,8 @@ export interface ActivityLogData {
   entityType: string;
   userId: string;
   user?: {
-    first_name: string;
-    last_name: string;
+    firstName: string; // Changed from first_name
+    lastName: string;  // Changed from last_name
   };
   timestamp: string;
   ipAddress?: string;

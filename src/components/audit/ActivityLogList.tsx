@@ -120,7 +120,7 @@ export const ActivityLogList: React.FC<ActivityLogListProps> = ({ logs, isLoadin
                   <TableCell>
                     <div className="flex items-center space-x-2">
                       {getActionIcon('USER_LOGIN')} {/* Generic user icon for display */}
-                      <span>{log.user?.first_name} {log.user?.last_name || 'Système'}</span>
+                      <span>{log.user?.firstName} {log.user?.lastName || 'Système'}</span>
                     </div>
                   </TableCell>
                   <TableCell>

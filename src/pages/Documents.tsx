@@ -45,7 +45,7 @@ const Documents = () => {
                         (doc.tags && filterTags.every(tag => doc.tags.includes(tag)));
 
     const matchesAuthor = filterAuthor === '' || 
-                          (doc.author && `${doc.author.first_name} ${doc.author.last_name}`.toLowerCase().includes(filterAuthor.toLowerCase()));
+                          (doc.author && `${doc.author.firstName} ${doc.author.lastName}`.toLowerCase().includes(filterAuthor.toLowerCase()));
 
     const docCreatedAt = new Date(doc.created_at);
     const matchesStartDate = !filterStartDate || docCreatedAt >= filterStartDate;
