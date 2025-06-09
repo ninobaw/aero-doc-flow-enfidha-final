@@ -1,7 +1,7 @@
-import { Router } from 'express';
-import { User } from '../models/User';
-import { v4 as uuidv4 } from 'uuid';
-import bcrypt from 'bcryptjs'; // Use import for ES module compatibility
+const { Router } = require('express');
+const { User } = require('../models/User'); // Changed to require
+const { v4: uuidv4 } = require('uuid');
+const bcrypt = require('bcryptjs'); // Changed to require
 
 const router = Router();
 
@@ -111,4 +111,4 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-export default router;
+module.exports = router; // Changed to module.exports
