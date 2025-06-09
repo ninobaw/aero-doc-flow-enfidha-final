@@ -108,7 +108,7 @@ const Documents = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                  <div className="relative md:col-span-2">
+                  <div className="relative md:col-span-2"> {/* Span 2 columns for search */}
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                     <Input
                       placeholder="Rechercher par titre, contenu ou code QR..."
