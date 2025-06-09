@@ -161,7 +161,7 @@ export const DocumentsList = ({ documents, isLoading, onEdit, onDelete }: Docume
                   <div className="flex items-center space-x-1">
                     <User className="w-3 h-3" />
                     <span>
-                      {document.author?.first_name} {document.author?.last_name}
+                      {document.author?.firstName} {document.author?.lastName}
                     </span>
                   </div>
                   <div className="flex items-center space-x-1">
@@ -173,7 +173,7 @@ export const DocumentsList = ({ documents, isLoading, onEdit, onDelete }: Docume
                 {document.status === 'ACTIVE' && document.approved_by && document.approved_at && (
                   <div className="flex items-center space-x-1 text-xs text-green-700">
                     <CheckCircle className="w-3 h-3" />
-                    <span>Approuvé par {document.approved_by.first_name} {document.approved_by.last_name} le {formatDate(document.approved_at)}</span>
+                    <span>Approuvé par {document.approved_by.firstName} {document.approved_by.lastName} le {formatDate(document.approved_at)}</span>
                   </div>
                 )}
 

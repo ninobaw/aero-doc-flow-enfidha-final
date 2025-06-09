@@ -131,7 +131,7 @@ export const ViewDocumentDialog: React.FC<ViewDocumentDialogProps> = ({ document
               <CardContent className="space-y-3 text-sm text-gray-700">
                 <div className="flex items-center">
                   <User className="w-4 h-4 mr-2 text-gray-500" />
-                  <span>Auteur: {document.author?.first_name} {document.author?.last_name}</span>
+                  <span>Auteur: {document.author?.firstName} {document.author?.lastName}</span>
                 </div>
                 <div className="flex items-center">
                   <Calendar className="w-4 h-4 mr-2 text-gray-500" />
@@ -152,7 +152,7 @@ export const ViewDocumentDialog: React.FC<ViewDocumentDialogProps> = ({ document
                 {document.approved_by && document.approved_at && (
                   <div className="flex items-center text-green-700">
                     <CheckCircle className="w-4 h-4 mr-2" />
-                    <span>Approuvé par {document.approved_by.first_name} {document.approved_by.last_name} le {formatDate(document.approved_at)}</span>
+                    <span>Approuvé par {document.approved_by.firstName} {document.approved_by.lastName} le {formatDate(document.approved_at)}</span>
                   </div>
                 )}
               </CardContent>
