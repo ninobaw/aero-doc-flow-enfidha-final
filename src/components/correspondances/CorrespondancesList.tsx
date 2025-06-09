@@ -130,7 +130,7 @@ export const CorrespondancesList = ({ correspondances, isLoading }: Correspondan
                   <ul className="list-disc list-inside ml-2">
                     {correspondance.actions_decidees.map((action, index) => (
                       <li key={index} className="truncate">
-                        {action.titre} (Resp: {getAssigneeName(action.responsable)})
+                        {action.titre} (Resp: {getAssigneeName(action.responsable[0])}) {/* Access first element of responsable array */}
                       </li>
                     ))}
                   </ul>
