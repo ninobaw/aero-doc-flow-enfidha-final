@@ -31,6 +31,7 @@ export const useUsers = () => {
     queryKey: ['users'],
     queryFn: async () => {
       const response = await axios.get(`${API_BASE_URL}/users`);
+      console.log('Données utilisateurs reçues:', response.data); // <-- Ajoutez cette ligne
       return response.data as UserData[];
     },
     enabled: !!user,
@@ -112,7 +113,7 @@ export const useUsers = () => {
         description: error.response?.data?.message || error.message || 'Impossible de désactiver l\'utilisateur.',
         variant: 'destructive',
       });
-    },
+      },
   });
 
   return {

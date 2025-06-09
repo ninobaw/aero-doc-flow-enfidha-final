@@ -23,6 +23,8 @@ export const UserMultiSelect: React.FC<UserMultiSelectProps> = ({
   const { users, isLoading: isLoadingUsers } = useUsers();
   const [open, setOpen] = useState(false);
 
+  console.log('UserMultiSelect: users', users, 'isLoadingUsers', isLoadingUsers); // <-- Ajoutez cette ligne
+
   const toggleUser = (userId: string) => {
     const newSelectedUserIds = selectedUserIds.includes(userId)
       ? selectedUserIds.filter((id) => id !== userId)
