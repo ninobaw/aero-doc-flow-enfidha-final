@@ -10,7 +10,7 @@ import { useDocuments, DocumentData } from '@/hooks/useDocuments';
 import { useNavigate } from 'react-router-dom';
 import { EditDocumentDialog } from '@/components/documents/EditDocumentDialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { DocumentImportForm } from '@/components/documents/DocumentImportForm'; // Changed from DocumentCreationForm
+import { DocumentImportForm } from '@/components/documents/DocumentImportForm';
 import { TagInput } from '@/components/ui/TagInput';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -26,9 +26,9 @@ const Documents = () => {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterAirport, setFilterAirport] = useState<string>('all');
   const [filterTags, setFilterTags] = useState<string[]>([]);
-  const [filterAuthor, setFilterAuthor] = useState<string>(''); // New state for author filter
-  const [filterStartDate, setFilterStartDate] = useState<Date | undefined>(undefined); // New state for start date
-  const [filterEndDate, setFilterEndDate] = useState<Date | undefined>(undefined); // New state for end date
+  const [filterAuthor, setFilterAuthor] = useState<string>('');
+  const [filterStartDate, setFilterStartDate] = useState<Date | undefined>(undefined);
+  const [filterEndDate, setFilterEndDate] = useState<Date | undefined>(undefined);
 
   const [selectedDocumentForEdit, setSelectedDocumentForEdit] = useState<DocumentData | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -37,7 +37,11 @@ const Documents = () => {
     const matchesSearch = doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          doc.content?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          doc.qr_code.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = filterType === 'all' || doc.type === filterType;
+    
+    // Filter by allowed types
+    const allowedTypes = ['FORMULAIRE_DOC', 'QUALITE_DOC', 'GENERAL']; // These correspond to Formulaire, Politique/Procédure, Manuel/Instruction
+    const matchesType = (filterType === 'all' && allowedTypes.includes(doc.type)) || doc.type === filterType;
+
     const matchesStatus = filterStatus === 'all' || doc.status === filterStatus;
     const matchesAirport = filterAirport === 'all' || doc.airport === filterAirport;
     
@@ -71,9 +75,9 @@ const Documents = () => {
     setFilterStatus('all');
     setFilterAirport('all');
     setFilterTags([]);
-    setFilterAuthor(''); // Reset author filter
-    setFilterStartDate(undefined); // Reset start date
-    setFilterEndDate(undefined); // Reset end date
+    setFilterAuthor('');
+    setFilterStartDate(undefined);
+    setFilterEndDate(undefined);
   };
 
   return (
@@ -108,7 +112,7 @@ const Documents = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                  <div className="relative md:col-span-2"> {/* Span 2 columns for search */}
+                  <div className="relative md:col-span-2">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                     <Input
                       placeholder="Rechercher par titre, contenu ou code QR..."
@@ -124,13 +128,10 @@ const Documents = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Tous les types</SelectItem>
-                      <SelectItem value="QUALITE_DOC">Document Qualité</SelectItem>
-                      <SelectItem value="NOUVEAU_DOC">Nouveau Document</SelectItem>
-                      <SelectItem value="CORRESPONDANCE">Correspondance</SelectItem>
-                      <SelectItem value="PROCES_VERBAL">Procès-Verbal</SelectItem>
                       <SelectItem value="FORMULAIRE_DOC">Formulaire</SelectItem>
-                      <SelectItem value="GENERAL">Général</SelectItem>
-                      <SelectItem value="TEMPLATE">Modèle</SelectItem>
+                      <SelectItem value="QUALITE_DOC">Politique / Procédure</SelectItem>
+                      <SelectItem value="GENERAL">Manuel / Instruction</SelectItem>
+                      {/* Removed: NOUVEAU_DOC, CORRESPONDANCE, PROCES_VERBAL, TEMPLATE */}
                     </SelectContent>
                   </Select>
 
@@ -158,14 +159,12 @@ const Documents = () => {
                     </SelectContent>
                   </Select>
 
-                  {/* New filter for Author */}
                   <Input
                     placeholder="Filtrer par auteur..."
                     value={filterAuthor}
                     onChange={(e) => setFilterAuthor(e.target.value)}
                   />
 
-                  {/* New filter for Start Date */}
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
@@ -189,7 +188,6 @@ const Documents = () => {
                     </PopoverContent>
                   </Popover>
 
-                  {/* New filter for End Date */}
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
@@ -246,7 +244,7 @@ const Documents = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <DocumentImportForm /> {/* Changed to DocumentImportForm */}
+                <DocumentImportForm />
               </CardContent>
             </Card>
           </TabsContent>
