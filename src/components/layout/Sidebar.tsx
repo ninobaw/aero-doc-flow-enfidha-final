@@ -40,21 +40,21 @@ const navigationItems: NavItem[] = [
     title: 'Documents',
     href: '/documents', // Link directly to the unified Documents page
     icon: FileText,
-    children: [
-      // Removed 'Qualité Doc' as it's now part of /documents tabs
-      {
-        title: 'Formulaires Doc',
-        href: '/documents/formulaires',
-        icon: FileSpreadsheet,
-        permission: 'manage_forms'
-      },
-      { // New item for Templates
-        title: 'Modèles',
-        href: '/documents/templates',
-        icon: FileBadge,
-        permission: 'manage_documents' // Assuming 'manage_documents' permission for templates
-      }
-    ]
+    // Removed children as per user request to simplify navigation
+    // children: [
+    //   {
+    //     title: 'Formulaires Doc',
+    //     href: '/documents/formulaires',
+    //     icon: FileSpreadsheet,
+    //     permission: 'manage_forms'
+    //   },
+    //   {
+    //     title: 'Modèles',
+    //     href: '/documents/templates',
+    //     icon: FileBadge,
+    //     permission: 'manage_documents'
+    //   }
+    // ]
   },
   {
     title: 'Correspondances',
@@ -109,7 +109,7 @@ const navigationItems: NavItem[] = [
 export const Sidebar = () => {
   const location = useLocation();
   const { hasPermission } = useAuth();
-  const [expandedItems, setExpandedItems] = useState<string[]>(['Documents']);
+  const [expandedItems, setExpandedItems] = useState<string[]>([]); // Initialize as empty, no need to expand 'Documents' by default
 
   const toggleExpanded = (title: string) => {
     setExpandedItems(prev => 
@@ -132,6 +132,7 @@ export const Sidebar = () => {
     const isActive = item.href ? location.pathname === item.href : false;
 
     // Special handling for "Documents" parent link to be active if any child route is active
+    // This logic is now less critical as children are removed, but kept for robustness if similar patterns emerge
     const isParentActive = item.title === 'Documents' && location.pathname.startsWith('/documents');
 
 
