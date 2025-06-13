@@ -8,7 +8,9 @@ export interface UploadOptions {
   documentType: string; // Used by backend to create subfolders (e.g., 'formulaires', 'general', 'correspondances')
   allowedTypes?: string[];
   maxSize?: number; // en MB
-  airportCode?: string; // New: for specific document types like correspondences
+  scopeCode?: string; // New: for specific document types like correspondences
+  departmentCode?: string; // New: for specific document types
+  documentTypeCode?: string; // New: for specific document types
   correspondenceType?: 'INCOMING' | 'OUTGOING'; // New: for correspondences
 }
 
@@ -44,8 +46,14 @@ export const useFileUpload = () => {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('documentType', options.documentType); // Pass document type for folder organization
-      if (options.airportCode) { // Pass airport code if provided
-        formData.append('airportCode', options.airportCode);
+      if (options.scopeCode) { // Pass scope code if provided
+        formData.append('scopeCode', options.scopeCode);
+      }
+      if (options.departmentCode) { // Pass department code if provided
+        formData.append('departmentCode', options.departmentCode);
+      }
+      if (options.documentTypeCode) { // Pass document type code if provided
+        formData.append('documentTypeCode', options.documentTypeCode);
       }
       if (options.correspondenceType) { // Pass correspondence type if provided
         formData.append('correspondenceType', options.correspondenceType);
@@ -90,7 +98,7 @@ export const useFileUpload = () => {
 
   const uploadTemplate = async (
     file: File,
-    options: Omit<UploadOptions, 'documentType' | 'airportCode' | 'correspondenceType'> // Templates go into a 'templates' folder
+    options: Omit<UploadOptions, 'documentType' | 'scopeCode' | 'departmentCode' | 'documentTypeCode' | 'correspondenceType'> // Templates go into a 'templates' folder
   ): Promise<{ url: string; path: string } | null> => {
     try {
       setUploading(true);
@@ -154,16 +162,19 @@ export const useFileUpload = () => {
 
   const copyTemplate = async (
     templateFilePath: string,
-    documentType: string
+    options: Omit<UploadOptions, 'allowedTypes' | 'maxSize' | 'correspondenceType'> // Need documentType, scopeCode, departmentCode, documentTypeCode
   ): Promise<{ url: string; path: string } | null> => {
     try {
       setUploading(true);
       setProgress(0); // Reset progress for copy operation
 
-      console.log('Début de la copie du modèle:', templateFilePath, 'vers le type:', documentType);
+      console.log('Début de la copie du modèle:', templateFilePath, 'vers le type:', options.documentType);
       const response = await axios.post(`${API_BASE_URL}/uploads/copy-template`, {
         templateFilePath,
-        documentType,
+        documentType: options.documentType,
+        scopeCode: options.scopeCode,
+        departmentCode: options.departmentCode,
+        documentTypeCode: options.documentTypeCode,
       });
 
       console.log('Réponse de la copie du modèle:', response.data);

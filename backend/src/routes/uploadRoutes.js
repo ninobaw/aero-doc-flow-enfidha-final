@@ -38,6 +38,31 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
+// Helper function to determine the final target directory
+const getFinalTargetDir = (baseDir, documentType, scopeCode, departmentCode, correspondenceType) => {
+  let finalDir = baseDir;
+
+  // For templates, they go directly into the 'templates' folder
+  if (documentType.toLowerCase() === 'templates') {
+    return path.join(baseDir, 'templates');
+  }
+
+  // For correspondences, use a specific structure: uploads/correspondances/<airportCode>/<typeFolder>
+  if (documentType.toLowerCase() === 'correspondances' && scopeCode && correspondenceType) {
+    const typeFolder = correspondenceType === 'INCOMING' ? 'Arrivee' : 'Depart';
+    finalDir = path.join(baseDir, 'correspondances', scopeCode, typeFolder);
+  } 
+  // For other document types, use the requested structure: uploads/<scope>/<department>/<documentType>
+  else if (scopeCode && departmentCode && documentType) {
+    finalDir = path.join(baseDir, scopeCode, departmentCode, documentType);
+  } else {
+    // Fallback for general documents or if specific codes are missing
+    finalDir = path.join(baseDir, documentType);
+  }
+  return finalDir;
+};
+
+
 // POST /api/uploads/file - Upload a single file and move it to final destination
 router.post('/file', upload.single('file'), (req, res) => {
   console.log('Requête POST /api/uploads/file reçue.');
@@ -49,20 +74,12 @@ router.post('/file', upload.single('file'), (req, res) => {
     return res.status(400).json({ message: 'No file uploaded.' });
   }
 
-  const { documentType, airportCode, correspondenceType } = req.body;
+  const { documentType, scopeCode, departmentCode, correspondenceType } = req.body;
   const originalTempPath = req.file.path;
   const fileName = req.file.filename; // This now includes the original name + unique suffix
 
-  let finalTargetDir = path.join(uploadsDir, documentType.toLowerCase());
-
-  // Determine final target directory based on documentType and other fields
-  if (documentType.toLowerCase() === 'correspondances' && airportCode && correspondenceType) {
-    const typeFolder = correspondenceType === 'INCOMING' ? 'Arrivee' : 'Depart';
-    finalTargetDir = path.join(uploadsDir, 'correspondances', airportCode, typeFolder);
-  } else if (documentType.toLowerCase() === 'templates') {
-    finalTargetDir = path.join(uploadsDir, 'templates');
-  }
-  // For other document types, they go directly under uploads/<documentType>
+  // Determine final target directory using the helper
+  const finalTargetDir = getFinalTargetDir(uploadsDir, documentType, scopeCode, departmentCode, correspondenceType);
 
   // Ensure the final target directory exists
   fs.mkdirSync(finalTargetDir, { recursive: true });
@@ -98,29 +115,44 @@ router.post('/template', upload.single('templateFile'), (req, res) => {
     console.error('Aucun fichier modèle uploadé.');
     return res.status(400).json({ message: 'No template file uploaded.' });
   }
-  const filePath = path.relative(uploadsDir, req.file.path);
-  console.log(`Fichier modèle uploadé: ${req.file.filename}, Chemin relatif: ${filePath}`);
-  res.status(200).json({
-    message: 'Template uploaded successfully',
-    fileName: req.file.filename, // Send back the new unique filename
-    filePath: filePath,
-    fileUrl: `/uploads/${filePath}`
+  // Templates are always stored directly under 'uploads/templates'
+  const finalTargetDir = path.join(uploadsDir, 'templates');
+  fs.mkdirSync(finalTargetDir, { recursive: true }); // Ensure templates folder exists
+
+  const originalTempPath = req.file.path;
+  const fileName = req.file.filename;
+  const finalFilePath = path.join(finalTargetDir, fileName);
+
+  fs.rename(originalTempPath, finalFilePath, (err) => {
+    if (err) {
+      console.error('Erreur lors du déplacement du fichier modèle:', err);
+      return res.status(500).json({ message: 'Failed to move template file.' });
+    }
+    const relativePath = path.relative(uploadsDir, finalFilePath);
+    console.log(`Fichier modèle déplacé vers: ${relativePath}`);
+    res.status(200).json({
+      message: 'Template uploaded successfully',
+      fileName: fileName,
+      filePath: relativePath,
+      fileUrl: `/uploads/${relativePath}`
+    });
   });
 });
 
 // POST /api/uploads/copy-template - Copy a template file to a new document file
 router.post('/copy-template', (req, res) => {
-  const { templateFilePath, documentType } = req.body;
+  const { templateFilePath, documentType, scopeCode, departmentCode } = req.body; // Added scopeCode, departmentCode
   console.log('Requête POST /api/uploads/copy-template reçue.');
-  console.log('templateFilePath:', templateFilePath, 'documentType:', documentType);
+  console.log('templateFilePath:', templateFilePath, 'documentType:', documentType, 'scopeCode:', scopeCode, 'departmentCode:', departmentCode);
 
-  if (!templateFilePath || !documentType) {
-    console.error('Chemin du fichier modèle ou type de document manquant pour la copie.');
-    return res.status(400).json({ message: 'Template file path and document type are required.' });
+  if (!templateFilePath || !documentType || !scopeCode || !departmentCode) {
+    console.error('Chemin du fichier modèle, type de document, scope ou département manquant pour la copie.');
+    return res.status(400).json({ message: 'Template file path, document type, scope, and department are required.' });
   }
 
   const sourcePath = path.join(uploadsDir, templateFilePath);
-  const targetDir = path.join(uploadsDir, documentType.toLowerCase()); // Target directory based on documentType
+  // Determine target directory using the helper, assuming it's not a correspondence
+  const targetDir = getFinalTargetDir(uploadsDir, documentType, scopeCode, departmentCode, null); // Pass null for correspondenceType
 
   if (!fs.existsSync(sourcePath)) {
     console.error(`Fichier modèle source non trouvé: ${sourcePath}`);
