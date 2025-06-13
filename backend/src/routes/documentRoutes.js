@@ -98,7 +98,7 @@ router.get('/:id/history', async (req, res) => {
 // POST /api/documents
 router.post('/', async (req, res) => {
   const { 
-    title, type, content, author_id, airport, file_path, file_type,
+    title, type, content, author_id, airport, file_path, file_type, // Added file_path, file_type
     company_code, scope_code, department_code, sub_department_code,
     document_type_code, language_code
   } = req.body;
@@ -124,8 +124,8 @@ router.post('/', async (req, res) => {
       content,
       authorId: author_id,
       airport,
-      filePath: file_path,
-      fileType: file_type,
+      filePath: file_path, // Save file path
+      fileType: file_type, // Save file type
       qrCode, // Use the generated QR code
       version: 1,
       status: 'DRAFT', // New documents start as DRAFT

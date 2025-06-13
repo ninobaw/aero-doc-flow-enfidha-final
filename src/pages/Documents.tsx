@@ -10,7 +10,7 @@ import { useDocuments, DocumentData } from '@/hooks/useDocuments';
 import { useNavigate } from 'react-router-dom';
 import { EditDocumentDialog } from '@/components/documents/EditDocumentDialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { DocumentCreationForm } from '@/components/documents/DocumentCreationForm';
+import { DocumentImportForm } from '@/components/documents/DocumentImportForm'; // Changed from DocumentCreationForm
 import { TagInput } from '@/components/ui/TagInput';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -239,14 +239,14 @@ const Documents = () => {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Plus className="w-5 h-5 mr-2 text-aviation-sky" />
-                  Créer un nouveau document
+                  Importer un nouveau document
                 </CardTitle>
                 <CardDescription>
-                  Remplissez le formulaire pour créer un document à partir de zéro.
+                  Importez un fichier ou utilisez un modèle pour créer un nouveau document.
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <DocumentCreationForm />
+                <DocumentImportForm /> {/* Changed to DocumentImportForm */}
               </CardContent>
             </Card>
           </TabsContent>
