@@ -25,7 +25,7 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
   const { user } = useAuth();
   const { updateDocument, isUpdating } = useDocuments();
   const { config: codeConfig, isLoading: isLoadingCodeConfig } = useDocumentCodeConfig();
-  const { uploadFile, uploading: isUploadingFile } = useFileUpload(); // Use file upload hook
+  const { uploadFile, deleteFile, uploading: isUploadingFile } = useFileUpload(); // Use file upload hook
   const { toast } = useToast();
 
   const fileInputRef = useRef<HTMLInputElement>(null); // Ref for file input
@@ -154,6 +154,13 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
         maxSize: 10
       });
       if (uploaded) {
+        // If a new file was successfully uploaded, delete the old one if it exists
+        if (document.file_path) {
+          const oldFileDeleted = await deleteFile(document.file_path);
+          if (!oldFileDeleted) {
+            console.warn(`Failed to delete old file: ${document.file_path}. Proceeding with document update.`);
+          }
+        }
         finalFilePath = uploaded.path;
         finalFileType = selectedFile.type;
         newVersion = parseFloat((document.version + 0.1).toFixed(1)); // Increment version by 0.1 for file update
