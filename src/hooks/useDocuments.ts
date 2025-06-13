@@ -106,9 +106,9 @@ export const useDocuments = () => {
       content?: string;
       status?: 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
       airport?: Airport; // Updated to use Airport type
-      file_path?: string;
-      file_type?: string;
-      version?: number;
+      file_path?: string; // Allow updating file_path
+      file_type?: string; // Allow updating file_type
+      version?: number; // Allow updating version
       views_count?: number;
       downloads_count?: number;
       // New codification fields

@@ -1,18 +1,19 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Save, FileText } from 'lucide-react';
+import { Save, FileText, Upload, Eye, X, Download } from 'lucide-react';
 import { useDocuments, DocumentData } from '@/hooks/useDocuments';
 import { useToast } from '@/hooks/use-toast';
-import { Airport, DocumentType } from '@/shared/types';
+import { Airport } from '@/shared/types';
 import { useDocumentCodeConfig } from '@/hooks/useDocumentCodeConfig';
-import { useAuth } from '@/contexts/AuthContext';
-import { generateDocumentCodePreview } from '@/shared/utils';
-import { TagInput } from '@/components/ui/TagInput'; // Import TagInput
+import { generateDocumentCodePreview, getAbsoluteFilePath, mapDocumentTypeCodeToDocumentTypeEnum } from '@/shared/utils';
+import { TagInput } from '@/components/ui/TagInput';
+import { useFileUpload } from '@/hooks/useFileUpload'; // Import useFileUpload
+import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
 
 interface EditDocumentDialogProps {
   document: DocumentData | null;
@@ -24,7 +25,10 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
   const { user } = useAuth();
   const { updateDocument, isUpdating } = useDocuments();
   const { config: codeConfig, isLoading: isLoadingCodeConfig } = useDocumentCodeConfig();
+  const { uploadFile, uploading: isUploadingFile } = useFileUpload(); // Use file upload hook
   const { toast } = useToast();
+
+  const fileInputRef = useRef<HTMLInputElement>(null); // Ref for file input
 
   const [formData, setFormData] = useState({
     title: '',
@@ -38,8 +42,11 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
     responsable: '',
     description: '',
     content: '',
-    tags: [] as string[], // Add tags to form data
+    tags: [] as string[],
   });
+
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (document) {
@@ -55,8 +62,15 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
         responsable: '', // Assuming no 'responsable' field in DocumentData directly
         description: document.content || '', // Using content as description for now
         content: document.content || '',
-        tags: document.tags || [], // Load existing tags
+        tags: document.tags || [],
       });
+      // Set initial preview URL if document has a file
+      if (document.file_path) {
+        setPreviewUrl(getAbsoluteFilePath(document.file_path));
+      } else {
+        setPreviewUrl(null);
+      }
+      setSelectedFile(null); // Clear any previously selected file
     }
   }, [document]);
 
@@ -79,7 +93,37 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
     formData.language_code,
   ]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      if (file.type.startsWith('image/') || file.type === 'application/pdf') {
+        if (previewUrl) {
+          URL.revokeObjectURL(previewUrl);
+        }
+        const url = URL.createObjectURL(file);
+        setPreviewUrl(url);
+      } else {
+        if (previewUrl) {
+          URL.revokeObjectURL(previewUrl);
+        }
+        setPreviewUrl(null);
+      }
+    }
+  };
+
+  const removeFile = () => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''; // Clear the file input value
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!document) return;
@@ -93,6 +137,31 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
       return;
     }
 
+    let finalFilePath: string | undefined = document.file_path;
+    let finalFileType: string | undefined = document.file_type;
+    let newVersion = parseFloat(formData.version);
+
+    if (selectedFile) {
+      // Determine the document type enum for file upload options
+      const documentTypeEnum = mapDocumentTypeCodeToDocumentTypeEnum(formData.document_type_code!);
+
+      const uploaded = await uploadFile(selectedFile, {
+        documentType: documentTypeEnum, // Use mapped type for folder
+        scopeCode: formData.airport,
+        departmentCode: formData.department_code,
+        documentTypeCode: formData.document_type_code,
+        allowedTypes: ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx'],
+        maxSize: 10
+      });
+      if (uploaded) {
+        finalFilePath = uploaded.path;
+        finalFileType = selectedFile.type;
+        newVersion = parseFloat((document.version + 0.1).toFixed(1)); // Increment version by 0.1 for file update
+      } else {
+        return; // Stop if file upload failed
+      }
+    }
+
     const updatedData = {
       title: formData.title,
       content: formData.content,
@@ -103,10 +172,10 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
       sub_department_code: formData.sub_department_code || undefined,
       document_type_code: formData.document_type_code,
       language_code: formData.language_code,
-      version: parseFloat(formData.version),
-      tags: formData.tags, // Include tags in the update
-      // Note: responsable is not directly mapped to backend Document model
-      // file_path and file_type are not handled in this edit dialog for simplicity
+      version: newVersion, // Use the new version
+      tags: formData.tags,
+      file_path: finalFilePath, // Include updated file path
+      file_type: finalFileType, // Include updated file type
     };
 
     updateDocument({ id: document.id, ...updatedData }, {
@@ -286,6 +355,8 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
                 value={formData.version}
                 onChange={(e) => setFormData(prev => ({ ...prev, version: e.target.value }))}
                 placeholder="1.0"
+                readOnly // Version is now managed automatically on file upload
+                className="bg-gray-100"
               />
             </div>
           </div>
@@ -338,6 +409,89 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
             />
           </div>
 
+          {/* File Upload Section for replacement */}
+          <div className="space-y-4">
+            <Label>Remplacer le fichier du document (optionnel)</Label>
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+              <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600 mb-2">
+                Glissez-déposez un nouveau fichier ici ou cliquez pour sélectionner
+              </p>
+              <p className="text-sm text-gray-500 mb-4">
+                Formats supportés: PDF, Word, Excel, PowerPoint (max 10MB)
+              </p>
+              <Input
+                type="file"
+                onChange={handleFileUpload}
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                className="hidden"
+                id="document-file-upload"
+                ref={fileInputRef}
+              />
+              <Label htmlFor="document-file-upload" className="cursor-pointer">
+                <Button type="button" variant="outline">
+                  Sélectionner un nouveau fichier
+                </Button>
+              </Label>
+            </div>
+
+            {(selectedFile || document?.file_path) && (
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">
+                      {selectedFile?.name || document?.file_path?.split('/').pop() || 'Fichier actuel'}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {selectedFile ? (selectedFile.size / 1024 / 1024).toFixed(2) + ' MB' : 'Fichier existant'}
+                    </p>
+                  </div>
+                  <div className="flex space-x-2">
+                    {(selectedFile && previewUrl) || (document?.file_path && getAbsoluteFilePath(document.file_path)) ? (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        type="button"
+                        onClick={() => window.open(selectedFile ? previewUrl! : getAbsoluteFilePath(document!.file_path!), '_blank')}
+                      >
+                        <Eye className="w-4 h-4 mr-2" />
+                        Prévisualiser
+                      </Button>
+                    ) : null}
+                    {document?.file_path && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        type="button"
+                        onClick={() => {
+                          const link = document.createElement('a');
+                          link.href = getAbsoluteFilePath(document.file_path!);
+                          link.download = document.title;
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                        }}
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Télécharger
+                      </Button>
+                    )}
+                    {selectedFile && ( // Only show remove button if a new file is selected
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        type="button"
+                        onClick={removeFile}
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Tag Input */}
           <div className="space-y-2">
             <Label htmlFor="tags">Tags</Label>
@@ -355,9 +509,9 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Annuler
             </Button>
-            <Button type="submit" disabled={isUpdating}>
+            <Button type="submit" disabled={isUpdating || isUploadingFile}>
               <Save className="w-4 h-4 mr-2" />
-              {isUpdating ? 'Mise à jour...' : 'Mettre à jour'}
+              {isUpdating || isUploadingFile ? 'Mise à jour...' : 'Mettre à jour'}
             </Button>
           </div>
         </form>
