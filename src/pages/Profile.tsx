@@ -1,3 +1,4 @@
+import React from 'react'; // Ajout de cette ligne
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,8 +17,8 @@ const Profile = () => {
   const { user } = useAuth();
   const { profile, isLoading, updateProfile, isUpdating } = useProfile();
   const [formData, setFormData] = useState({
-    firstName: '', // Changed from first_name
-    lastName: '',  // Changed from last_name
+    firstName: '',
+    lastName: '',
     email: '',
     phone: '',
     department: '',
@@ -26,8 +27,8 @@ const Profile = () => {
   useEffect(() => {
     if (profile) {
       setFormData({
-        firstName: profile.firstName || '', // Changed from first_name
-        lastName: profile.lastName || '',   // Changed from last_name
+        firstName: profile.firstName || '',
+        lastName: profile.lastName || '',
         email: profile.email || '',
         phone: profile.phone || '',
         department: profile.department || '',
@@ -207,8 +208,8 @@ const Profile = () => {
                     onClick={() => {
                       if (profile) {
                         setFormData({
-                          firstName: profile.firstName || '', // Changed from first_name
-                          lastName: profile.lastName || '',   // Changed from last_name
+                          firstName: profile.firstName || '',
+                          lastName: profile.lastName || '',
                           email: profile.email || '',
                           phone: profile.phone || '',
                           department: profile.department || '',
