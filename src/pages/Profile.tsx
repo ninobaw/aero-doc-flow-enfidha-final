@@ -16,8 +16,8 @@ const Profile = () => {
   const { user } = useAuth();
   const { profile, isLoading, updateProfile, isUpdating } = useProfile();
   const [formData, setFormData] = useState({
-    first_name: '',
-    last_name: '',
+    firstName: '', // Changed from first_name
+    lastName: '',  // Changed from last_name
     email: '',
     phone: '',
     department: '',
@@ -26,8 +26,8 @@ const Profile = () => {
   useEffect(() => {
     if (profile) {
       setFormData({
-        first_name: profile.first_name || '',
-        last_name: profile.last_name || '',
+        firstName: profile.firstName || '', // Changed from first_name
+        lastName: profile.lastName || '',   // Changed from last_name
         email: profile.email || '',
         phone: profile.phone || '',
         department: profile.department || '',
@@ -86,7 +86,7 @@ const Profile = () => {
                 <ProfilePhotoUpload profile={profile} />
                 <div className="text-center">
                   <h3 className="text-xl font-semibold">
-                    {profile?.first_name} {profile?.last_name}
+                    {profile?.firstName} {profile?.lastName}
                   </h3>
                   <Badge variant="secondary" className="mt-1">
                     {profile?.role}
@@ -109,11 +109,11 @@ const Profile = () => {
                   </div>
                   <div className="flex items-center space-x-2">
                     <Calendar className="w-4 h-4" />
-                    <span>Inscrit le {formatDate(profile?.created_at || '')}</span>
+                    <span>Inscrit le {formatDate(profile?.createdAt || '')}</span>
                   </div>
                 </div>
-              </div>
-            </CardContent>
+              </CardContent>
+            </Card>
           </Card>
 
           {/* Formulaire d'édition */}
@@ -131,21 +131,21 @@ const Profile = () => {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="first_name">Prénom *</Label>
+                    <Label htmlFor="firstName">Prénom *</Label>
                     <Input
-                      id="first_name"
-                      value={formData.first_name}
-                      onChange={(e) => handleInputChange('first_name', e.target.value)}
+                      id="firstName"
+                      value={formData.firstName}
+                      onChange={(e) => handleInputChange('firstName', e.target.value)}
                       required
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="last_name">Nom *</Label>
+                    <Label htmlFor="lastName">Nom *</Label>
                     <Input
-                      id="last_name"
-                      value={formData.last_name}
-                      onChange={(e) => handleInputChange('last_name', e.target.value)}
+                      id="lastName"
+                      value={formData.lastName}
+                      onChange={(e) => handleInputChange('lastName', e.target.value)}
                       required
                     />
                   </div>
@@ -207,8 +207,8 @@ const Profile = () => {
                     onClick={() => {
                       if (profile) {
                         setFormData({
-                          first_name: profile.first_name || '',
-                          last_name: profile.last_name || '',
+                          firstName: profile.firstName || '', // Changed from first_name
+                          lastName: profile.lastName || '',   // Changed from last_name
                           email: profile.email || '',
                           phone: profile.phone || '',
                           department: profile.department || '',
