@@ -12,8 +12,8 @@ import { Airport } from '@/shared/types';
 import { useDocumentCodeConfig } from '@/hooks/useDocumentCodeConfig';
 import { generateDocumentCodePreview, getAbsoluteFilePath, mapDocumentTypeCodeToDocumentTypeEnum } from '@/shared/utils';
 import { TagInput } from '@/components/ui/TagInput';
-import { useFileUpload } from '@/hooks/useFileUpload'; // Import useFileUpload
-import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
+import { useFileUpload } from '@/hooks/useFileUpload';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface EditDocumentDialogProps {
   document: DocumentData | null;
@@ -25,10 +25,10 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
   const { user } = useAuth();
   const { updateDocument, isUpdating } = useDocuments();
   const { config: codeConfig, isLoading: isLoadingCodeConfig } = useDocumentCodeConfig();
-  const { uploadFile, deleteFile, uploading: isUploadingFile } = useFileUpload(); // Use file upload hook
+  const { uploadFile, deleteFile, uploading: isUploadingFile } = useFileUpload();
   const { toast } = useToast();
 
-  const fileInputRef = useRef<HTMLInputElement>(null); // Ref for file input
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -38,7 +38,8 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
     sub_department_code: undefined as string | undefined,
     document_type_code: undefined as string | undefined,
     language_code: undefined as string | undefined,
-    version: '',
+    sequence_number: '', // Now user-provided
+    version: '', // Will be REV:X
     responsable: '',
     description: '',
     content: '',
@@ -58,31 +59,32 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
         sub_department_code: document.sub_department_code || undefined,
         document_type_code: document.document_type_code || undefined,
         language_code: document.language_code || undefined,
-        version: document.version?.toString() || '1.0',
-        responsable: '', // Assuming no 'responsable' field in DocumentData directly
-        description: document.content || '', // Using content as description for now
+        sequence_number: document.sequence_number?.toString() || '', // Set sequence number from document
+        version: `REV:${document.version || 0}`, // Display version as REV:X
+        responsable: '',
+        description: document.content || '',
         content: document.content || '',
         tags: document.tags || [],
       });
-      // Set initial preview URL if document has a file
       if (document.file_path) {
         setPreviewUrl(getAbsoluteFilePath(document.file_path));
       } else {
         setPreviewUrl(null);
       }
-      setSelectedFile(null); // Clear any previously selected file
+      setSelectedFile(null);
     }
   }, [document]);
 
-  // Memoized QR code preview for edit form
   const previewQrCodeEdit = useMemo(() => {
+    const seqNum = formData.sequence_number.padStart(3, '0');
     return generateDocumentCodePreview(
       formData.company_code,
       formData.airport,
       formData.department_code,
       formData.sub_department_code,
       formData.document_type_code,
-      formData.language_code
+      formData.language_code,
+      seqNum
     );
   }, [
     formData.company_code,
@@ -91,6 +93,7 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
     formData.sub_department_code,
     formData.document_type_code,
     formData.language_code,
+    formData.sequence_number
   ]);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -119,7 +122,7 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
     setSelectedFile(null);
     setPreviewUrl(null);
     if (fileInputRef.current) {
-      fileInputRef.current.value = ''; // Clear the file input value
+      fileInputRef.current.value = '';
     }
   };
 
@@ -128,10 +131,10 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
 
     if (!document) return;
 
-    if (!formData.title.trim() || !formData.airport || !formData.document_type_code || !formData.department_code || !formData.language_code) {
+    if (!formData.title.trim() || !formData.airport || !formData.document_type_code || !formData.department_code || !formData.language_code || !formData.sequence_number.trim()) {
       toast({
         title: 'Champs manquants',
-        description: 'Veuillez remplir tous les champs obligatoires (Titre, Aéroport, Type de document, Département, Langue).',
+        description: 'Veuillez remplir tous les champs obligatoires (Titre, Aéroport, Type de document, Département, Langue, Numéro de document).',
         variant: 'destructive',
       });
       return;
@@ -139,14 +142,13 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
 
     let finalFilePath: string | undefined = document.file_path;
     let finalFileType: string | undefined = document.file_type;
-    let newVersion = parseFloat(formData.version);
+    let newVersion = document.version; // Start with current version
 
     if (selectedFile) {
-      // Determine the document type enum for file upload options
       const documentTypeEnum = mapDocumentTypeCodeToDocumentTypeEnum(formData.document_type_code!);
 
       const uploaded = await uploadFile(selectedFile, {
-        documentType: documentTypeEnum, // Use mapped type for folder
+        documentType: documentTypeEnum,
         scopeCode: formData.airport,
         departmentCode: formData.department_code,
         documentTypeCode: formData.document_type_code,
@@ -154,7 +156,6 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
         maxSize: 10
       });
       if (uploaded) {
-        // If a new file was successfully uploaded, delete the old one if it exists
         if (document.file_path) {
           const oldFileDeleted = await deleteFile(document.file_path);
           if (!oldFileDeleted) {
@@ -163,9 +164,9 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
         }
         finalFilePath = uploaded.path;
         finalFileType = selectedFile.type;
-        newVersion = parseFloat((document.version + 0.1).toFixed(1)); // Increment version by 0.1 for file update
+        newVersion = (document.version || 0) + 1; // Increment version by 1 for file update
       } else {
-        return; // Stop if file upload failed
+        return;
       }
     }
 
@@ -179,10 +180,11 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
       sub_department_code: formData.sub_department_code || undefined,
       document_type_code: formData.document_type_code,
       language_code: formData.language_code,
+      sequence_number: parseInt(formData.sequence_number), // Pass as number
       version: newVersion, // Use the new version
       tags: formData.tags,
-      file_path: finalFilePath, // Include updated file path
-      file_type: finalFileType, // Include updated file type
+      file_path: finalFilePath,
+      file_type: finalFileType,
     };
 
     updateDocument({ id: document.id, ...updatedData }, {
@@ -209,7 +211,6 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
     );
   }
 
-  // Determine initial department code based on user's department for disabling logic
   const initialDepartmentCode = useMemo(() => {
     if (user && codeConfig?.departments) {
       const foundDept = codeConfig.departments.find(d => d.label === user.department);
@@ -252,7 +253,7 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
 
             <div className="space-y-2">
               <Label htmlFor="airport">Aéroport (Scope) *</Label>
-              <Select 
+              <Select
                 value={formData.airport}
                 onValueChange={(value: Airport) => setFormData(prev => ({ ...prev, airport: value }))}
                 required
@@ -356,14 +357,15 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="version">Version</Label>
+              <Label htmlFor="sequence_number">Numéro de document *</Label>
               <Input
-                id="version"
-                value={formData.version}
-                onChange={(e) => setFormData(prev => ({ ...prev, version: e.target.value }))}
-                placeholder="1.0"
-                readOnly // Version is now managed automatically on file upload
-                className="bg-gray-100"
+                id="sequence_number"
+                type="number"
+                value={formData.sequence_number}
+                onChange={(e) => setFormData(prev => ({ ...prev, sequence_number: e.target.value }))}
+                placeholder="Ex: 001"
+                required
+                min="1"
               />
             </div>
           </div>
@@ -392,6 +394,19 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
                 Ce code sera généré si les champs de codification sont modifiés.
               </p>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="version">Version</Label>
+            <Input
+              id="version"
+              value={formData.version}
+              readOnly
+              className="bg-gray-100"
+            />
+            <p className="text-xs text-gray-500">
+              La version est incrémentée automatiquement lors du remplacement du fichier.
+            </p>
           </div>
 
           <div className="space-y-2">
