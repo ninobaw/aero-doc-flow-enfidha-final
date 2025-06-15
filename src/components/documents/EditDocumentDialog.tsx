@@ -1,19 +1,20 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Save, FileText, Upload, Eye, X, Download } from 'lucide-react';
+import { Save, FileText } from 'lucide-react';
 import { useDocuments, DocumentData } from '@/hooks/useDocuments';
 import { useToast } from '@/hooks/use-toast';
-import { Airport } from '@/shared/types';
 import { useDocumentCodeConfig } from '@/hooks/useDocumentCodeConfig';
-import { generateDocumentCodePreview, getAbsoluteFilePath, mapDocumentTypeCodeToDocumentTypeEnum } from '@/shared/utils';
-import { TagInput } from '@/components/ui/TagInput';
+import { mapDocumentTypeCodeToDocumentTypeEnum } from '@/shared/utils';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useAuth } from '@/contexts/AuthContext';
+
+// Import new modular sections
+import { DocumentMetadataForm } from './edit-dialog-sections/DocumentMetadataForm';
+import { DocumentCodePreviewSection } from './edit-dialog-sections/DocumentCodePreviewSection';
+import { DocumentContentSection } from './edit-dialog-sections/DocumentContentSection';
+import { DocumentFileManagement } from './edit-dialog-sections/DocumentFileManagement';
+import { DocumentTagsInput } from './edit-dialog-sections/DocumentTagsInput';
 
 interface EditDocumentDialogProps {
   document: DocumentData | null;
@@ -33,14 +34,13 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
   const [formData, setFormData] = useState({
     title: '',
     company_code: '',
-    airport: undefined as Airport | undefined,
+    airport: undefined as string | undefined, // Use string for Airport type in form state
     department_code: undefined as string | undefined,
     sub_department_code: undefined as string | undefined,
     document_type_code: undefined as string | undefined,
     language_code: undefined as string | undefined,
-    sequence_number: '', // Now user-provided
-    version: '', // Will be REV:X
-    responsable: '',
+    sequence_number: '',
+    version: '',
     description: '',
     content: '',
     tags: [] as string[],
@@ -59,15 +59,16 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
         sub_department_code: document.sub_department_code || undefined,
         document_type_code: document.document_type_code || undefined,
         language_code: document.language_code || undefined,
-        sequence_number: document.sequence_number?.toString() || '', // Set sequence number from document
-        version: `REV:${document.version || 0}`, // Display version as REV:X
-        responsable: '',
+        sequence_number: document.sequence_number?.toString() || '',
+        version: `REV:${document.version || 0}`,
         description: document.content || '',
         content: document.content || '',
         tags: document.tags || [],
       });
       if (document.file_path) {
-        setPreviewUrl(getAbsoluteFilePath(document.file_path));
+        // Set initial preview URL if document has a file
+        // Note: getAbsoluteFilePath is imported in utils, but needs to be passed down or re-imported if used directly in sub-components
+        setPreviewUrl(document.file_path); // Store relative path, absolute path generated in DocumentFileManagement
       } else {
         setPreviewUrl(null);
       }
@@ -77,15 +78,15 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
 
   const previewQrCodeEdit = useMemo(() => {
     const seqNum = formData.sequence_number.padStart(3, '0');
-    return generateDocumentCodePreview(
-      formData.company_code,
-      formData.airport,
-      formData.department_code,
-      formData.sub_department_code,
-      formData.document_type_code,
-      formData.language_code,
-      seqNum
-    );
+    // This utility function needs to be aware of the full path construction
+    // For now, it generates a preview string based on form data
+    const company = formData.company_code || 'COMP';
+    const scope = formData.airport || 'SCOPE';
+    const dept = formData.department_code || 'DEPT';
+    const subDept = formData.sub_department_code ? `-${formData.sub_department_code}` : '';
+    const docType = formData.document_type_code || 'TYPE';
+    const lang = formData.language_code || 'LANG';
+    return `${company}-${scope}-${dept}${subDept}-${docType}-${seqNum}-${lang}`;
   }, [
     formData.company_code,
     formData.airport,
@@ -101,22 +102,16 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
     if (file) {
       setSelectedFile(file);
       if (file.type.startsWith('image/') || file.type === 'application/pdf') {
-        if (previewUrl) {
-          URL.revokeObjectURL(previewUrl);
-        }
         const url = URL.createObjectURL(file);
         setPreviewUrl(url);
       } else {
-        if (previewUrl) {
-          URL.revokeObjectURL(previewUrl);
-        }
         setPreviewUrl(null);
       }
     }
   };
 
   const removeFile = () => {
-    if (previewUrl) {
+    if (previewUrl && previewUrl.startsWith('blob:')) { // Only revoke if it's a blob URL
       URL.revokeObjectURL(previewUrl);
     }
     setSelectedFile(null);
@@ -142,7 +137,7 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
 
     let finalFilePath: string | undefined = document.file_path;
     let finalFileType: string | undefined = document.file_type;
-    let newVersion = document.version; // Start with current version
+    let newVersion = document.version;
 
     if (selectedFile) {
       const documentTypeEnum = mapDocumentTypeCodeToDocumentTypeEnum(formData.document_type_code!);
@@ -164,7 +159,7 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
         }
         finalFilePath = uploaded.path;
         finalFileType = selectedFile.type;
-        newVersion = (document.version || 0) + 1; // Increment version by 1 for file update
+        newVersion = (document.version || 0) + 1;
       } else {
         return;
       }
@@ -180,8 +175,8 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
       sub_department_code: formData.sub_department_code || undefined,
       document_type_code: formData.document_type_code,
       language_code: formData.language_code,
-      sequence_number: parseInt(formData.sequence_number), // Pass as number
-      version: newVersion, // Use the new version
+      sequence_number: parseInt(formData.sequence_number),
+      version: newVersion,
       tags: formData.tags,
       file_path: finalFilePath,
       file_type: finalFileType,
@@ -229,303 +224,36 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="title">Titre du document *</Label>
-              <Input
-                id="title"
-                value={formData.title}
-                onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="Entrez le titre du document"
-                required
-              />
-            </div>
+          <DocumentMetadataForm
+            formData={formData}
+            setFormData={setFormData}
+            user={user}
+            initialDepartmentCode={initialDepartmentCode}
+          />
 
-            <div className="space-y-2">
-              <Label htmlFor="company_code">Code Société</Label>
-              <Input
-                id="company_code"
-                value={formData.company_code}
-                onChange={(e) => setFormData(prev => ({ ...prev, company_code: e.target.value }))}
-                placeholder="Ex: TAVTUN"
-              />
-            </div>
+          <DocumentCodePreviewSection
+            document={document}
+            previewQrCodeEdit={previewQrCodeEdit}
+          />
 
-            <div className="space-y-2">
-              <Label htmlFor="airport">Aéroport (Scope) *</Label>
-              <Select
-                value={formData.airport}
-                onValueChange={(value: Airport) => setFormData(prev => ({ ...prev, airport: value }))}
-                required
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner un aéroport" />
-                </SelectTrigger>
-                <SelectContent>
-                  {codeConfig?.scopes.map(scope => (
-                    <SelectItem key={scope.code} value={scope.code}>
-                      {scope.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <DocumentContentSection
+            formData={formData}
+            setFormData={setFormData}
+          />
 
-            <div className="space-y-2">
-              <Label htmlFor="document_type_code">Type de document *</Label>
-              <Select
-                value={formData.document_type_code}
-                onValueChange={(value: string) => setFormData(prev => ({ ...prev, document_type_code: value }))}
-                required
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner un type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {codeConfig?.documentTypes.map(docType => (
-                    <SelectItem key={docType.code} value={docType.code}>
-                      {docType.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <DocumentFileManagement
+            document={document}
+            selectedFile={selectedFile}
+            previewUrl={previewUrl}
+            fileInputRef={fileInputRef}
+            handleFileUpload={handleFileUpload}
+            removeFile={removeFile}
+          />
 
-            <div className="space-y-2">
-              <Label htmlFor="department_code">Département *</Label>
-              <Select
-                value={formData.department_code}
-                onValueChange={(value: string) => setFormData(prev => ({ ...prev, department_code: value }))}
-                required
-                disabled={!!user?.department && formData.department_code === initialDepartmentCode && initialDepartmentCode !== undefined}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner un département" />
-                </SelectTrigger>
-                <SelectContent>
-                  {codeConfig?.departments.map(dept => (
-                    <SelectItem key={dept.code} value={dept.code}>
-                      {dept.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {user?.department && initialDepartmentCode !== undefined && (
-                <p className="text-xs text-gray-500">
-                  Département pré-rempli ({user.department})
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="sub_department_code">Sous-département</Label>
-              <Select
-                value={formData.sub_department_code}
-                onValueChange={(value: string) => setFormData(prev => ({ ...prev, sub_department_code: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner un sous-département" />
-                </SelectTrigger>
-                <SelectContent>
-                  {codeConfig?.subDepartments.map(subDept => (
-                    <SelectItem key={subDept.code} value={subDept.code}>
-                      {subDept.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="language_code">Langue *</Label>
-              <Select
-                value={formData.language_code}
-                onValueChange={(value: string) => setFormData(prev => ({ ...prev, language_code: value }))}
-                required
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner une langue" />
-                </SelectTrigger>
-                <SelectContent>
-                  {codeConfig?.languages.map(lang => (
-                    <SelectItem key={lang.code} value={lang.code}>
-                      {lang.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="sequence_number">Numéro de document *</Label>
-              <Input
-                id="sequence_number"
-                type="number"
-                value={formData.sequence_number}
-                onChange={(e) => setFormData(prev => ({ ...prev, sequence_number: e.target.value }))}
-                placeholder="Ex: 001"
-                required
-                min="1"
-              />
-            </div>
-          </div>
-
-          {/* Existing QR Code and Preview of New Code */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Code QR Actuel</Label>
-              <Input
-                value={document?.qr_code || 'N/A'}
-                readOnly
-                className="font-mono bg-gray-100 text-gray-700"
-              />
-              <p className="text-xs text-gray-500">
-                Code QR attribué à ce document.
-              </p>
-            </div>
-            <div className="space-y-2">
-              <Label>Prévisualisation du Nouveau Code</Label>
-              <Input
-                value={previewQrCodeEdit}
-                readOnly
-                className="font-mono bg-gray-100 text-gray-700"
-              />
-              <p className="text-xs text-gray-500">
-                Ce code sera généré si les champs de codification sont modifiés.
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="version">Version</Label>
-            <Input
-              id="version"
-              value={formData.version}
-              readOnly
-              className="bg-gray-100"
-            />
-            <p className="text-xs text-gray-500">
-              La version est incrémentée automatiquement lors du remplacement du fichier.
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Description détaillée du document..."
-              rows={4}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="content">Contenu du document</Label>
-            <Textarea
-              id="content"
-              value={formData.content}
-              onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-              placeholder="Saisissez le contenu complet du document..."
-              rows={8}
-            />
-          </div>
-
-          {/* File Upload Section for replacement */}
-          <div className="space-y-4">
-            <Label>Remplacer le fichier du document (optionnel)</Label>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-              <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600 mb-2">
-                Glissez-déposez un nouveau fichier ici ou cliquez pour sélectionner
-              </p>
-              <p className="text-sm text-gray-500 mb-4">
-                Formats supportés: PDF, Word, Excel, PowerPoint (max 10MB)
-              </p>
-              <Input
-                type="file"
-                onChange={handleFileUpload}
-                accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
-                className="hidden"
-                id="document-file-upload"
-                ref={fileInputRef}
-              />
-              <Label htmlFor="document-file-upload" className="cursor-pointer">
-                <Button type="button" variant="outline">
-                  Sélectionner un nouveau fichier
-                </Button>
-              </Label>
-            </div>
-
-            {(selectedFile || document?.file_path) && (
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">
-                      {selectedFile?.name || document?.file_path?.split('/').pop() || 'Fichier actuel'}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {selectedFile ? (selectedFile.size / 1024 / 1024).toFixed(2) + ' MB' : 'Fichier existant'}
-                    </p>
-                  </div>
-                  <div className="flex space-x-2">
-                    {(selectedFile && previewUrl) || (document?.file_path && getAbsoluteFilePath(document.file_path)) ? (
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        type="button"
-                        onClick={() => window.open(selectedFile ? previewUrl! : getAbsoluteFilePath(document!.file_path!), '_blank')}
-                      >
-                        <Eye className="w-4 h-4 mr-2" />
-                        Prévisualiser
-                      </Button>
-                    ) : null}
-                    {document?.file_path && (
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        type="button"
-                        onClick={() => {
-                          const link = document.createElement('a');
-                          link.href = getAbsoluteFilePath(document.file_path!);
-                          link.download = document.title;
-                          document.body.appendChild(link);
-                          link.click();
-                          document.body.removeChild(link);
-                        }}
-                      >
-                        <Download className="w-4 h-4 mr-2" />
-                        Télécharger
-                      </Button>
-                    )}
-                    {selectedFile && ( // Only show remove button if a new file is selected
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        type="button"
-                        onClick={removeFile}
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Tag Input */}
-          <div className="space-y-2">
-            <Label htmlFor="tags">Tags</Label>
-            <TagInput
-              tags={formData.tags}
-              onTagsChange={(newTags) => setFormData(prev => ({ ...prev, tags: newTags }))}
-              placeholder="Ajouter des tags (ex: sécurité, maintenance)"
-            />
-            <p className="text-xs text-gray-500">
-              Appuyez sur Entrée pour ajouter un tag.
-            </p>
-          </div>
+          <DocumentTagsInput
+            formData={formData}
+            setFormData={setFormData}
+          />
 
           <div className="flex justify-end space-x-2 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
