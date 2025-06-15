@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
+import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
 
 const API_BASE_URL = 'http://localhost:5000/api';
 
@@ -29,13 +30,35 @@ export interface DashboardActivity {
 }
 
 export const useDashboard = () => {
+  const { user } = useAuth(); // Get the current user from AuthContext
+
   const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: ['dashboard-stats'],
+    queryKey: ['dashboard-stats', user?.id, user?.role], // Include user ID and role in query key
     queryFn: async (): Promise<DashboardStats> => {
       try {
+        if (!user?.id) {
+          // If no user is logged in, return default empty stats
+          return {
+            totalDocuments: 0,
+            activeUsers: 0,
+            completedActions: 0,
+            pendingActions: 0,
+            documentsThisMonth: 0,
+            averageCompletionTime: 0,
+            recentDocuments: [],
+            urgentActions: [],
+            activityLogs: [],
+          };
+        }
+
         console.log('Fetching dashboard stats from backend...');
-        // Fetch all necessary data from the new aggregated dashboard endpoint
-        const response = await axios.get(`${API_BASE_URL}/dashboard/stats`);
+        // Pass userId and userRole as query parameters
+        const response = await axios.get(`${API_BASE_URL}/dashboard/stats`, {
+          params: {
+            userId: user.id,
+            userRole: user.role,
+          },
+        });
         const dashboardData = response.data;
 
         console.log('Dashboard data from backend:', dashboardData);
@@ -66,6 +89,7 @@ export const useDashboard = () => {
         };
       }
     },
+    enabled: !!user?.id, // Only enable query if user ID is available
   });
 
   return {

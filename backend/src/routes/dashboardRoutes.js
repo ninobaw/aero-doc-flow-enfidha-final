@@ -9,8 +9,36 @@ const router = Router();
 // GET /api/dashboard/stats
 router.get('/stats', async (req, res) => {
   try {
+    const { userId, userRole } = req.query; // Get userId and userRole from query parameters
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    let documentFilter = {};
+    let actionFilter = {};
+    let activityLogFilter = {};
+
+    // Apply specific filters for 'AGENT_BUREAU_ORDRE' role
+    if (userRole === 'AGENT_BUREAU_ORDRE') {
+      // For Agent Bureau d'Ordre:
+      // Recent Documents: Only correspondences OR documents created by this user
+      documentFilter = {
+        $or: [
+          { type: 'CORRESPONDANCE' },
+          { authorId: userId }
+        ]
+      };
+      // Urgent Actions: Only actions assigned to this user
+      actionFilter = {
+        assignedTo: userId,
+        priority: 'URGENT',
+        status: { $ne: 'COMPLETED' }
+      };
+      // Activity Logs: Only logs related to this user
+      activityLogFilter = { userId: userId };
+    } else {
+      // Default filters for other roles (or if no specific role filter is needed)
+      actionFilter = { priority: 'URGENT', status: { $ne: 'COMPLETED' } };
+    }
 
     // Fetch all data concurrently
     const [
@@ -23,14 +51,14 @@ router.get('/stats', async (req, res) => {
       urgentActions,
       activityLogs
     ] = await Promise.all([
-      Document.countDocuments({}),
+      Document.countDocuments(documentFilter), // Apply document filter
       User.countDocuments({ isActive: true }),
       Action.countDocuments({ status: 'COMPLETED' }),
       Action.countDocuments({ status: 'PENDING' }),
-      Document.countDocuments({ createdAt: { $gte: startOfMonth } }),
-      Document.find({}).sort({ createdAt: -1 }).limit(3).populate('authorId', 'firstName lastName'),
-      Action.find({ priority: 'URGENT', status: { $ne: 'COMPLETED' } }).sort({ dueDate: 1 }).limit(3).populate('assignedTo', 'firstName lastName'),
-      ActivityLog.find({}).sort({ timestamp: -1 }).limit(4).populate('userId', 'firstName lastName'),
+      Document.countDocuments({ createdAt: { $gte: startOfMonth }, ...documentFilter }), // Apply document filter
+      Document.find(documentFilter).sort({ createdAt: -1 }).limit(3).populate('authorId', 'firstName lastName'), // Apply document filter
+      Action.find(actionFilter).sort({ dueDate: 1 }).limit(3).populate('assignedTo', 'firstName lastName'), // Apply action filter
+      ActivityLog.find(activityLogFilter).sort({ timestamp: -1 }).limit(4).populate('userId', 'firstName lastName'), // Apply activity log filter
     ]);
 
     // Calculate average completion time for actions
