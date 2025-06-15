@@ -1,4 +1,4 @@
-manquante pour résoudre les problèmes de correspondance des balises.">
+'.">
 import React from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -114,7 +114,7 @@ const Profile = () => {
                     <span>Inscrit le {formatDate(profile?.createdAt || '')}</span>
                   </div>
                 </div>
-              </div> {/* <-- C'est la balise </div> manquante qui a été ajoutée ici */}
+              </div>
             </CardContent>
           </Card>
 
