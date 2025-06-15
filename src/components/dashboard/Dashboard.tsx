@@ -14,6 +14,11 @@ import {
 import { useDashboard } from '@/hooks/useDashboard';
 import { formatDate } from '@/shared/utils';
 import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
+import { DocumentCreationChart } from './charts/DocumentCreationChart'; // New import
+import { DocumentTypeDistribution } from './charts/DocumentTypeDistribution'; // New import
+import { CorrespondenceCreationChart } from './charts/CorrespondenceCreationChart'; // New import
+import { CorrespondenceTypeDistribution } from './charts/CorrespondenceTypeDistribution'; // New import
+import { CorrespondencePriorityDistribution } from './charts/CorrespondencePriorityDistribution'; // New import
 
 export const Dashboard = () => {
   const { stats, isLoading } = useDashboard();
@@ -119,6 +124,23 @@ export const Dashboard = () => {
           </Card>
         ))}
       </div>
+
+      {/* Nouveaux graphiques pour documents et correspondances */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <DocumentCreationChart data={stats.documentsCreatedMonthly} isLoading={isLoading} />
+        <DocumentTypeDistribution data={stats.documentsByTypeStats} isLoading={isLoading} />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <CorrespondenceCreationChart data={stats.correspondencesCreatedMonthly} isLoading={isLoading} />
+        <CorrespondenceTypeDistribution data={stats.correspondencesByTypeStats} isLoading={isLoading} />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <CorrespondencePriorityDistribution data={stats.correspondencesByPriorityStats} isLoading={isLoading} />
+        {/* Vous pouvez ajouter d'autres graphiques ici si nécessaire */}
+      </div>
+
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Documents récents */}
