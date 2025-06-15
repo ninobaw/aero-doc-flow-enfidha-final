@@ -9,7 +9,7 @@ import { useUsers } from '@/hooks/useUsers';
 import { useToast } from '@/hooks/use-toast';
 import { Airport } from '@/shared/types'; // Import Airport type
 
-type UserRole = 'SUPER_ADMIN' | 'ADMINISTRATOR' | 'APPROVER' | 'USER' | 'VISITOR';
+type UserRole = 'SUPER_ADMIN' | 'ADMINISTRATOR' | 'APPROVER' | 'USER' | 'VISITOR' | 'AGENT_BUREAU_ORDRE'; // Updated type
 
 interface EditUserDialogProps {
   user: any;
@@ -152,6 +152,7 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, open, onOp
                   <SelectItem value="APPROVER">Approbateur</SelectItem>
                   <SelectItem value="USER">Utilisateur</SelectItem>
                   <SelectItem value="VISITOR">Visiteur</SelectItem>
+                  <SelectItem value="AGENT_BUREAU_ORDRE">Agent Bureau d'Ordre</SelectItem>
                 </SelectContent>
               </Select>
             </div>

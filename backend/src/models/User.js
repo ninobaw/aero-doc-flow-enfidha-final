@@ -8,7 +8,7 @@ const UserSchema = new Schema({
   password: { type: String, required: true },
   role: { 
     type: String, 
-    enum: ['SUPER_ADMIN', 'ADMINISTRATOR', 'APPROVER', 'USER', 'VISITOR'], 
+    enum: ['SUPER_ADMIN', 'ADMINISTRATOR', 'APPROVER', 'USER', 'VISITOR', 'AGENT_BUREAU_ORDRE'], // Added AGENT_BUREAU_ORDRE
     default: 'USER' 
   },
   profilePhoto: { type: String },
