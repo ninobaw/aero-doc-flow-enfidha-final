@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,7 +11,7 @@ import { useFileUpload } from '@/hooks/useFileUpload';
 import { useToast } from '@/hooks/use-toast';
 import { Airport } from '@/shared/types';
 import { useDocumentCodeConfig } from '@/hooks/useDocumentCodeConfig';
-import { generateDocumentCodePreview, mapDocumentTypeCodeToDocumentTypeEnum, getAbsoluteFilePath } from '@/shared/utils'; // Import getAbsoluteFilePath
+import { generateDocumentCodePreview, mapDocumentTypeCodeToDocumentTypeEnum, getAbsoluteFilePath } from '@/shared/utils';
 import { useNavigate } from 'react-router-dom';
 import { useTemplates } from '@/hooks/useTemplates';
 
@@ -19,7 +19,7 @@ export const DocumentImportForm: React.FC = () => {
   const { user } = useAuth();
   const { createDocument, isCreating } = useDocuments();
   const { uploadFile, copyTemplate, uploading: isUploadingFile } = useFileUpload();
-  const { config: codeConfig } = useDocumentCodeConfig();
+  const { config: codeConfig, isLoading: isLoadingCodeConfig } = useDocumentCodeConfig();
   const { templates, isLoading: isLoadingTemplates } = useTemplates();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -44,6 +44,8 @@ export const DocumentImportForm: React.FC = () => {
     sub_department_code: undefined as string | undefined,
     document_type_code: undefined as string | undefined,
     language_code: undefined as string | undefined,
+    sequence_number: '', // Now user-provided
+    version: 'REV:0', // Initial version for new documents
     description: ''
   });
 
@@ -65,13 +67,16 @@ export const DocumentImportForm: React.FC = () => {
   }, [user, codeConfig]);
 
   const previewQrCodeImport = useMemo(() => {
+    // Use user-provided sequence_number for preview
+    const seqNum = importData.sequence_number.padStart(3, '0');
     return generateDocumentCodePreview(
       importData.company_code,
       importData.airport,
       importData.department_code,
       importData.sub_department_code,
       importData.document_type_code,
-      importData.language_code
+      importData.language_code,
+      seqNum // Pass padded sequence number
     );
   }, [
     importData.company_code,
@@ -80,6 +85,7 @@ export const DocumentImportForm: React.FC = () => {
     importData.sub_department_code,
     importData.document_type_code,
     importData.language_code,
+    importData.sequence_number
   ]);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -144,10 +150,10 @@ export const DocumentImportForm: React.FC = () => {
       return;
     }
 
-    if (!importData.title.trim() || !importData.airport || !importData.document_type_code || !importData.department_code || !importData.language_code) {
+    if (!importData.title.trim() || !importData.airport || !importData.document_type_code || !importData.department_code || !importData.language_code || !importData.sequence_number.trim()) {
       toast({
         title: 'Champs manquants',
-        description: 'Veuillez remplir tous les champs obligatoires.',
+        description: 'Veuillez remplir tous les champs obligatoires (Titre, Aéroport, Type de document, Département, Langue, Numéro de document).',
         variant: 'destructive',
       });
       return;
@@ -157,8 +163,13 @@ export const DocumentImportForm: React.FC = () => {
     let finalFileType: string | undefined;
 
     if (selectedFile) {
+      const documentTypeEnum = mapDocumentTypeCodeToDocumentTypeEnum(importData.document_type_code!);
+
       const uploaded = await uploadFile(selectedFile, {
-        documentType: mapDocumentTypeCodeToDocumentTypeEnum(importData.document_type_code), // Use mapped type for folder
+        documentType: documentTypeEnum, // Use mapped type for folder
+        scopeCode: importData.airport,
+        departmentCode: importData.department_code,
+        documentTypeCode: importData.document_type_code,
         allowedTypes: ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx'],
         maxSize: 10
       });
@@ -171,7 +182,13 @@ export const DocumentImportForm: React.FC = () => {
     } else if (selectedTemplateId) {
       const template = templates.find(t => t.id === selectedTemplateId);
       if (template && template.file_path && template.file_type) {
-        const copied = await copyTemplate(template.file_path, mapDocumentTypeCodeToDocumentTypeEnum(importData.document_type_code)); // Copy template to new document type folder
+        const documentTypeEnum = mapDocumentTypeCodeToDocumentTypeEnum(importData.document_type_code!);
+        const copied = await copyTemplate(template.file_path, {
+          documentType: documentTypeEnum, // Copy template to new document type folder
+          scopeCode: importData.airport,
+          departmentCode: importData.department_code,
+          documentTypeCode: importData.document_type_code,
+        });
         if (copied) {
           finalFilePath = copied.path;
           finalFileType = template.file_type;
@@ -206,6 +223,10 @@ export const DocumentImportForm: React.FC = () => {
       sub_department_code: importData.sub_department_code || undefined,
       document_type_code: importData.document_type_code,
       language_code: importData.language_code,
+      sequence_number: parseInt(importData.sequence_number), // Pass as number
+      version: 0, // Set initial version to 0 (REV:0)
+      file_path: finalFilePath,
+      file_type: finalFileType,
     };
 
     createDocument(documentData, {
@@ -218,6 +239,15 @@ export const DocumentImportForm: React.FC = () => {
       }
     });
   };
+
+  if (isLoadingCodeConfig) {
+    return (
+      <div className="flex items-center justify-center min-h-[200px]">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-aviation-sky"></div>
+        <p className="ml-4 text-gray-600">Chargement de la configuration...</p>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleFileSubmit} className="space-y-6">
@@ -347,6 +377,19 @@ export const DocumentImportForm: React.FC = () => {
             </SelectContent>
           </Select>
         </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="sequence_number_import">Numéro de document *</Label>
+          <Input
+            id="sequence_number_import"
+            type="number"
+            value={importData.sequence_number}
+            onChange={(e) => setImportData(prev => ({ ...prev, sequence_number: e.target.value }))}
+            placeholder="Ex: 001"
+            required
+            min="1"
+          />
+        </div>
       </div>
 
       {/* Document Code Preview for Import */}
@@ -358,7 +401,20 @@ export const DocumentImportForm: React.FC = () => {
           className="font-mono bg-gray-100 text-gray-700"
         />
         <p className="text-xs text-gray-500">
-          Ce code sera généré automatiquement lors de la sauvegarde. Le numéro de séquence sera attribué par le système.
+          Ce code sera généré automatiquement lors de la sauvegarde.
+        </p>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="version_import">Version</Label>
+        <Input
+          id="version_import"
+          value={importData.version}
+          readOnly
+          className="bg-gray-100"
+        />
+        <p className="text-xs text-gray-500">
+          La version initiale d'un nouveau document est toujours REV:0.
         </p>
       </div>
 
@@ -439,17 +495,17 @@ export const DocumentImportForm: React.FC = () => {
                 </p>
               </div>
               <div className="flex space-x-2">
-                {previewUrl && (
+                {(selectedFile && previewUrl) || (selectedTemplateId && previewUrl) ? (
                   <Button 
                     variant="outline" 
                     size="sm" 
                     type="button"
-                    onClick={() => window.open(previewUrl, '_blank')}
+                    onClick={() => window.open(previewUrl!, '_blank')}
                   >
                     <Eye className="w-4 h-4 mr-2" />
                     Prévisualiser
                   </Button>
-                )}
+                ) : null}
                 <Button 
                   variant="outline" 
                   size="sm" 
@@ -473,7 +529,7 @@ export const DocumentImportForm: React.FC = () => {
         </Button>
         <Button
           type="submit"
-          disabled={isCreating || isUploadingFile || !importData.title.trim() || !importData.airport || !importData.document_type_code || !importData.department_code || !importData.language_code || (!selectedFile && !selectedTemplateId)}
+          disabled={isCreating || isUploadingFile || !importData.title.trim() || !importData.airport || !importData.document_type_code || !importData.department_code || !importData.language_code || !importData.sequence_number.trim() || (!selectedFile && !selectedTemplateId)}
           className="bg-aviation-sky hover:bg-aviation-sky-dark"
         >
           <Save className="w-4 h-4 mr-2" />
