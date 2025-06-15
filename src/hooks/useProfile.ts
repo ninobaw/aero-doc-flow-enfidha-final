@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { getAbsoluteFilePath } from '@/shared/utils';
 
 const API_BASE_URL = 'http://localhost:5000/api';
 
@@ -13,7 +14,7 @@ export interface ProfileData {
   phone?: string;
   department?: string;
   position?: string;
-  profilePhoto?: string;
+  profilePhoto?: string; // This will now store the relative path
   airport: 'ENFIDHA' | 'MONASTIR' | 'GENERALE';
   role: 'SUPER_ADMIN' | 'ADMINISTRATOR' | 'APPROVER' | 'USER' | 'VISITOR';
   isActive: boolean;
@@ -23,7 +24,7 @@ export interface ProfileData {
 
 export const useProfile = () => {
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth(); // Get refreshUser from AuthContext
 
   console.log('useProfile: user from AuthContext:', user);
 
@@ -39,6 +40,7 @@ export const useProfile = () => {
       console.log(`useProfile: Fetching profile for user ID: ${user.id}`);
       const response = await axios.get(`${API_BASE_URL}/users/${user.id}`);
       console.log('useProfile: Profile data fetched:', response.data);
+      // Ensure profilePhoto is stored as relative path, but returned as is from backend
       return response.data as ProfileData;
     },
     enabled: !!user?.id,
@@ -55,7 +57,9 @@ export const useProfile = () => {
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      // Removed queryClient.invalidateQueries({ queryKey: ['profile'] });
+      // Rely solely on refreshUser to update the AuthContext's user state
+      refreshUser(); 
       toast({
         title: 'Profil mis à jour',
         description: 'Votre profil a été mis à jour avec succès.',
