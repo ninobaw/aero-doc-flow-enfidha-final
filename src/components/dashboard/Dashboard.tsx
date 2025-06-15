@@ -13,9 +13,11 @@ import {
 } from 'lucide-react';
 import { useDashboard } from '@/hooks/useDashboard';
 import { formatDate } from '@/shared/utils';
+import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
 
 export const Dashboard = () => {
   const { stats, isLoading } = useDashboard();
+  const { user } = useAuth(); // Get the current user
 
   if (isLoading) {
     return (
@@ -39,7 +41,7 @@ export const Dashboard = () => {
     );
   }
 
-  const dashboardStats = [
+  let dashboardStats = [
     {
       title: 'Total Documents',
       value: stats?.totalDocuments?.toString() || '0',
@@ -69,6 +71,11 @@ export const Dashboard = () => {
       color: 'text-aviation-warning'
     }
   ];
+
+  // Filter out 'Utilisateurs Actifs' card for 'AGENT_BUREAU_ORDRE' role
+  if (user?.role === 'AGENT_BUREAU_ORDRE') {
+    dashboardStats = dashboardStats.filter(stat => stat.title !== 'Utilisateurs Actifs');
+  }
 
   return (
     <div className="space-y-6">
