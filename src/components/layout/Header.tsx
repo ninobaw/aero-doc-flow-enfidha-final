@@ -13,8 +13,9 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { USER_ROLES, AIRPORTS } from '@/shared/constants'; // Import AIRPORTS
+import { USER_ROLES, AIRPORTS } from '@/shared/constants';
 import { NotificationDropdown } from '@/components/notifications/NotificationDropdown';
+import { getAbsoluteFilePath } from '@/shared/utils'; // Import getAbsoluteFilePath
 
 export const Header = () => {
   const { user, logout } = useAuth();
@@ -31,7 +32,10 @@ export const Header = () => {
   if (!user) return null;
 
   const roleLabel = USER_ROLES[user.role]?.label || user.role;
-  const airportName = AIRPORTS[user.airport]?.name || user.airport; // Get full airport name
+  const airportName = AIRPORTS[user.airport]?.name || user.airport;
+
+  // Construct the absolute URL for the avatar image
+  const avatarSrc = user.profilePhoto ? getAbsoluteFilePath(user.profilePhoto) : undefined;
 
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4">
@@ -53,7 +57,7 @@ export const Header = () => {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center space-x-3 px-3">
                 <Avatar className="w-8 h-8">
-                  <AvatarImage src={user.profilePhoto} />
+                  <AvatarImage src={avatarSrc} /> {/* Use the constructed absolute URL */}
                   <AvatarFallback className="bg-aviation-sky text-white">
                     {user.firstName[0]}{user.lastName[0]}
                   </AvatarFallback>

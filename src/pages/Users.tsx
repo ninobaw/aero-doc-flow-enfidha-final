@@ -26,6 +26,7 @@ import { ViewUserDialog } from '@/components/users/ViewUserDialog';
 import { useUsers } from '@/hooks/useUsers';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserRole } from '@/shared/types';
+import { getAbsoluteFilePath } from '@/shared/utils'; // Import getAbsoluteFilePath
 
 const Users = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -178,7 +179,7 @@ const Users = () => {
                     <TableCell>
                       <div className="flex items-center space-x-3">
                         <Avatar className="h-8 w-8">
-                          <AvatarImage src={user.profilePhoto} />
+                          <AvatarImage src={user.profilePhoto ? getAbsoluteFilePath(user.profilePhoto) : undefined} /> {/* Use the constructed absolute URL */}
                           <AvatarFallback className="bg-aviation-sky text-white text-xs">
                             {user.firstName?.[0]}{user.lastName?.[0]}
                           </AvatarFallback>

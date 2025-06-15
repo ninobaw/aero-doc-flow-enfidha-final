@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Mail, Phone, MapPin, Calendar, Shield } from 'lucide-react';
+import { getAbsoluteFilePath } from '@/shared/utils'; // Import getAbsoluteFilePath
 
 interface ViewUserDialogProps {
   user: any;
@@ -24,6 +25,7 @@ export const ViewUserDialog: React.FC<ViewUserDialogProps> = ({ user, open, onOp
   };
 
   const roleInfo = getRoleInfo(user.role);
+  const avatarSrc = user.profilePhoto ? getAbsoluteFilePath(user.profilePhoto) : undefined;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -36,7 +38,7 @@ export const ViewUserDialog: React.FC<ViewUserDialogProps> = ({ user, open, onOp
           {/* Photo et informations principales */}
           <div className="flex items-start space-x-6">
             <Avatar className="w-20 h-20">
-              <AvatarImage src={user.profilePhoto} />
+              <AvatarImage src={avatarSrc} /> {/* Use the constructed absolute URL */}
               <AvatarFallback className="bg-aviation-sky text-white text-lg">
                 {user.firstName?.[0]}{user.lastName?.[0]}
               </AvatarFallback>
