@@ -1,4 +1,4 @@
-import React from 'react'; // Ajout de cette ligne
+import React from 'react'; // Assurez-vous que cette ligne est présente et en haut
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
