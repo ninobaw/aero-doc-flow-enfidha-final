@@ -1,105 +1,82 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Camera, Upload, X } from 'lucide-react';
-import { useProfile } from '@/hooks/useProfile';
-import { useToast } from '@/hooks/use-toast';
-import { useFileUpload } from '@/hooks/useFileUpload';
 import { getAbsoluteFilePath } from '@/shared/utils'; // Import getAbsoluteFilePath
 
 interface ProfilePhotoUploadProps {
-  profile: any;
+  profilePhotoUrl?: string | null; // URL absolue de la photo actuelle
+  firstName?: string;
+  lastName?: string;
+  onPhotoStaged: (file: File | null) => void; // Callback pour notifier le parent du fichier sélectionné (File) ou de la suppression (null)
+  isSaving: boolean; // Indique si le parent est en cours de sauvegarde
 }
 
-export const ProfilePhotoUpload = ({ profile }: ProfilePhotoUploadProps) => {
-  const { updateProfile } = useProfile();
-  const { toast } = useToast();
-  const { uploadFile, deleteFile, uploading, progress } = useFileUpload();
+export const ProfilePhotoUpload = ({
+  profilePhotoUrl,
+  firstName,
+  lastName,
+  onPhotoStaged,
+  isSaving,
+}: ProfilePhotoUploadProps) => {
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  const uploadPhoto = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    try {
-      if (!event.target.files || event.target.files.length === 0) {
-        throw new Error('Vous devez sélectionner une image à uploader.');
+  // Mettre à jour l'aperçu lorsque la photo de profil change (par exemple, après une sauvegarde réussie)
+  useEffect(() => {
+    if (selectedFile) {
+      // Si un fichier est sélectionné, l'aperçu est basé sur ce fichier
+      const url = URL.createObjectURL(selectedFile);
+      setPreviewUrl(url);
+      return () => URL.revokeObjectURL(url); // Nettoyage de l'URL de l'objet
+    } else if (profilePhotoUrl) {
+      // Sinon, si une URL de photo existe, utiliser celle-ci
+      setPreviewUrl(profilePhotoUrl);
+    } else {
+      // Si aucune photo, pas d'aperçu
+      setPreviewUrl(null);
+    }
+  }, [selectedFile, profilePhotoUrl]);
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validation simple du type de fichier et de la taille
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+      const maxSizeMB = 5; // 5MB
+
+      if (!allowedTypes.includes(file.type)) {
+        alert(`Type de fichier non autorisé. Types acceptés: ${allowedTypes.join(', ')}`);
+        event.target.value = ''; // Réinitialiser l'input file
+        return;
+      }
+      if (file.size > maxSizeMB * 1024 * 1024) {
+        alert(`Fichier trop volumineux. Taille maximum: ${maxSizeMB}MB`);
+        event.target.value = ''; // Réinitialiser l'input file
+        return;
       }
 
-      const file = event.target.files[0];
-      
-      const uploaded = await uploadFile(file, {
-        documentType: 'profiles', // Logical bucket name
-        allowedTypes: ['image/jpeg', 'image/png', 'image/gif'],
-        maxSize: 5 // 5MB
-      });
-
-      if (uploaded) {
-        // If a new photo was successfully uploaded, delete the old one if it exists
-        if (profile?.profilePhoto) {
-          // The profilePhoto stored is now the relative path, so we can directly use it for deletion
-          const oldFileDeleted = await deleteFile(profile.profilePhoto); 
-          if (!oldFileDeleted) {
-            console.warn(`Failed to delete old profile photo: ${profile.profilePhoto}. Proceeding with profile update.`);
-          }
-        }
-        
-        // Update the profile with the new photo's relative path
-        updateProfile({ profilePhoto: uploaded.path }); // Store the relative path
-
-        toast({
-          title: 'Photo mise à jour',
-          description: 'Votre photo de profil a été mise à jour avec succès.',
-        });
-      }
-
-    } catch (error: any) {
-      console.error('Erreur upload photo:', error);
-      toast({
-        title: 'Erreur',
-        description: error.message || 'Erreur lors de l\'upload de la photo.',
-        variant: 'destructive',
-      });
-    } finally {
-      event.target.value = '';
+      setSelectedFile(file);
+      onPhotoStaged(file); // Notifier le parent du fichier sélectionné
     }
   };
 
-  const removePhoto = async () => {
-    try {
-      if (profile?.profilePhoto) {
-        // Delete the physical file using its relative path
-        const fileDeleted = await deleteFile(profile.profilePhoto);
-        if (!fileDeleted) {
-          console.warn(`Failed to delete profile photo file: ${profile.profilePhoto}. Proceeding with profile update.`);
-        }
-      }
-
-      // Update the profile to remove the photo reference
-      updateProfile({ profilePhoto: null });
-
-      toast({
-        title: 'Photo supprimée',
-        description: 'Votre photo de profil a été supprimée.',
-      });
-
-    } catch (error: any) {
-      console.error('Erreur suppression photo:', error);
-      toast({
-        title: 'Erreur',
-        description: 'Erreur lors de la suppression de la photo.',
-        variant: 'destructive',
-      });
-    }
+  const handleRemovePhoto = () => {
+    setSelectedFile(null); // Effacer le fichier sélectionné localement
+    onPhotoStaged(null); // Notifier le parent de la suppression
   };
 
-  // Construct the absolute URL for display
-  const avatarSrc = profile?.profilePhoto ? getAbsoluteFilePath(profile.profilePhoto) : undefined;
+  // Déterminer l'URL de l'avatar à afficher
+  const currentAvatarSrc = selectedFile ? previewUrl : profilePhotoUrl;
 
   return (
     <div className="flex flex-col items-center space-y-4">
       <div className="relative">
         <Avatar className="w-24 h-24">
-          <AvatarImage src={avatarSrc} alt="Photo de profil" />
+          <AvatarImage src={currentAvatarSrc || undefined} alt="Photo de profil" />
           <AvatarFallback className="bg-aviation-sky text-white text-xl">
-            {profile?.firstName?.[0]}{profile?.lastName?.[0]}
+            {firstName?.[0]}{lastName?.[0]}
           </AvatarFallback>
         </Avatar>
         
@@ -107,8 +84,8 @@ export const ProfilePhotoUpload = ({ profile }: ProfilePhotoUploadProps) => {
           <Input
             type="file"
             accept="image/*"
-            onChange={uploadPhoto}
-            disabled={uploading}
+            onChange={handleFileSelect}
+            disabled={isSaving}
             className="hidden"
             id="photo-upload"
           />
@@ -116,11 +93,11 @@ export const ProfilePhotoUpload = ({ profile }: ProfilePhotoUploadProps) => {
             size="sm"
             variant="outline"
             className="rounded-full w-8 h-8 p-0"
-            disabled={uploading}
+            disabled={isSaving}
             asChild
           >
             <label htmlFor="photo-upload" className="cursor-pointer">
-              {uploading ? (
+              {isSaving ? (
                 <Upload className="w-4 h-4 animate-spin" />
               ) : (
                 <Camera className="w-4 h-4" />
@@ -128,13 +105,13 @@ export const ProfilePhotoUpload = ({ profile }: ProfilePhotoUploadProps) => {
             </label>
           </Button>
           
-          {profile?.profilePhoto && (
+          {(profilePhotoUrl || selectedFile) && ( // Afficher le bouton de suppression si une photo est présente ou en attente
             <Button
               size="sm"
               variant="outline"
               className="rounded-full w-8 h-8 p-0 text-red-600 hover:text-red-700"
-              disabled={uploading}
-              onClick={removePhoto}
+              disabled={isSaving}
+              onClick={handleRemovePhoto}
             >
               <X className="w-4 h-4" />
             </Button>

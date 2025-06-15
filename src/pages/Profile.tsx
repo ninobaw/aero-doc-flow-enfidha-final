@@ -9,14 +9,17 @@ import { User, Mail, Phone, Building2, Calendar, Save } from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/contexts/AuthContext';
 import { useState, useEffect } from 'react';
-import { formatDate } from '@/shared/utils';
+import { formatDate, getAbsoluteFilePath } from '@/shared/utils'; // Import getAbsoluteFilePath
 import { ProfilePhotoUpload } from '@/components/profile/ProfilePhotoUpload';
 import { Airport } from '@/shared/types'; // Import Airport type
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useFileUpload } from '@/hooks/useFileUpload'; // Import useFileUpload
 
 const Profile = () => {
   const { user } = useAuth();
   const { profile, isLoading, updateProfile, isUpdating } = useProfile();
+  const { uploadFile, deleteFile, uploading: uploadingFile } = useFileUpload(); // Get file upload hooks
+  
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -24,6 +27,7 @@ const Profile = () => {
     phone: '',
     department: '',
   });
+  const [stagedProfilePhoto, setStagedProfilePhoto] = useState<File | null | undefined>(undefined); // undefined: no change, null: remove, File: new file
 
   const navigate = useNavigate(); // Initialize useNavigate
 
@@ -36,12 +40,44 @@ const Profile = () => {
         phone: profile.phone || '',
         department: profile.department || '',
       });
+      // Réinitialiser stagedProfilePhoto quand le profil est chargé/mis à jour
+      setStagedProfilePhoto(undefined); 
     }
   }, [profile]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    updateProfile(formData);
+
+    const finalProfileUpdates: { [key: string]: any } = { ...formData }; // Start with text fields
+
+    // Gérer l'upload/suppression de la photo de profil si elle a été modifiée
+    if (stagedProfilePhoto !== undefined) {
+      if (stagedProfilePhoto instanceof File) { // Nouvelle photo sélectionnée
+        const uploaded = await uploadFile(stagedProfilePhoto, {
+          documentType: 'profiles', // Dossier de destination
+          allowedTypes: ['image/jpeg', 'image/png', 'image/gif'],
+          maxSize: 5 // 5MB
+        });
+        if (uploaded) {
+          finalProfileUpdates.profilePhoto = uploaded.path; // Stocker le chemin relatif
+          // Si une ancienne photo existait, la supprimer après l'upload réussi de la nouvelle
+          if (profile?.profilePhoto) {
+            await deleteFile(profile.profilePhoto);
+          }
+        } else {
+          // L'upload a échoué, annuler la soumission du formulaire
+          return;
+        }
+      } else if (stagedProfilePhoto === null) { // Photo explicitement supprimée
+        finalProfileUpdates.profilePhoto = null; // Définir la photo sur null
+        if (profile?.profilePhoto) {
+          await deleteFile(profile.profilePhoto); // Supprimer l'ancienne photo physique
+        }
+      }
+    }
+
+    // Appeler la mutation de mise à jour du profil avec toutes les modifications
+    updateProfile(finalProfileUpdates);
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -49,7 +85,7 @@ const Profile = () => {
   };
 
   const handleCancel = () => {
-    // Reset form data to current profile values
+    // Réinitialiser les champs du formulaire aux valeurs du profil actuel
     if (profile) {
       setFormData({
         firstName: profile.firstName || '',
@@ -59,7 +95,9 @@ const Profile = () => {
         department: profile.department || '',
       });
     }
-    // Navigate back to the dashboard
+    // Annuler toute modification de photo en attente
+    setStagedProfilePhoto(undefined);
+    // Naviguer vers la page d'accueil
     navigate('/');
   };
 
@@ -87,6 +125,12 @@ const Profile = () => {
     );
   }
 
+  // Déterminer l'URL de la photo à afficher dans le composant ProfilePhotoUpload
+  // Si une photo est en attente, utiliser son aperçu local, sinon utiliser l'URL du profil existant
+  const photoToDisplayUrl = stagedProfilePhoto instanceof File 
+    ? URL.createObjectURL(stagedProfilePhoto) 
+    : (stagedProfilePhoto === null ? null : (profile?.profilePhoto ? getAbsoluteFilePath(profile.profilePhoto) : null));
+
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -102,7 +146,13 @@ const Profile = () => {
           <Card>
             <CardContent className="p-6">
               <div className="flex flex-col items-center space-y-4">
-                <ProfilePhotoUpload profile={profile} />
+                <ProfilePhotoUpload
+                  profilePhotoUrl={photoToDisplayUrl}
+                  firstName={profile?.firstName}
+                  lastName={profile?.lastName}
+                  onPhotoStaged={setStagedProfilePhoto}
+                  isSaving={isUpdating || uploadingFile}
+                />
                 <div className="text-center">
                   <h3 className="text-xl font-semibold">
                     {profile?.firstName} {profile?.lastName}
@@ -223,17 +273,17 @@ const Profile = () => {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={handleCancel} // Use the new handleCancel function
+                    onClick={handleCancel}
                   >
                     Annuler
                   </Button>
                   <Button
                     type="submit"
-                    disabled={isUpdating}
+                    disabled={isUpdating || uploadingFile}
                     className="bg-aviation-sky hover:bg-aviation-sky-dark"
                   >
                     <Save className="w-4 h-4 mr-2" />
-                    {isUpdating ? 'Enregistrement...' : 'Enregistrer'}
+                    {isUpdating || uploadingFile ? 'Enregistrement...' : 'Enregistrer'}
                   </Button>
                 </div>
               </form>
