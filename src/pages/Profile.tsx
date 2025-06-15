@@ -1,4 +1,5 @@
-import React from 'react'; // Assurez-vous que cette ligne est présente et en haut
+manquante pour résoudre les problèmes de correspondance des balises.">
+import React from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -113,8 +114,8 @@ const Profile = () => {
                     <span>Inscrit le {formatDate(profile?.createdAt || '')}</span>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div> {/* <-- C'est la balise </div> manquante qui a été ajoutée ici */}
+            </CardContent>
           </Card>
 
           {/* Formulaire d'édition */}
