@@ -40,6 +40,7 @@ const navigationItems: NavItem[] = [
     title: 'Documents',
     href: '/documents', // Link directly to the unified Documents page
     icon: FileText,
+    permission: 'view_documents', // Added permission
     // Removed children as per user request to simplify navigation
     // children: [
     //   {
@@ -60,13 +61,13 @@ const navigationItems: NavItem[] = [
     title: 'Correspondances',
     href: '/correspondances',
     icon: Mail,
-    permission: 'view_documents'
+    permission: 'view_correspondences' // Changed permission
   },
   {
     title: 'Procès-Verbaux',
     href: '/proces-verbaux',
     icon: ClipboardList,
-    permission: 'view_documents'
+    permission: 'view_proces_verbaux' // Changed permission
   },
   {
     title: 'Utilisateurs',
@@ -78,13 +79,13 @@ const navigationItems: NavItem[] = [
     title: 'Actions',
     href: '/actions',
     icon: CheckSquare,
-    permission: 'view_documents'
+    permission: 'view_actions' // Changed permission
   },
   {
     title: 'QR Codes',
     href: '/qr-codes',
     icon: QrCode,
-    permission: 'view_documents'
+    permission: 'view_qr_codes' // Changed permission
   },
   {
     title: 'Rapports',
@@ -96,7 +97,7 @@ const navigationItems: NavItem[] = [
     title: 'Journaux d\'Audit', // New navigation item
     href: '/audit-logs',
     icon: ScrollText,
-    permission: 'manage_settings' // Typically, only admins can view audit logs
+    permission: 'view_audit_logs' // Changed permission
   },
   {
     title: 'Paramètres',

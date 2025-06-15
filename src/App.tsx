@@ -62,12 +62,12 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/correspondances" element={
-              <ProtectedRoute requiredPermission="view_documents">
+              <ProtectedRoute requiredPermission="view_correspondences"> {/* Changed permission */}
                 <Correspondances />
               </ProtectedRoute>
             } />
             <Route path="/proces-verbaux" element={
-              <ProtectedRoute requiredPermission="view_documents">
+              <ProtectedRoute requiredPermission="view_proces_verbaux"> {/* Changed permission */}
                 <ProcesVerbaux />
               </ProtectedRoute>
             } />
@@ -77,12 +77,12 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/actions" element={
-              <ProtectedRoute requiredPermission="view_documents">
+              <ProtectedRoute requiredPermission="view_actions"> {/* Changed permission */}
                 <Actions />
               </ProtectedRoute>
             } />
             <Route path="/qr-codes" element={
-              <ProtectedRoute requiredPermission="view_documents">
+              <ProtectedRoute requiredPermission="view_qr_codes"> {/* Changed permission */}
                 <QRCodes />
               </ProtectedRoute>
             } />
@@ -92,7 +92,7 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/audit-logs" element={/* New route for Audit Logs */
-              <ProtectedRoute requiredPermission="manage_settings">
+              <ProtectedRoute requiredPermission="view_audit_logs"> {/* Changed permission */}
                 <AuditLogs />
               </ProtectedRoute>
             } />

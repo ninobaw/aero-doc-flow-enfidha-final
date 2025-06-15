@@ -10,7 +10,7 @@ import { useUsers } from '@/hooks/useUsers';
 import { useToast } from '@/hooks/use-toast';
 import { Airport } from '@/shared/types'; // Import Airport type
 
-type UserRole = 'SUPER_ADMIN' | 'ADMINISTRATOR' | 'APPROVER' | 'USER' | 'VISITOR';
+type UserRole = 'SUPER_ADMIN' | 'ADMINISTRATOR' | 'APPROVER' | 'USER' | 'VISITOR' | 'AGENT_BUREAU_ORDRE'; // Updated type
 
 export const CreateUserDialog = () => {
   const [open, setOpen] = useState(false);
@@ -91,6 +91,8 @@ export const CreateUserDialog = () => {
         return "Consultation et création de documents, gestion du profil";
       case 'VISITOR':
         return "Consultation des documents uniquement";
+      case 'AGENT_BUREAU_ORDRE': // New role description
+        return "Création et consultation des correspondances et documents.";
       default:
         return "Consultation et création de documents, gestion du profil";
     }
@@ -190,6 +192,7 @@ export const CreateUserDialog = () => {
                   <SelectItem value="APPROVER">Approbateur</SelectItem>
                   <SelectItem value="USER">Utilisateur</SelectItem>
                   <SelectItem value="VISITOR">Visiteur</SelectItem>
+                  <SelectItem value="AGENT_BUREAU_ORDRE">Agent Bureau d'Ordre</SelectItem> {/* New role */}
                 </SelectContent>
               </Select>
             </div>

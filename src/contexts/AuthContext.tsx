@@ -3,6 +3,7 @@ import { User, UserRole, Airport } from '@/shared/types';
 import { useToast } from '@/hooks/use-toast';
 import axios from 'axios';
 import { getAbsoluteFilePath } from '@/shared/utils'; // Import getAbsoluteFilePath
+import { USER_ROLES } from '@/shared/constants'; // Import USER_ROLES from constants
 
 const API_BASE_URL = 'http://localhost:5000/api';
 
@@ -139,16 +140,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const hasPermission = (permission: string): boolean => {
     if (!user) return false;
     
-    const rolePermissions = {
-      [UserRole.SUPER_ADMIN]: ['all'],
-      [UserRole.ADMINISTRATOR]: ['manage_users', 'manage_documents', 'view_reports', 'manage_settings', 'manage_forms', 'create_documents'],
-      [UserRole.APPROVER]: ['approve_documents', 'view_documents', 'create_documents'],
-      [UserRole.USER]: ['view_documents', 'create_documents', 'view_profile'],
-      [UserRole.VISITOR]: ['view_documents']
-    };
+    // Retrieve permissions directly from the USER_ROLES constant
+    const rolePermissions = USER_ROLES[user.role as keyof typeof USER_ROLES]?.permissions || [];
 
-    const userPermissions = rolePermissions[user.role] || [];
-    return userPermissions.includes('all') || userPermissions.includes(permission);
+    return rolePermissions.includes('all') || rolePermissions.includes(permission);
   };
 
   return (
