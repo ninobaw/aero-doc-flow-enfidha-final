@@ -27,6 +27,10 @@ export interface AppSettings {
   smtp_port: number;
   smtp_username: string;
   use_ssl: boolean;
+  // Nouveaux champs pour la configuration SMS (Twilio)
+  twilio_account_sid: string;
+  twilio_auth_token: string;
+  twilio_phone_number: string;
   created_at?: string;
   updated_at?: string;
 }

@@ -1,6 +1,6 @@
 const { Router } = require('express');
-const { AppSettings } = require('../models/AppSettings.js'); // Changed to require with .js extension
-const { v4: uuidv4 } = require('uuid'); // uuid is a CommonJS module, no change needed here
+const { AppSettings } = require('../models/AppSettings.js');
+const { v4: uuidv4 } = require('uuid');
 
 const router = Router();
 
@@ -32,6 +32,9 @@ router.get('/:userId', async (req, res) => {
         smtpPort: 587,
         smtpUsername: '',
         useSsl: true,
+        twilioAccountSid: '', // Default empty
+        twilioAuthToken: '',  // Default empty
+        twilioPhoneNumber: '', // Default empty
       };
       settings = new AppSettings(defaultSettings);
       await settings.save();
@@ -55,6 +58,9 @@ router.get('/:userId', async (req, res) => {
       use_ssl: settings.useSsl,
       default_airport: settings.defaultAirport,
       company_name: settings.companyName,
+      twilio_account_sid: settings.twilioAccountSid, // Map for frontend
+      twilio_auth_token: settings.twilioAuthToken,   // Map for frontend
+      twilio_phone_number: settings.twilioPhoneNumber, // Map for frontend
     });
   } catch (error) {
     console.error('Error fetching app settings:', error);
@@ -86,6 +92,11 @@ router.put('/:userId', async (req, res) => {
   if (updates.smtp_port !== undefined) mappedUpdates.smtpPort = updates.smtp_port;
   if (updates.smtp_username !== undefined) mappedUpdates.smtpUsername = updates.smtp_username;
   if (updates.use_ssl !== undefined) mappedUpdates.useSsl = updates.use_ssl;
+  // Nouveaux champs SMS
+  if (updates.twilio_account_sid !== undefined) mappedUpdates.twilioAccountSid = updates.twilio_account_sid;
+  if (updates.twilio_auth_token !== undefined) mappedUpdates.twilioAuthToken = updates.twilio_auth_token;
+  if (updates.twilio_phone_number !== undefined) mappedUpdates.twilioPhoneNumber = updates.twilio_phone_number;
+
 
   try {
     const settings = await AppSettings.findOneAndUpdate(
@@ -112,6 +123,9 @@ router.put('/:userId', async (req, res) => {
       use_ssl: settings.useSsl,
       default_airport: settings.defaultAirport,
       company_name: settings.companyName,
+      twilio_account_sid: settings.twilioAccountSid,
+      twilio_auth_token: settings.twilioAuthToken,
+      twilio_phone_number: settings.twilioPhoneNumber,
     });
   } catch (error) {
     console.error('Error updating app settings:', error);

@@ -24,6 +24,10 @@ const AppSettingsSchema = new Schema({
   smtpPort: { type: Number, default: 587 },
   smtpUsername: { type: String, default: '' },
   useSsl: { type: Boolean, default: true },
+  // Nouveaux champs pour la configuration SMS (Twilio)
+  twilioAccountSid: { type: String, default: '' },
+  twilioAuthToken: { type: String, default: '' },
+  twilioPhoneNumber: { type: String, default: '' },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 }, { timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' } });

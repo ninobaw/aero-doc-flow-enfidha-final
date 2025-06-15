@@ -1,8 +1,33 @@
 const { Router } = require('express');
-const { Notification } = require('../models/Notification.js'); // Changed to require with .js extension
-const { v4: uuidv4 } = require('uuid'); // uuid is a CommonJS module, no change needed here
+const { Notification } = require('../models/Notification.js');
+const { sendSms } = require('../utils/smsSender.js'); // Import the new SMS sender utility
+const { v4: uuidv4 } = require('uuid');
 
 const router = Router();
+
+// Helper function to create a notification (now also attempts to send SMS)
+const createNotification = async (userId, title, message, type = 'info') => {
+  try {
+    const newNotification = new Notification({
+      _id: uuidv4(),
+      userId,
+      title,
+      message,
+      type,
+      isRead: false,
+    });
+    await newNotification.save();
+    console.log(`Notification created for user ${userId}: ${title}`);
+
+    // Attempt to send SMS if it's a warning or error notification
+    if (type === 'warning' || type === 'error') {
+      await sendSms(userId, `AeroDoc Alerte: ${title} - ${message}`);
+    }
+
+  } catch (error) {
+    console.error('Error creating notification:', error);
+  }
+};
 
 // GET /api/notifications
 router.get('/', async (req, res) => {
@@ -42,6 +67,12 @@ router.post('/', async (req, res) => {
     });
 
     await newNotification.save();
+
+    // Attempt to send SMS if it's a warning or error notification
+    if (type === 'warning' || type === 'error') {
+      await sendSms(userId, `AeroDoc Alerte: ${title} - ${message}`);
+    }
+
     res.status(201).json({
       ...newNotification.toObject(),
       id: newNotification._id,
