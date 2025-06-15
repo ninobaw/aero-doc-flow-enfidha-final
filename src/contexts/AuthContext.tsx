@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, UserRole, Airport } from '@/shared/types'; // Import Airport type
+import { User, UserRole, Airport } from '@/shared/types';
 import { useToast } from '@/hooks/use-toast';
-import axios from 'axios'; // Import axios for backend calls
+import axios from 'axios';
+import { getAbsoluteFilePath } from '@/shared/utils'; // Import getAbsoluteFilePath
 
-const API_BASE_URL = 'http://localhost:5000/api'; // Your custom Node.js backend URL
+const API_BASE_URL = 'http://localhost:5000/api';
 
 interface AuthContextType {
   user: User | null;
@@ -11,6 +12,7 @@ interface AuthContextType {
   logout: () => void;
   isLoading: boolean;
   hasPermission: (permission: string) => boolean;
+  refreshUser: () => Promise<void>; // New function to refresh user data
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,13 +22,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  // Simulate initial user check (e.g., from a stored token or session)
-  // In a real app, you might check localStorage for a token and validate it with the backend
+  const fetchAndSetUser = async (userId: string) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/users/${userId}`);
+      const fetchedUser = response.data;
+      const mappedUser: User = {
+        id: fetchedUser.id,
+        email: fetchedUser.email,
+        firstName: fetchedUser.firstName,
+        lastName: fetchedUser.lastName,
+        role: fetchedUser.role as UserRole,
+        profilePhoto: fetchedUser.profilePhoto, // This is the relative path
+        airport: fetchedUser.airport as Airport,
+        createdAt: new Date(fetchedUser.createdAt),
+        updatedAt: new Date(fetchedUser.updatedAt),
+        isActive: fetchedUser.isActive,
+        phone: fetchedUser.phone,
+        department: fetchedUser.department,
+      };
+      setUser(mappedUser);
+      return true;
+    } catch (error) {
+      console.error('Failed to fetch user data:', error);
+      setUser(null);
+      return false;
+    }
+  };
+
   useEffect(() => {
     const checkUserSession = async () => {
-      // For simplicity, we'll assume no persistent session on frontend for now.
-      // User will need to log in on refresh.
-      // In a real app, you'd send a request to your backend to validate a token from localStorage.
+      // In a real app, you'd check for a token in localStorage and validate it.
+      // For this mock setup, we'll assume no persistent session on frontend for now.
+      // If you had a token, you'd use it to fetch user details here.
+      // Example: const storedUserId = localStorage.getItem('userId');
+      // if (storedUserId) { await fetchAndSetUser(storedUserId); }
       console.log('AuthContext: Initial session check completed. Setting isLoading to false.');
       setIsLoading(false);
     };
@@ -38,19 +67,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.log('AuthContext: Attempting login for:', email);
     try {
       const response = await axios.post(`${API_BASE_URL}/auth/login`, { email, password });
-      const loggedInUser = response.data.user; // Assuming your backend returns { user: {...}, token: '...' }
+      const loggedInUser = response.data.user;
 
       const mappedUser: User = {
         id: loggedInUser.id,
         email: loggedInUser.email,
-        firstName: loggedInUser.firstName, // Use camelCase
-        lastName: loggedInUser.lastName,   // Use camelCase
+        firstName: loggedInUser.firstName,
+        lastName: loggedInUser.lastName,
         role: loggedInUser.role as UserRole,
-        profilePhoto: loggedInUser.profilePhoto, // Use camelCase
-        airport: loggedInUser.airport as Airport, // Cast to Airport type
+        profilePhoto: loggedInUser.profilePhoto, // This is the relative path
+        airport: loggedInUser.airport as Airport,
         createdAt: new Date(loggedInUser.createdAt),
         updatedAt: new Date(loggedInUser.updatedAt),
-        isActive: loggedInUser.isActive, // Use camelCase
+        isActive: loggedInUser.isActive,
         phone: loggedInUser.phone,
         department: loggedInUser.department,
       };
@@ -79,7 +108,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     console.log('AuthContext: Attempting logout.');
     try {
-      await axios.post(`${API_BASE_URL}/auth/logout`); // Call backend logout endpoint
+      await axios.post(`${API_BASE_URL}/auth/logout`);
       setUser(null);
       console.log('AuthContext: Logout successful, user set to null.');
       toast({
@@ -99,6 +128,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const refreshUser = async () => {
+    if (user?.id) {
+      setIsLoading(true);
+      await fetchAndSetUser(user.id);
+      setIsLoading(false);
+    }
+  };
+
   const hasPermission = (permission: string): boolean => {
     if (!user) return false;
     
@@ -115,7 +152,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading, hasPermission }}>
+    <AuthContext.Provider value={{ user, login, logout, isLoading, hasPermission, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

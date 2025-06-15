@@ -5,7 +5,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Camera, Upload, X } from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';
 import { useToast } from '@/hooks/use-toast';
-import { useFileUpload } from '@/hooks/useFileUpload'; // Import the new hook
+import { useFileUpload } from '@/hooks/useFileUpload';
+import { getAbsoluteFilePath } from '@/shared/utils'; // Import getAbsoluteFilePath
 
 interface ProfilePhotoUploadProps {
   profile: any;
@@ -14,7 +15,7 @@ interface ProfilePhotoUploadProps {
 export const ProfilePhotoUpload = ({ profile }: ProfilePhotoUploadProps) => {
   const { updateProfile } = useProfile();
   const { toast } = useToast();
-  const { uploadFile, deleteFile, uploading, progress } = useFileUpload(); // Use the new hook
+  const { uploadFile, deleteFile, uploading, progress } = useFileUpload();
 
   const uploadPhoto = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
@@ -24,7 +25,6 @@ export const ProfilePhotoUpload = ({ profile }: ProfilePhotoUploadProps) => {
 
       const file = event.target.files[0];
       
-      // Validate file type and size using the hook's internal validation
       const uploaded = await uploadFile(file, {
         documentType: 'profiles', // Logical bucket name
         allowedTypes: ['image/jpeg', 'image/png', 'image/gif'],
@@ -32,15 +32,17 @@ export const ProfilePhotoUpload = ({ profile }: ProfilePhotoUploadProps) => {
       });
 
       if (uploaded) {
-        // Simulate deletion of old photo if it exists
+        // If a new photo was successfully uploaded, delete the old one if it exists
         if (profile?.profilePhoto) {
-          // In a real scenario, you'd extract the path from the old URL
-          // For simulation, we'll just call deleteFile with a dummy path
-          await deleteFile('profiles/old-avatar-path'); 
+          // The profilePhoto stored is now the relative path, so we can directly use it for deletion
+          const oldFileDeleted = await deleteFile(profile.profilePhoto); 
+          if (!oldFileDeleted) {
+            console.warn(`Failed to delete old profile photo: ${profile.profilePhoto}. Proceeding with profile update.`);
+          }
         }
         
-        // Update the profile with the new photo URL
-        updateProfile({ profilePhoto: uploaded.url });
+        // Update the profile with the new photo's relative path
+        updateProfile({ profilePhoto: uploaded.path }); // Store the relative path
 
         toast({
           title: 'Photo mise à jour',
@@ -56,7 +58,6 @@ export const ProfilePhotoUpload = ({ profile }: ProfilePhotoUploadProps) => {
         variant: 'destructive',
       });
     } finally {
-      // Réinitialiser le champ file input
       event.target.value = '';
     }
   };
@@ -64,11 +65,14 @@ export const ProfilePhotoUpload = ({ profile }: ProfilePhotoUploadProps) => {
   const removePhoto = async () => {
     try {
       if (profile?.profilePhoto) {
-        // Simulate deletion
-        await deleteFile('profiles/current-avatar-path'); // Use a dummy path for simulation
+        // Delete the physical file using its relative path
+        const fileDeleted = await deleteFile(profile.profilePhoto);
+        if (!fileDeleted) {
+          console.warn(`Failed to delete profile photo file: ${profile.profilePhoto}. Proceeding with profile update.`);
+        }
       }
 
-      // Update the profile to remove the photo
+      // Update the profile to remove the photo reference
       updateProfile({ profilePhoto: null });
 
       toast({
@@ -86,11 +90,14 @@ export const ProfilePhotoUpload = ({ profile }: ProfilePhotoUploadProps) => {
     }
   };
 
+  // Construct the absolute URL for display
+  const avatarSrc = profile?.profilePhoto ? getAbsoluteFilePath(profile.profilePhoto) : undefined;
+
   return (
     <div className="flex flex-col items-center space-y-4">
       <div className="relative">
         <Avatar className="w-24 h-24">
-          <AvatarImage src={profile?.profilePhoto} alt="Photo de profil" />
+          <AvatarImage src={avatarSrc} alt="Photo de profil" />
           <AvatarFallback className="bg-aviation-sky text-white text-xl">
             {profile?.firstName?.[0]}{profile?.lastName?.[0]}
           </AvatarFallback>
