@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'; // Import Tabs components
-import { Settings as SettingsIcon, Save, Bell, Shield, Globe, Database, Mail, Code } from 'lucide-react'; // Import Code icon
+import { Settings as SettingsIcon, Save, Bell, Shield, Globe, Database, Mail, Code, MessageSquare } from 'lucide-react'; // Import MessageSquare icon
 import { useState, useEffect } from 'react';
 import { useSettings } from '@/hooks/useSettings';
 import { Airport } from '@/shared/types';
@@ -35,6 +35,10 @@ const Settings = () => {
     smtp_port: 587,
     smtp_username: '',
     use_ssl: true,
+    // Nouveaux champs pour la configuration SMS (Twilio)
+    twilio_account_sid: '',
+    twilio_auth_token: '',
+    twilio_phone_number: '',
   });
 
   useEffect(() => {
@@ -57,6 +61,9 @@ const Settings = () => {
         smtp_port: settings.smtp_port || 587,
         smtp_username: settings.smtp_username || '',
         use_ssl: settings.use_ssl ?? true,
+        twilio_account_sid: settings.twilio_account_sid || '',
+        twilio_auth_token: settings.twilio_auth_token || '',
+        twilio_phone_number: settings.twilio_phone_number || '',
       });
     }
   }, [settings]);
@@ -372,6 +379,53 @@ const Settings = () => {
                     />
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+            {/* Nouvelle section pour la configuration SMS (Twilio) */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <MessageSquare className="w-5 h-5 mr-2" />
+                  Configuration SMS (Twilio)
+                </CardTitle>
+                <CardDescription>
+                  Paramètres pour l'envoi de notifications SMS via Twilio
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="twilioAccountSid">Account SID</Label>
+                    <Input
+                      id="twilioAccountSid"
+                      value={formData.twilio_account_sid}
+                      onChange={(e) => updateSetting('twilio_account_sid', e.target.value)}
+                      placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="twilioAuthToken">Auth Token</Label>
+                    <Input
+                      id="twilioAuthToken"
+                      type="password"
+                      value={formData.twilio_auth_token}
+                      onChange={(e) => updateSetting('twilio_auth_token', e.target.value)}
+                      placeholder="your_auth_token"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="twilioPhoneNumber">Numéro de téléphone Twilio</Label>
+                    <Input
+                      id="twilioPhoneNumber"
+                      value={formData.twilio_phone_number}
+                      onChange={(e) => updateSetting('twilio_phone_number', e.target.value)}
+                      placeholder="+1234567890"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-4">
+                  Ces informations sont nécessaires pour envoyer des SMS via Twilio. Vous pouvez les trouver sur votre tableau de bord Twilio.
+                </p>
               </CardContent>
             </Card>
             {/* Bouton de sauvegarde pour les notifications */}
