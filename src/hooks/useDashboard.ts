@@ -14,6 +14,11 @@ export interface DashboardStats {
   recentDocuments: any[];
   urgentActions: any[];
   activityLogs: any[];
+  documentsCreatedMonthly: { name: string; count: number }[]; // New
+  documentsByTypeStats: { name: string; value: number }[];    // New
+  correspondencesCreatedMonthly: { name: string; count: number }[]; // New
+  correspondencesByTypeStats: { name: string; value: number }[];    // New
+  correspondencesByPriorityStats: { name: string; value: number }[]; // New
 }
 
 export interface DashboardActivity {
@@ -48,6 +53,11 @@ export const useDashboard = () => {
             recentDocuments: [],
             urgentActions: [],
             activityLogs: [],
+            documentsCreatedMonthly: [],
+            documentsByTypeStats: [],
+            correspondencesCreatedMonthly: [],
+            correspondencesByTypeStats: [],
+            correspondencesByPriorityStats: [],
           };
         }
 
@@ -73,6 +83,11 @@ export const useDashboard = () => {
           recentDocuments: dashboardData.recentDocuments || [],
           urgentActions: dashboardData.urgentActions || [],
           activityLogs: dashboardData.activityLogs || [],
+          documentsCreatedMonthly: dashboardData.documentsCreatedMonthly || [],
+          documentsByTypeStats: dashboardData.documentsByTypeStats || [],
+          correspondencesCreatedMonthly: dashboardData.correspondencesCreatedMonthly || [],
+          correspondencesByTypeStats: dashboardData.correspondencesByTypeStats || [],
+          correspondencesByPriorityStats: dashboardData.correspondencesByPriorityStats || [],
         };
       } catch (error) {
         console.error('Erreur récupération stats dashboard:', error);
@@ -86,6 +101,11 @@ export const useDashboard = () => {
           recentDocuments: [],
           urgentActions: [],
           activityLogs: [],
+          documentsCreatedMonthly: [],
+          documentsByTypeStats: [],
+          correspondencesCreatedMonthly: [],
+          correspondencesByTypeStats: [],
+          correspondencesByPriorityStats: [],
         };
       }
     },
@@ -103,6 +123,11 @@ export const useDashboard = () => {
       recentDocuments: [],
       urgentActions: [],
       activityLogs: [],
+      documentsCreatedMonthly: [],
+      documentsByTypeStats: [],
+      correspondencesCreatedMonthly: [],
+      correspondencesByTypeStats: [],
+      correspondencesByPriorityStats: [],
     },
     isLoading: statsLoading,
   };
