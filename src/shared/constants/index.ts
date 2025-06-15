@@ -30,19 +30,18 @@ export const USER_ROLES = {
   ADMINISTRATOR: {
     label: 'Administrateur',
     permissions: [
-      'manage_users', 'manage_documents', 'view_reports', 'manage_settings', 'manage_forms',
-      'create_documents', 'view_documents', // Explicitly add document permissions
+      'manage_users', 'view_reports', 'manage_settings', 'manage_forms',
+      'create_documents', 'view_documents', 'delete_documents', 'update_documents', // Explicitly add general document permissions
       'manage_correspondences', 'view_correspondences', 'create_correspondences', // Explicitly add correspondence permissions
       'view_proces_verbaux', 'create_proces_verbaux', // Explicitly add PV permissions
       'view_actions', 'create_actions', // Explicitly add action permissions
       'view_qr_codes', 'generate_qr_codes', // Explicitly add QR code permissions
-      'manage_templates', // Explicitly add template permissions
       'view_audit_logs' // Explicitly add audit log permissions
     ]
   },
   APPROVER: {
     label: 'Approbateur',
-    permissions: ['approve_documents', 'view_documents', 'create_documents']
+    permissions: ['approve_documents', 'view_documents', 'create_documents', 'manage_templates'] // Added manage_templates
   },
   USER: {
     label: 'Utilisateur',

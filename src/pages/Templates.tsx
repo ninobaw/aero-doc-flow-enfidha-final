@@ -11,7 +11,7 @@ const Templates = () => {
   const { user, hasPermission } = useAuth();
   const { templates, isLoading } = useTemplates();
 
-  const canManageTemplates = hasPermission('manage_documents'); // Or a more specific permission if defined
+  const canManageTemplates = hasPermission('manage_templates'); // Changed to new permission
 
   if (!user) {
     return (

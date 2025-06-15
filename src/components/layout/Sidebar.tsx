@@ -100,6 +100,12 @@ const navigationItems: NavItem[] = [
     permission: 'view_audit_logs' // Changed permission
   },
   {
+    title: 'Modèles', // Moved from children to top-level
+    href: '/documents/templates',
+    icon: FileBadge,
+    permission: 'manage_templates' // Changed to new permission
+  },
+  {
     title: 'Paramètres',
     href: '/settings',
     icon: Settings,
