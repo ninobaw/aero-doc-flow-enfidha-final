@@ -12,6 +12,7 @@ import { useState, useEffect } from 'react';
 import { formatDate } from '@/shared/utils';
 import { ProfilePhotoUpload } from '@/components/profile/ProfilePhotoUpload';
 import { Airport } from '@/shared/types'; // Import Airport type
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 const Profile = () => {
   const { user } = useAuth();
@@ -23,6 +24,8 @@ const Profile = () => {
     phone: '',
     department: '',
   });
+
+  const navigate = useNavigate(); // Initialize useNavigate
 
   useEffect(() => {
     if (profile) {
@@ -43,6 +46,21 @@ const Profile = () => {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleCancel = () => {
+    // Reset form data to current profile values
+    if (profile) {
+      setFormData({
+        firstName: profile.firstName || '',
+        lastName: profile.lastName || '',
+        email: profile.email || '',
+        phone: profile.phone || '',
+        department: profile.department || '',
+      });
+    }
+    // Navigate back to the dashboard
+    navigate('/');
   };
 
   if (isLoading) {
@@ -205,17 +223,7 @@ const Profile = () => {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => {
-                      if (profile) {
-                        setFormData({
-                          firstName: profile.firstName || '',
-                          lastName: profile.lastName || '',
-                          email: profile.email || '',
-                          phone: profile.phone || '',
-                          department: profile.department || '',
-                        });
-                      }
-                    }}
+                    onClick={handleCancel} // Use the new handleCancel function
                   >
                     Annuler
                   </Button>
