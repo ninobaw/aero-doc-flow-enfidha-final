@@ -3,7 +3,8 @@ export enum UserRole {
   ADMINISTRATOR = 'ADMINISTRATOR',
   APPROVER = 'APPROVER',
   USER = 'USER',
-  VISITOR = 'VISITOR'
+  VISITOR = 'VISITOR',
+  AGENT_BUREAU_ORDRE = 'AGENT_BUREAU_ORDRE' // Nouveau rôle
 }
 
 export enum ActionStatus {

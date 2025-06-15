@@ -29,7 +29,16 @@ export const USER_ROLES = {
   },
   ADMINISTRATOR: {
     label: 'Administrateur',
-    permissions: ['manage_users', 'manage_documents', 'view_reports', 'manage_settings', 'manage_forms']
+    permissions: [
+      'manage_users', 'manage_documents', 'view_reports', 'manage_settings', 'manage_forms',
+      'create_documents', 'view_documents', // Explicitly add document permissions
+      'manage_correspondences', 'view_correspondences', 'create_correspondences', // Explicitly add correspondence permissions
+      'view_proces_verbaux', 'create_proces_verbaux', // Explicitly add PV permissions
+      'view_actions', 'create_actions', // Explicitly add action permissions
+      'view_qr_codes', 'generate_qr_codes', // Explicitly add QR code permissions
+      'manage_templates', // Explicitly add template permissions
+      'view_audit_logs' // Explicitly add audit log permissions
+    ]
   },
   APPROVER: {
     label: 'Approbateur',
@@ -42,6 +51,15 @@ export const USER_ROLES = {
   VISITOR: {
     label: 'Visiteur',
     permissions: ['view_documents']
+  },
+  AGENT_BUREAU_ORDRE: { // Nouveau rôle
+    label: 'Agent Bureau d\'Ordre',
+    permissions: [
+      'create_correspondences',
+      'view_correspondences',
+      'create_documents',
+      'view_documents'
+    ]
   }
 } as const;
 
