@@ -17,54 +17,64 @@ router.get('/stats', async (req, res) => {
     let actionFilter = {};
     let activityLogFilter = {};
 
+    let calculatedActiveUsers = 0; // Default to 0 for specific roles if not globally relevant
+    let calculatedCompletedActions = 0;
+    let calculatedPendingActions = 0;
+    let calculatedAverageCompletionTime = 0;
+
+    // Base filters for all roles
+    let baseActionFilter = {};
+
     // Apply specific filters for 'AGENT_BUREAU_ORDRE' role
     if (userRole === 'AGENT_BUREAU_ORDRE') {
-      // For Agent Bureau d'Ordre:
-      // Recent Documents: Only correspondences OR documents created by this user
       documentFilter = {
         $or: [
           { type: 'CORRESPONDANCE' },
           { authorId: userId }
         ]
       };
-      // Urgent Actions: Only actions assigned to this user
-      actionFilter = {
-        assignedTo: userId,
-        priority: 'URGENT',
-        status: { $ne: 'COMPLETED' }
-      };
-      // Activity Logs: Only logs related to this user
-      activityLogFilter = { userId: userId };
+      baseActionFilter = { assignedTo: userId }; // Actions assigned to this specific user
+      activityLogFilter = { userId: userId }; // Activity logs for this specific user
+
+      // For Agent Bureau d'Ordre, activeUsers is not a relevant metric, set to 0
+      calculatedActiveUsers = 0;
+
     } else {
-      // Default filters for other roles (or if no specific role filter is needed)
-      actionFilter = { priority: 'URGENT', status: { $ne: 'COMPLETED' } };
+      // Default filters for other roles (global view)
+      documentFilter = {}; // All documents
+      baseActionFilter = {}; // All actions
+      activityLogFilter = {}; // All activity logs
+
+      // For other roles, calculate active users globally
+      calculatedActiveUsers = await User.countDocuments({ isActive: true });
     }
 
-    // Fetch all data concurrently
+    // Fetch data concurrently based on the determined filters
     const [
-      totalDocuments,
-      activeUsers,
-      completedActions,
-      pendingActions,
-      documentsThisMonth,
+      totalDocumentsCount,
+      completedActionsCount,
+      pendingActionsCount,
+      documentsThisMonthCount,
       recentDocuments,
       urgentActions,
-      activityLogs
+      activityLogs,
+      completedActionsForAvgTime // Separate query for average time calculation
     ] = await Promise.all([
-      Document.countDocuments(documentFilter), // Apply document filter
-      User.countDocuments({ isActive: true }),
-      Action.countDocuments({ status: 'COMPLETED' }),
-      Action.countDocuments({ status: 'PENDING' }),
-      Document.countDocuments({ createdAt: { $gte: startOfMonth }, ...documentFilter }), // Apply document filter
-      Document.find(documentFilter).sort({ createdAt: -1 }).limit(3).populate('authorId', 'firstName lastName'), // Apply document filter
-      Action.find(actionFilter).sort({ dueDate: 1 }).limit(3).populate('assignedTo', 'firstName lastName'), // Apply action filter
-      ActivityLog.find(activityLogFilter).sort({ timestamp: -1 }).limit(4).populate('userId', 'firstName lastName'), // Apply activity log filter
+      Document.countDocuments(documentFilter),
+      Action.countDocuments({ ...baseActionFilter, status: 'COMPLETED' }), // Filter completed actions by role
+      Action.countDocuments({ ...baseActionFilter, status: 'PENDING' }),   // Filter pending actions by role
+      Document.countDocuments({ createdAt: { $gte: startOfMonth }, ...documentFilter }),
+      Document.find(documentFilter).sort({ createdAt: -1 }).limit(3).populate('authorId', 'firstName lastName'),
+      Action.find({ ...baseActionFilter, priority: 'URGENT', status: { $ne: 'COMPLETED' } }).sort({ dueDate: 1 }).limit(3).populate('assignedTo', 'firstName lastName'),
+      ActivityLog.find(activityLogFilter).sort({ timestamp: -1 }).limit(4).populate('userId', 'firstName lastName'),
+      Action.find({ ...baseActionFilter, status: 'COMPLETED', actualHours: { $exists: true, $ne: null } }) // Filter for average time
     ]);
 
-    // Calculate average completion time for actions
-    const completedActionsWithTime = await Action.find({ status: 'COMPLETED', actualHours: { $exists: true, $ne: null } });
-    const averageCompletionTime = completedActionsWithTime.length > 0
-      ? completedActionsWithTime.reduce((acc, action) => acc + (action.actualHours || 0), 0) / completedActionsWithTime.length
+    calculatedCompletedActions = completedActionsCount;
+    calculatedPendingActions = pendingActionsCount;
+
+    calculatedAverageCompletionTime = completedActionsForAvgTime.length > 0
+      ? completedActionsForAvgTime.reduce((acc, action) => acc + (action.actualHours || 0), 0) / completedActionsForAvgTime.length
       : 0;
 
     // Format recent documents and urgent actions for frontend
@@ -103,12 +113,12 @@ router.get('/stats', async (req, res) => {
     }));
 
     res.json({
-      totalDocuments,
-      activeUsers,
-      completedActions,
-      pendingActions,
-      documentsThisMonth,
-      averageCompletionTime: parseFloat(averageCompletionTime.toFixed(1)),
+      totalDocuments: totalDocumentsCount,
+      activeUsers: calculatedActiveUsers, // Use the calculated value
+      completedActions: calculatedCompletedActions, // Use the calculated value
+      pendingActions: calculatedPendingActions,     // Use the calculated value
+      documentsThisMonth: documentsThisMonthCount,
+      averageCompletionTime: parseFloat(calculatedAverageCompletionTime.toFixed(1)), // Use the calculated value
       recentDocuments: formattedRecentDocuments,
       urgentActions: formattedUrgentActions,
       activityLogs: formattedActivityLogs,
