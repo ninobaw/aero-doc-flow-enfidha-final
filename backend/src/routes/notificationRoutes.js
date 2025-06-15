@@ -1,11 +1,12 @@
 const { Router } = require('express');
 const { Notification } = require('../models/Notification.js');
 const { sendSms } = require('../utils/smsSender.js'); // Import the new SMS sender utility
+const { sendEmail } = require('../utils/emailSender.js'); // Import the new EMAIL sender utility
 const { v4: uuidv4 } = require('uuid');
 
 const router = Router();
 
-// Helper function to create a notification (now also attempts to send SMS)
+// Helper function to create a notification (now also attempts to send SMS and Email)
 const createNotification = async (userId, title, message, type = 'info') => {
   try {
     const newNotification = new Notification({
@@ -19,10 +20,13 @@ const createNotification = async (userId, title, message, type = 'info') => {
     await newNotification.save();
     console.log(`Notification created for user ${userId}: ${title}`);
 
-    // Attempt to send SMS if it's a warning or error notification
+    // Attempt to send SMS if it's a warning or error notification AND SMS is enabled
     if (type === 'warning' || type === 'error') {
       await sendSms(userId, `AeroDoc Alerte: ${title} - ${message}`);
     }
+
+    // Attempt to send Email for all notification types if Email is enabled
+    await sendEmail(userId, `AeroDoc Notification: ${title}`, message, `<p>${message}</p>`);
 
   } catch (error) {
     console.error('Error creating notification:', error);
@@ -68,10 +72,13 @@ router.post('/', async (req, res) => {
 
     await newNotification.save();
 
-    // Attempt to send SMS if it's a warning or error notification
+    // Attempt to send SMS if it's a warning or error notification AND SMS is enabled
     if (type === 'warning' || type === 'error') {
       await sendSms(userId, `AeroDoc Alerte: ${title} - ${message}`);
     }
+
+    // Attempt to send Email for all notification types if Email is enabled
+    await sendEmail(userId, `AeroDoc Notification: ${title}`, message, `<p>${message}</p>`);
 
     res.status(201).json({
       ...newNotification.toObject(),
