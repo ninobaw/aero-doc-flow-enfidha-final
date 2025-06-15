@@ -36,7 +36,8 @@ export const DocumentCreationForm: React.FC = () => {
     sub_department_code: undefined as string | undefined,
     document_type_code: undefined as string | undefined,
     language_code: undefined as string | undefined,
-    version: '1.0',
+    sequence_number: '', // Now user-provided
+    version: 'REV:0', // Initial version for new documents
     responsable: '',
     description: '',
     content: ''
@@ -57,13 +58,16 @@ export const DocumentCreationForm: React.FC = () => {
   }, [user, codeConfig, initialDepartmentCode]);
 
   const previewQrCodeForm = useMemo(() => {
+    // Use user-provided sequence_number for preview
+    const seqNum = formData.sequence_number.padStart(3, '0');
     return generateDocumentCodePreview(
       formData.company_code,
       formData.airport,
       formData.department_code,
       formData.sub_department_code,
       formData.document_type_code,
-      formData.language_code
+      formData.language_code,
+      seqNum // Pass padded sequence number
     );
   }, [
     formData.company_code,
@@ -72,6 +76,7 @@ export const DocumentCreationForm: React.FC = () => {
     formData.sub_department_code,
     formData.document_type_code,
     formData.language_code,
+    formData.sequence_number
   ]);
 
   const handleFormSubmit = (event: React.FormEvent) => {
@@ -86,10 +91,10 @@ export const DocumentCreationForm: React.FC = () => {
       return;
     }
 
-    if (!formData.title.trim() || !formData.airport || !formData.document_type_code || !formData.department_code || !formData.language_code) {
+    if (!formData.title.trim() || !formData.airport || !formData.document_type_code || !formData.department_code || !formData.language_code || !formData.sequence_number.trim()) {
       toast({
         title: 'Champs manquants',
-        description: 'Veuillez remplir tous les champs obligatoires (Titre, Aéroport, Type de document, Département, Langue).',
+        description: 'Veuillez remplir tous les champs obligatoires (Titre, Aéroport, Type de document, Département, Langue, Numéro de document).',
         variant: 'destructive',
       });
       return;
@@ -106,6 +111,8 @@ export const DocumentCreationForm: React.FC = () => {
       sub_department_code: formData.sub_department_code || undefined,
       document_type_code: formData.document_type_code,
       language_code: formData.language_code,
+      sequence_number: parseInt(formData.sequence_number), // Pass as number
+      version: 0, // Set initial version to 0
     };
 
     createDocument(documentData, {
@@ -204,7 +211,7 @@ export const DocumentCreationForm: React.FC = () => {
           </Select>
           {user?.department && initialDepartmentCode !== undefined && (
             <p className="text-xs text-gray-500">
-              Département pré-rémpili ({user.department})
+              Département pré-rempli ({user.department})
             </p>
           )}
         </div>
@@ -249,22 +256,15 @@ export const DocumentCreationForm: React.FC = () => {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="version">Version</Label>
+          <Label htmlFor="sequence_number">Numéro de document *</Label>
           <Input
-            id="version"
-            value={formData.version}
-            onChange={(e) => setFormData(prev => ({ ...prev, version: e.target.value }))}
-            placeholder="1.0"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="responsable">Responsable</Label>
-          <Input
-            id="responsable"
-            value={formData.responsable}
-            onChange={(e) => setFormData(prev => ({ ...prev, responsable: e.target.value }))}
-            placeholder="Nom du responsable"
+            id="sequence_number"
+            type="number"
+            value={formData.sequence_number}
+            onChange={(e) => setFormData(prev => ({ ...prev, sequence_number: e.target.value }))}
+            placeholder="Ex: 001"
+            required
+            min="1"
           />
         </div>
       </div>
@@ -278,7 +278,20 @@ export const DocumentCreationForm: React.FC = () => {
           className="font-mono bg-gray-100 text-gray-700"
         />
         <p className="text-xs text-gray-500">
-          Ce code sera généré automatiquement lors de la sauvegarde. Le numéro de séquence sera attribué par le système.
+          Ce code sera généré automatiquement lors de la sauvegarde.
+        </p>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="version">Version</Label>
+        <Input
+          id="version"
+          value={formData.version}
+          readOnly
+          className="bg-gray-100"
+        />
+        <p className="text-xs text-gray-500">
+          La version initiale d'un nouveau document est toujours REV:0.
         </p>
       </div>
 
