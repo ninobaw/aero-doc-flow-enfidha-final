@@ -72,9 +72,13 @@ export const Dashboard = () => {
     }
   ];
 
-  // Filter out 'Utilisateurs Actifs' card for 'AGENT_BUREAU_ORDRE' role
+  // Filter out specific cards for 'AGENT_BUREAU_ORDRE' role
   if (user?.role === 'AGENT_BUREAU_ORDRE') {
-    dashboardStats = dashboardStats.filter(stat => stat.title !== 'Utilisateurs Actifs');
+    dashboardStats = dashboardStats.filter(stat => 
+      stat.title !== 'Utilisateurs Actifs' &&
+      stat.title !== 'Actions Complétées' &&
+      stat.title !== 'Tâches en Cours'
+    );
   }
 
   return (
