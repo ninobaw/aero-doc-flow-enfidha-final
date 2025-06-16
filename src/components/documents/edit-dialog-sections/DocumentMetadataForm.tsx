@@ -147,19 +147,6 @@ export const DocumentMetadataForm: React.FC<DocumentMetadataFormProps> = ({
           </SelectContent>
         </Select>
       </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="sequence_number">Numéro de document *</Label>
-        <Input
-          id="sequence_number"
-          type="number"
-          value={formData.sequence_number}
-          onChange={(e) => setFormData((prev: any) => ({ ...prev, sequence_number: e.target.value }))}
-          placeholder="Ex: 001"
-          required
-          min="1"
-        />
-      </div>
     </div>
   );
 };
