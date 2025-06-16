@@ -5,9 +5,27 @@ import { Button } from '@/components/ui/button';
 import { FileText, Eye, Download, Calendar, User, Edit, Trash2, CheckCircle } from 'lucide-react';
 import { formatDate, getAbsoluteFilePath } from '@/shared/utils';
 import type { DocumentData } from '@/hooks/useDocuments';
-import { ViewDocumentDialog } from '@/components/documents/ViewDocumentDialog'; // Import the new dialog
-import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
-import { useDocuments } from '@/hooks/useDocuments'; // Import useDocuments to update status
+import { ViewDocumentDialog } from '@/components/documents/ViewDocumentDialog';
+import { useAuth } from '@/contexts/AuthContext';
+import { useDocuments } from '@/hooks/useDocuments';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface DocumentsListProps {
   documents: DocumentData[];
@@ -19,27 +37,17 @@ interface DocumentsListProps {
 export const DocumentsList = ({ documents, isLoading, onEdit, onDelete }: DocumentsListProps) => {
   const [selectedDocumentForView, setSelectedDocumentForView] = useState<DocumentData | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const { user, hasPermission } = useAuth(); // Get user and hasPermission
-  const { updateDocument, isUpdating } = useDocuments(); // Get updateDocument mutation
+  const [documentToDelete, setDocumentToDelete] = useState<string | null>(null); // State for deletion confirmation
+  
+  const { user, hasPermission } = useAuth();
+  const { updateDocument, isUpdating } = useDocuments();
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {[...Array(6)].map((_, i) => (
-          <Card key={i} className="animate-pulse">
-            <CardHeader>
-              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-              <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="h-3 bg-gray-200 rounded"></div>
-                <div className="h-3 bg-gray-200 rounded w-2/3"></div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <Card className="p-8 text-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-aviation-sky mx-auto mb-4"></div>
+        <p className="text-gray-600">Chargement des documents...</p>
+      </Card>
     );
   }
 
@@ -94,14 +102,25 @@ export const DocumentsList = ({ documents, isLoading, onEdit, onDelete }: Docume
     setIsViewDialogOpen(true);
   };
 
+  const handleDeleteClick = (id: string) => {
+    setDocumentToDelete(id);
+  };
+
+  const handleConfirmDelete = () => {
+    if (documentToDelete && onDelete) {
+      onDelete(documentToDelete);
+      setDocumentToDelete(null);
+    }
+  };
+
   const handleApproveDocument = (document: DocumentData) => {
-    if (!user) return; // Should not happen if ProtectedRoute is working
+    if (!user) return;
 
     if (window.confirm(`Êtes-vous sûr de vouloir approuver le document "${document.title}" ?`)) {
       updateDocument({
         id: document.id,
         status: 'ACTIVE',
-        approved_by_id: user.id, // Pass current user's ID as approver
+        approved_by_id: user.id,
       });
     }
   };
@@ -110,126 +129,113 @@ export const DocumentsList = ({ documents, isLoading, onEdit, onDelete }: Docume
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {documents.map((document) => (
-          <Card key={document.id} className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="flex items-center space-x-2">
-                  <FileText className="w-5 h-5 text-aviation-sky" />
-                  <Badge variant="outline" className="text-xs">
-                    {document.airport}
-                  </Badge>
-                </div>
-                <Badge className={`text-xs ${getStatusColor(document.status)}`}>
-                  {getStatusLabel(document.status)}
-                </Badge>
-              </div>
-              <CardTitle className="text-lg line-clamp-2">
-                {document.title}
-              </CardTitle>
-              <CardDescription>
-                <Badge variant="secondary" className="text-xs">
-                  {getTypeLabel(document.type)}
-                </Badge>
-                {document.qr_code && (
-                  <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded mt-1 inline-block">
-                    {document.qr_code}
-                  </span>
-                )}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {document.content && (
-                  <p className="text-sm text-gray-600 line-clamp-2">
-                    {document.content}
-                  </p>
-                )}
-
-                {document.tags && document.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {document.tags.map((tag, index) => (
-                      <Badge key={index} variant="outline" className="text-xs">
-                        {tag}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <FileText className="w-5 h-5 mr-2 text-aviation-sky" />
+            Liste des Documents
+          </CardTitle>
+          <CardDescription>
+            Gérer tous les documents disponibles dans le système.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[200px]">Titre</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Auteur</TableHead>
+                  <TableHead>Aéroport</TableHead>
+                  <TableHead>Statut</TableHead>
+                  <TableHead>Créé le</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {documents.map((document) => (
+                  <TableRow key={document.id} className="hover:bg-gray-50">
+                    <TableCell className="font-medium">
+                      <div className="line-clamp-2">{document.title}</div>
+                      {document.qr_code && (
+                        <span className="font-mono text-xs bg-gray-100 px-1 py-0.5 rounded mt-1 inline-block">
+                          {document.qr_code.substring(0, 10)}...
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary" className="text-xs">
+                        {getTypeLabel(document.type)}
                       </Badge>
-                    ))}
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between text-xs text-gray-500">
-                  <div className="flex items-center space-x-1">
-                    <User className="w-3 h-3" />
-                    <span>
+                    </TableCell>
+                    <TableCell className="text-sm text-gray-600">
                       {document.author?.firstName} {document.author?.lastName}
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Calendar className="w-3 h-3" />
-                    <span>Créé le: {formatDate(document.created_at)}</span>
-                  </div>
-                </div>
-
-                {document.status === 'ACTIVE' && document.approved_by && document.approved_at && (
-                  <div className="flex items-center space-x-1 text-xs text-green-700">
-                    <CheckCircle className="w-3 h-3" />
-                    <span>Approuvé par {document.approved_by.firstName} {document.approved_by.lastName} le {formatDate(document.approved_at)}</span>
-                  </div>
-                )}
-
-                <div className="flex justify-between pt-2">
-                  <div className="flex space-x-1">
-                    <Button variant="outline" size="sm" onClick={() => handleViewDocument(document)}>
-                      <Eye className="w-4 h-4 mr-1" />
-                      Voir
-                    </Button>
-                    {document.file_path && (
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => {
-                          const link = document.createElement('a');
-                          link.href = getAbsoluteFilePath(document.file_path);
-                          link.download = document.title;
-                          document.body.appendChild(link);
-                          link.click();
-                          document.body.removeChild(link);
-                        }}
-                      >
-                        <Download className="w-4 h-4 mr-1" />
-                        Télécharger
-                      </Button>
-                    )}
-                  </div>
-                  <div className="flex space-x-1">
-                    {document.status === 'DRAFT' && canApprove && (
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => handleApproveDocument(document)}
-                        disabled={isUpdating}
-                        className="bg-green-500 hover:bg-green-600 text-white"
-                      >
-                        <CheckCircle className="w-4 h-4" />
-                      </Button>
-                    )}
-                    {onEdit && (
-                      <Button variant="ghost" size="sm" onClick={() => onEdit(document)}>
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                    )}
-                    {onDelete && (
-                      <Button variant="ghost" size="sm" onClick={() => onDelete(document.id)}>
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="text-xs">
+                        {document.airport}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={`text-xs ${getStatusColor(document.status)}`}>
+                        {getStatusLabel(document.status)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-sm text-gray-500">
+                      {formatDate(document.created_at)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end space-x-2">
+                        <Button variant="outline" size="sm" onClick={() => handleViewDocument(document)}>
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        {document.file_path && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const link = document.createElement('a');
+                              link.href = getAbsoluteFilePath(document.file_path);
+                              link.download = document.title;
+                              document.body.appendChild(link);
+                              link.click();
+                              document.body.removeChild(link);
+                            }}
+                          >
+                            <Download className="w-4 h-4" />
+                          </Button>
+                        )}
+                        {document.status === 'DRAFT' && canApprove && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleApproveDocument(document)}
+                            disabled={isUpdating}
+                            className="bg-green-500 hover:bg-green-600 text-white"
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                          </Button>
+                        )}
+                        {onEdit && (
+                          <Button variant="outline" size="sm" onClick={() => onEdit(document)}>
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                        )}
+                        {onDelete && (
+                          <Button variant="outline" size="sm" onClick={() => handleDeleteClick(document.id)} className="text-red-600 hover:text-red-700">
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
 
       {selectedDocumentForView && (
         <ViewDocumentDialog
@@ -238,6 +244,21 @@ export const DocumentsList = ({ documents, isLoading, onEdit, onDelete }: Docume
           onOpenChange={setIsViewDialogOpen}
         />
       )}
+
+      <AlertDialog open={!!documentToDelete} onOpenChange={(open) => !open && setDocumentToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Êtes-vous absolument sûr ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action est irréversible. Cela supprimera définitivement le document de nos serveurs.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-red-600 hover:bg-red-700">Supprimer</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
