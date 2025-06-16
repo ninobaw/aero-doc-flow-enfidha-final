@@ -1,9 +1,9 @@
 const { Router } = require('express');
-const { Document } = require('../models/Document.js'); // Changed to require with .js extension
-const { User } = require('../models/User.js'); // Changed to require with .js extension
-const { DocumentCodeConfig } = require('../models/DocumentCodeConfig.js'); // Changed to require with .js extension
-const { ActivityLog } = require('../models/ActivityLog.js'); // Changed to require with .js extension
-const { v4: uuidv4 } = require('uuid'); // uuid is a CommonJS module, no change needed here
+const { Document } = require('../models/Document.js');
+const { User } = require('../models/User.js');
+const { DocumentCodeConfig } = require('../models/DocumentCodeConfig.js');
+const { ActivityLog } = require('../models/ActivityLog.js');
+const { v4: uuidv4 } = require('uuid');
 
 const router = Router();
 
@@ -100,7 +100,7 @@ router.post('/', async (req, res) => {
   const { 
     title, type, content, author_id, airport, file_path, file_type, // Added file_path, file_type
     company_code, scope_code, department_code, sub_department_code,
-    document_type_code, language_code
+    document_type_code, language_code, isTemplate // Added isTemplate
   } = req.body;
 
   if (!title || !type || !author_id || !airport || !company_code || !scope_code || !department_code || !document_type_code || !language_code) {
@@ -138,25 +138,27 @@ router.post('/', async (req, res) => {
       document_type_code,
       language_code,
       sequence_number,
+      isTemplate: isTemplate || false, // Set isTemplate
     });
 
     await newDocument.save();
+    
+    // Re-fetch the document by ID and populate to ensure correct population
+    const populatedDocument = await Document.findById(newDocument._id)
+      .populate('authorId', 'firstName lastName')
+      .populate('approvedBy', 'firstName lastName');
     
     // Log document creation
     await ActivityLog.create({
       _id: uuidv4(),
       action: 'DOCUMENT_CREATED',
-      details: `Document "${newDocument.title}" (ID: ${newDocument._id}) créé.`,
-      entityId: newDocument._id,
+      details: `Document "${populatedDocument.title}" (ID: ${populatedDocument._id}) créé.`,
+      entityId: populatedDocument._id,
       entityType: 'DOCUMENT',
       userId: author_id,
       timestamp: new Date(),
     });
 
-    const populatedDocument = await newDocument
-      .populate('authorId', 'firstName lastName')
-      .populate('approvedBy', 'firstName lastName'); // Populate approvedBy for response
-    
     const formattedDocument = {
       ...populatedDocument.toObject(),
       id: populatedDocument._id,
