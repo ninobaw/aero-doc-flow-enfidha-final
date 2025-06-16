@@ -202,7 +202,7 @@ export const Sidebar = () => {
             <p className="text-sm text-aviation-sky-light">Gestion Documentaire</p>
           </div>
         </div>
-      </div
+      </div> {/* Corrected: Added closing slash to div tag */}
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
         {navigationItems.map(item => renderNavItem(item))}
       </nav>
