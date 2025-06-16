@@ -61,6 +61,13 @@ const CorrespondanceSchema = new Schema({
   tags: [{ type: String }], // New field for tags
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }, // Added updatedAt
+  // New codification fields
+  company_code: { type: String },
+  scope_code: { type: String },
+  department_code: { type: String },
+  sub_department_code: { type: String },
+  language_code: { type: String },
+  sequence_number: { type: Number },
 }, { timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' } }); // Ensure timestamps are handled
 
 const Correspondance = model('Correspondance', CorrespondanceSchema);
