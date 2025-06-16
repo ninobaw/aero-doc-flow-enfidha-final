@@ -125,8 +125,7 @@ export const DocumentImportForm: React.FC = () => {
         title: template.title,
         description: template.content || '',
         airport: template.airport,
-        // Attempt to map template type to document_type_code
-        document_type_code: codeConfig?.documentTypes.find(dt => dt.label === template.type)?.code || undefined,
+        document_type_code: template.document_type_code || undefined, // Use document_type_code directly
       }));
       // Set preview URL for template if available
       if (template.file_path) {
@@ -190,6 +189,11 @@ export const DocumentImportForm: React.FC = () => {
           finalFilePath = copied.path;
           finalFileType = template.file_type;
         } else {
+          toast({
+            title: 'Erreur de copie',
+            description: 'Impossible de copier le fichier du modèle.',
+            variant: 'destructive',
+          });
           return; // Stop if template copy failed
         }
       } else {
