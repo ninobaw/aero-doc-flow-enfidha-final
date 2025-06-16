@@ -21,10 +21,16 @@ const ActionDecideeSchema = new Schema({
 
 const CorrespondanceSchema = new Schema({
   _id: { type: String, required: true },
-  authorId: { type: String, ref: 'User', required: true }, // Added authorId
-  qrCode: { type: String, unique: true, required: true }, // Added qrCode
-  filePath: { type: String }, // Added filePath
-  fileType: { type: String }, // Added fileType
+  // Removed documentId as Correspondance will now be a standalone entity
+  title: { type: String, required: true }, // Added title directly to Correspondance
+  authorId: { type: String, ref: 'User', required: true }, // Added authorId directly
+  qrCode: { type: String, unique: true, required: true }, // Added qrCode directly
+  filePath: { type: String }, // Added filePath directly
+  fileType: { type: String }, // Added fileType directly
+  version: { type: Number, default: 1 }, // Added version directly
+  viewsCount: { type: Number, default: 0 }, // Added viewsCount directly
+  downloadsCount: { type: Number, default: 0 }, // Added downloadsCount directly
+  
   type: { // New field: INCOMING or OUTGOING
     type: String,
     enum: ['INCOMING', 'OUTGOING'],
