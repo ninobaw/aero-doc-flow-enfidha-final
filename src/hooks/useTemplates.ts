@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } => '@/contexts/AuthContext';
 import { Airport } from '@/shared/types';
 
 const API_BASE_URL = 'http://localhost:5000/api';
@@ -52,6 +52,13 @@ export const useTemplates = () => {
       airport: Airport;
       file_path: string; // Path to the uploaded template file
       file_type: string;
+      // New codification fields
+      company_code: string;
+      scope_code: string;
+      department_code: string;
+      sub_department_code?: string;
+      document_type_code: string;
+      language_code: string;
     }) => {
       if (!user?.id) throw new Error('Utilisateur non connecté');
 
@@ -63,7 +70,7 @@ export const useTemplates = () => {
         isTemplate: true,
         version: 1,
         status: 'ACTIVE', // Templates are usually active
-        qr_code: `QR-TEMPLATE-${Date.now()}`, // Generate a unique QR for the template
+        qr_code: `QR-TEMPLATE-${Date.now()}`, // Generate a unique QR for the template (will be overwritten by backend)
       });
       return response.data;
     },

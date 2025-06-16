@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'; // Import useRef
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,46 +11,92 @@ import { useFileUpload } from '@/hooks/useFileUpload';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Airport } from '@/shared/types';
+import { useDocumentCodeConfig } from '@/hooks/useDocumentCodeConfig'; // Import useDocumentCodeConfig
+import { generateDocumentCodePreview } from '@/shared/utils'; // Import generateDocumentCodePreview
 
 export const UploadTemplateForm: React.FC = () => {
   const { user } = useAuth();
   const { createTemplate, isCreating } = useTemplates();
   const { uploadTemplate, uploading: isUploadingFile } = useFileUpload();
+  const { config: codeConfig, isLoading: isLoadingCodeConfig } = useDocumentCodeConfig(); // Use document code config
   const { toast } = useToast();
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
+  const initialDepartmentCode = useMemo(() => {
+    if (user && codeConfig?.departments) {
+      const foundDept = codeConfig.departments.find(d => d.label === user.department);
+      return foundDept ? foundDept.code : undefined;
+    }
+    return undefined;
+  }, [user, codeConfig]);
+
   const [formData, setFormData] = useState({
     title: '',
-    airport: user?.airport || 'ENFIDHA' as Airport,
+    airport: user?.airport || 'ENFIDHA' as Airport, // This will map to scope_code
     description: '',
+    company_code: 'TAVTUN', // Default value
+    document_type_code: undefined as string | undefined, // Specific for templates, e.g., 'PQ', 'MN'
+    department_code: undefined as string | undefined,
+    sub_department_code: undefined as string | undefined,
+    language_code: 'FR', // Default value
   });
 
-  const fileInputRef = useRef<HTMLInputElement>(null); // Ref for the hidden file input
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (user && codeConfig) {
+      const defaultAirport = user.airport || 'ENFIDHA';
+      const defaultLanguage = 'FR';
+
+      const foundDept = codeConfig.departments.find(d => d.label === user.department);
+      const userDepartmentCode = foundDept ? foundDept.code : undefined;
+
+      setFormData(prev => ({
+        ...prev,
+        airport: defaultAirport,
+        department_code: userDepartmentCode,
+        language_code: defaultLanguage,
+      }));
+    }
+  }, [user, codeConfig]);
+
+  const previewTemplateCode = useMemo(() => {
+    // For templates, we use a placeholder sequence number (e.g., '000' or 'TPL')
+    // The actual sequence number will be generated when a document is created from this template.
+    return generateDocumentCodePreview(
+      formData.company_code,
+      formData.airport,
+      formData.department_code,
+      formData.sub_department_code,
+      formData.document_type_code,
+      formData.language_code
+    );
+  }, [
+    formData.company_code,
+    formData.airport,
+    formData.department_code,
+    formData.sub_department_code,
+    formData.document_type_code,
+    formData.language_code
+  ]);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    console.log('handleFileUpload triggered. File:', file); // Log file detection
+    console.log('handleFileUpload triggered. File:', file);
     if (file) {
       console.log('Fichier sélectionné:', file);
       setSelectedFile(file);
       
-      if (file.type.startsWith('image/') || file.type === 'application/pdf') {
-        if (previewUrl) {
-          URL.revokeObjectURL(previewUrl);
-        }
-        const url = URL.createObjectURL(file);
-        setPreviewUrl(url);
-      } else {
-        if (previewUrl) {
-          URL.revokeObjectURL(previewUrl);
-        }
-        setPreviewUrl(null);
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
       }
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
     } else {
       console.log('Aucun fichier sélectionné.');
-      removeFile(); // Clear file if none selected (e.g., user cancels dialog)
+      removeFile();
     }
   };
 
@@ -61,7 +107,7 @@ export const UploadTemplateForm: React.FC = () => {
     setSelectedFile(null);
     setPreviewUrl(null);
     if (fileInputRef.current) {
-      fileInputRef.current.value = ''; // Clear the input value to allow re-selection of the same file
+      fileInputRef.current.value = '';
     }
     console.log('Fichier supprimé.');
   };
@@ -78,10 +124,10 @@ export const UploadTemplateForm: React.FC = () => {
       return;
     }
 
-    if (!formData.title.trim() || !formData.airport || !selectedFile) {
+    if (!formData.title.trim() || !formData.airport || !selectedFile || !formData.company_code || !formData.document_type_code || !formData.department_code || !formData.language_code) {
       toast({
         title: 'Champs manquants',
-        description: 'Veuillez remplir le titre, sélectionner un aéroport et un fichier.',
+        description: 'Veuillez remplir tous les champs obligatoires (Titre, Aéroport, Type de document, Département, Langue, et sélectionner un fichier).',
         variant: 'destructive',
       });
       console.log('Validation échouée: Champs manquants ou fichier non sélectionné.');
@@ -93,7 +139,7 @@ export const UploadTemplateForm: React.FC = () => {
 
     const uploadedFile = await uploadTemplate(selectedFile, {
       allowedTypes: ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx'],
-      maxSize: 10 // 10MB
+      maxSize: 10
     });
 
     if (uploadedFile) {
@@ -104,6 +150,12 @@ export const UploadTemplateForm: React.FC = () => {
         airport: formData.airport,
         file_path: uploadedFile.path,
         file_type: selectedFile.type,
+        company_code: formData.company_code,
+        scope_code: formData.airport, // airport maps to scope_code
+        department_code: formData.department_code,
+        sub_department_code: formData.sub_department_code,
+        document_type_code: formData.document_type_code,
+        language_code: formData.language_code,
       }, {
         onSuccess: () => {
           toast({
@@ -115,6 +167,11 @@ export const UploadTemplateForm: React.FC = () => {
             title: '',
             airport: user?.airport || 'ENFIDHA',
             description: '',
+            company_code: 'TAVTUN',
+            document_type_code: undefined,
+            department_code: undefined,
+            sub_department_code: undefined,
+            language_code: 'FR',
           });
           removeFile();
           console.log('Modèle créé et formulaire réinitialisé.');
@@ -124,6 +181,15 @@ export const UploadTemplateForm: React.FC = () => {
       console.log('L\'upload du fichier a échoué, annulation de la création du modèle.');
     }
   };
+
+  if (isLoadingCodeConfig) {
+    return (
+      <Card className="p-8 text-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-aviation-sky mx-auto mb-4"></div>
+        <p className="text-gray-600">Chargement de la configuration des codes documentaires...</p>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -151,7 +217,18 @@ export const UploadTemplateForm: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="template-airport">Aéroport *</Label>
+              <Label htmlFor="company_code">Code Société *</Label>
+              <Input
+                id="company_code"
+                value={formData.company_code}
+                onChange={(e) => setFormData({ ...formData, company_code: e.target.value })}
+                placeholder="Ex: TAVTUN"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="template-airport">Aéroport (Scope) *</Label>
               <Select
                 value={formData.airport}
                 onValueChange={(value: Airport) => setFormData({ ...formData, airport: value })}
@@ -161,12 +238,112 @@ export const UploadTemplateForm: React.FC = () => {
                   <SelectValue placeholder="Sélectionner un aéroport" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ENFIDHA">Enfidha</SelectItem>
-                  <SelectItem value="MONASTIR">Monastir</SelectItem>
-                  <SelectItem value="GENERALE">Général</SelectItem>
+                  {codeConfig?.scopes.map(scope => (
+                    <SelectItem key={scope.code} value={scope.code}>
+                      {scope.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="document_type_code">Type de document (pour modèle) *</Label>
+              <Select
+                value={formData.document_type_code}
+                onValueChange={(value: string) => setFormData({ ...formData, document_type_code: value })}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner un type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {codeConfig?.documentTypes.map(docType => (
+                    <SelectItem key={docType.code} value={docType.code}>
+                      {docType.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="department_code">Département *</Label>
+              <Select
+                value={formData.department_code}
+                onValueChange={(value: string) => setFormData({ ...formData, department_code: value })}
+                required
+                disabled={!!user?.department && formData.department_code === initialDepartmentCode && initialDepartmentCode !== undefined}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner un département" />
+                </SelectTrigger>
+                <SelectContent>
+                  {codeConfig?.departments.map(dept => (
+                    <SelectItem key={dept.code} value={dept.code}>
+                      {dept.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {user?.department && initialDepartmentCode !== undefined && (
+                <p className="text-xs text-gray-500">
+                  Département pré-réglé ({user.department})
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="sub_department_code">Sous-département (optionnel)</Label>
+              <Select
+                value={formData.sub_department_code}
+                onValueChange={(value: string) => setFormData({ ...formData, sub_department_code: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner un sous-département" />
+                </SelectTrigger>
+                <SelectContent>
+                  {codeConfig?.subDepartments.map(subDept => (
+                    <SelectItem key={subDept.code} value={subDept.code}>
+                      {subDept.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="language_code">Langue *</Label>
+              <Select
+                value={formData.language_code}
+                onValueChange={(value: string) => setFormData({ ...formData, language_code: value })}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner une langue" />
+                </SelectTrigger>
+                <SelectContent>
+                  {codeConfig?.languages.map(lang => (
+                    <SelectItem key={lang.code} value={lang.code}>
+                      {lang.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Preview of the generated code for the template */}
+          <div className="space-y-2">
+            <Label>Prévisualisation du Code Modèle</Label>
+            <Input
+              value={previewTemplateCode}
+              readOnly
+              className="font-mono bg-gray-100 text-gray-700"
+            />
+            <p className="text-xs text-gray-500">
+              Ce code sera utilisé comme base pour les documents créés à partir de ce modèle.
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -196,9 +373,8 @@ export const UploadTemplateForm: React.FC = () => {
                 accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
                 className="hidden"
                 id="template-file-upload"
-                ref={fileInputRef} // Attach the ref here
+                ref={fileInputRef}
               />
-              {/* Modified button to directly trigger the hidden input */}
               <Button
                 type="button"
                 variant="outline"
@@ -245,14 +421,23 @@ export const UploadTemplateForm: React.FC = () => {
 
           <div className="flex justify-end space-x-4">
             <Button type="button" variant="outline" onClick={() => {
-              setFormData({ title: '', airport: user?.airport || 'ENFIDHA', description: '' });
+              setFormData({
+                title: '',
+                airport: user?.airport || 'ENFIDHA',
+                description: '',
+                company_code: 'TAVTUN',
+                document_type_code: undefined,
+                department_code: undefined,
+                sub_department_code: undefined,
+                language_code: 'FR',
+              });
               removeFile();
             }}>
               Annuler
             </Button>
             <Button
               type="submit"
-              disabled={isCreating || isUploadingFile || !formData.title.trim() || !formData.airport || !selectedFile}
+              disabled={isCreating || isUploadingFile || !formData.title.trim() || !formData.airport || !selectedFile || !formData.document_type_code || !formData.department_code || !formData.language_code}
               className="bg-aviation-sky hover:bg-aviation-sky-dark"
             >
               <Save className="w-4 h-4 mr-2" />
