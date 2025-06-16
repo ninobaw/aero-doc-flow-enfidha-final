@@ -114,6 +114,20 @@ const seedDatabase = async () => {
         lastLogin: new Date(),
         password: 'user123',
       },
+      { // New user with AGENT_BUREAU_ORDRE role
+        _id: uuidv4(),
+        email: 'agent.bo@aerodoc.tn',
+        firstName: 'Agent',
+        lastName: 'BureauOrdre',
+        role: 'AGENT_BUREAU_ORDRE',
+        airport: 'ENFIDHA',
+        isActive: true,
+        phone: '21622334455',
+        department: 'Bureau d\'Ordre',
+        position: 'Agent',
+        lastLogin: new Date(),
+        password: 'agent123',
+      },
     ];
 
     const hashedUsers = await Promise.all(usersToSeed.map(async (user) => {
@@ -130,6 +144,8 @@ const seedDatabase = async () => {
     const approverId = createdUsers.find(u => u.email === 'approver@aerodoc.tn')._id;
     const userId = createdUsers.find(u => u.email === 'user@aerodoc.tn')._id;
     const generalUserId = createdUsers.find(u => u.email === 'general.user@aerodoc.tn')._id;
+    const agentBOId = createdUsers.find(u => u.email === 'agent.bo@aerodoc.tn')._id;
+
 
     // --- Seed Documents (General, QualiteDoc, FormulaireDoc) ---
     console.log('Seeding documents...');
@@ -147,6 +163,12 @@ const seedDatabase = async () => {
         viewsCount: 150,
         downloadsCount: 30,
         createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
+        company_code: 'TAVTUN',
+        scope_code: 'NBE',
+        department_code: 'OPS',
+        document_type_code: 'MN',
+        language_code: 'FR',
+        sequence_number: 1,
       },
       {
         _id: uuidv4(),
@@ -169,6 +191,12 @@ const seedDatabase = async () => {
         viewsCount: 80,
         downloadsCount: 15,
         createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), // 10 days ago
+        company_code: 'TAVTUN',
+        scope_code: 'MIR',
+        department_code: 'QMS',
+        document_type_code: 'PQ',
+        language_code: 'FR',
+        sequence_number: 1,
       },
       {
         _id: uuidv4(),
@@ -188,6 +216,12 @@ const seedDatabase = async () => {
         viewsCount: 20,
         downloadsCount: 5,
         createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+        company_code: 'TAVTUN',
+        scope_code: 'NBE',
+        department_code: 'RH',
+        document_type_code: 'FM',
+        language_code: 'FR',
+        sequence_number: 1,
       },
       { // New document with GENERALE scope
         _id: uuidv4(),
@@ -202,6 +236,12 @@ const seedDatabase = async () => {
         viewsCount: 200,
         downloadsCount: 50,
         createdAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000), // 20 days ago
+        company_code: 'TAVTUN',
+        scope_code: 'GEN',
+        department_code: 'SEC',
+        document_type_code: 'RG',
+        language_code: 'FR',
+        sequence_number: 1,
       },
     ];
     const createdDocuments = await Document.insertMany(documentsToSeed);
@@ -209,26 +249,16 @@ const seedDatabase = async () => {
 
     // --- Seed Correspondances ---
     console.log('Seeding correspondences...');
-    const correspondanceDocId = uuidv4();
-    const correspondanceDocument = new Document({
-      _id: correspondanceDocId,
-      title: 'Correspondance: Demande de matériel de bureau',
-      type: 'CORRESPONDANCE',
-      content: 'Demande de fournitures de bureau pour le département des opérations.',
-      authorId: userId,
-      airport: 'MONASTIR',
-      qrCode: `QR-${uuidv4()}`,
-      version: 1,
-      status: 'ACTIVE',
-      viewsCount: 10,
-      downloadsCount: 2,
-      createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
-    });
-    await correspondanceDocument.save();
-
     const correspondanceToSeed = {
       _id: uuidv4(),
-      documentId: correspondanceDocId,
+      title: 'Demande de matériel de bureau', // Added title
+      authorId: userId, // Added authorId
+      qrCode: `TAVTUN-MIR-OPS-OUT-001-FR`, // Example generated QR code
+      version: 1,
+      viewsCount: 10,
+      downloadsCount: 2,
+      type: 'OUTGOING', // Added type
+      code: 'TAVTUN-MIR-OPS-OUT-001-FR', // Added code
       fromAddress: 'operations@aerodoc.tn',
       toAddress: 'logistics@aerodoc.tn',
       subject: 'Demande de matériel de bureau - Q3 2024',
@@ -241,7 +271,7 @@ const seedDatabase = async () => {
         {
           titre: 'Vérifier la disponibilité du matériel',
           description: 'Contacter les fournisseurs pour les prix et la disponibilité.',
-          responsable: adminId, // Assign to admin
+          responsable: [adminId], // Assign to admin
           echeance: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days from now
           priorite: 'HIGH',
           statut: 'PENDING',
@@ -250,36 +280,33 @@ const seedDatabase = async () => {
         {
           titre: 'Passer la commande',
           description: 'Commander le matériel une fois les prix confirmés.',
-          responsable: adminId,
+          responsable: [adminId],
           echeance: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
           priorite: 'MEDIUM',
           statut: 'PENDING',
         },
       ],
+      tags: ['fournitures', 'logistique'],
       createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+      updatedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+      company_code: 'TAVTUN',
+      scope_code: 'MIR',
+      department_code: 'OPS',
+      language_code: 'FR',
+      sequence_number: 1,
     };
     await Correspondance.create(correspondanceToSeed);
 
-    const generalCorrespondanceDocId = uuidv4();
-    const generalCorrespondanceDocument = new Document({
-      _id: generalCorrespondanceDocId,
-      title: 'Correspondance Générale: Annonce de nouvelle politique',
-      type: 'CORRESPONDANCE',
-      content: 'Annonce d\'une nouvelle politique applicable à tous les aéroports.',
-      authorId: superAdminId,
-      airport: 'GENERALE',
-      qrCode: `QR-${uuidv4()}`,
-      version: 1,
-      status: 'ACTIVE',
-      viewsCount: 50,
-      downloadsCount: 10,
-      createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
-    });
-    await generalCorrespondanceDocument.save();
-
     const generalCorrespondanceToSeed = {
       _id: uuidv4(),
-      documentId: generalCorrespondanceDocId,
+      title: 'Annonce de nouvelle politique', // Added title
+      authorId: superAdminId, // Added authorId
+      qrCode: `TAVTUN-GEN-DIR-OUT-001-FR`, // Example generated QR code
+      version: 1,
+      viewsCount: 50,
+      downloadsCount: 10,
+      type: 'OUTGOING', // Added type
+      code: 'TAVTUN-GEN-DIR-OUT-001-FR', // Added code
       fromAddress: 'direction@aerodoc.tn',
       toAddress: 'all.staff@aerodoc.tn',
       subject: 'Nouvelle politique de gestion des déchets',
@@ -289,7 +316,14 @@ const seedDatabase = async () => {
       airport: 'GENERALE',
       attachments: ['politique_dechets.pdf'],
       actionsDecidees: [],
+      tags: ['politique', 'environnement'],
       createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+      updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+      company_code: 'TAVTUN',
+      scope_code: 'GEN',
+      department_code: 'DIR', // Assuming 'DIR' for Direction
+      language_code: 'FR',
+      sequence_number: 1,
     };
     await Correspondance.create(generalCorrespondanceToSeed);
     console.log('Correspondences seeded successfully!');
@@ -310,6 +344,12 @@ const seedDatabase = async () => {
       viewsCount: 25,
       downloadsCount: 8,
       createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000), // 15 days ago
+      company_code: 'TAVTUN',
+      scope_code: 'NBE',
+      department_code: 'SEC',
+      document_type_code: 'PV',
+      language_code: 'FR',
+      sequence_number: 1,
     });
     await pvDocument.save();
 
@@ -328,7 +368,7 @@ const seedDatabase = async () => {
         {
           titre: 'Mettre à jour les panneaux de signalisation',
           description: 'Remplacer les panneaux de sécurité obsolètes dans le terminal.',
-          responsable: adminId,
+          responsable: [adminId],
           echeance: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
           priorite: 'HIGH',
           statut: 'PENDING',
@@ -336,7 +376,7 @@ const seedDatabase = async () => {
         {
           titre: 'Planifier la formation sur les procédures',
           description: 'Contacter le formateur et fixer une date pour la formation.',
-          responsable: approverId,
+          responsable: [approverId],
           echeance: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString(),
           priorite: 'MEDIUM',
           statut: 'PENDING',
@@ -360,6 +400,12 @@ const seedDatabase = async () => {
       viewsCount: 30,
       downloadsCount: 5,
       createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
+      company_code: 'TAVTUN',
+      scope_code: 'GEN',
+      department_code: 'DIR',
+      document_type_code: 'PV',
+      language_code: 'FR',
+      sequence_number: 1,
     });
     await generalPvDocument.save();
 
@@ -378,7 +424,7 @@ const seedDatabase = async () => {
         {
           titre: 'Préparer le plan de projet X',
           description: 'Élaborer un plan détaillé pour le projet X.',
-          responsable: adminId,
+          responsable: [adminId],
           echeance: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
           priorite: 'HIGH',
           statut: 'PENDING',
@@ -653,6 +699,7 @@ const seedDatabase = async () => {
     console.log('  Email: user@aerodoc.tn, Password: user123');
     console.log('  Email: visitor@aerodoc.tn, Password: user123');
     console.log('  Email: general.user@aerodoc.tn, Password: user123');
+    console.log('  Email: agent.bo@aerodoc.tn, Password: agent123');
 
   } catch (error) {
     console.error('Error seeding database:', error);
