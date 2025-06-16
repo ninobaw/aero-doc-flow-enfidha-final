@@ -3,20 +3,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { QrCode, Search, Download, Eye, Plus } from 'lucide-react';
+import { QrCode, Search, Download, Eye, Plus, History } from 'lucide-react'; // Added History icon
 import { useState } from 'react';
 import { useQRCodes } from '@/hooks/useQRCodes';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { QRCodeGenerator } from '@/components/qr/QRCodeGenerator'; // Import the QRCodeGenerator component
-import { GenerateQRCodeForDocumentDialog } from '@/components/qr/GenerateQRCodeForDocumentDialog'; // Import the new dialog
 import { ViewDocumentDialog } from '@/components/documents/ViewDocumentDialog'; // Import ViewDocumentDialog
 import { useDocuments } from '@/hooks/useDocuments'; // Import useDocuments to get full document data
+import { generateQRCodeImage } from '@/shared/utils'; // Import generateQRCodeImage
 
 const QRCodes = () => {
-  const { qrCodes, isLoading: isLoadingQRCodes } = useQRCodes();
+  const { qrCodes, isLoading: isLoadingQRCodes, generateQRCode, isGenerating } = useQRCodes(); // Added generateQRCode and isGenerating
   const { documents, isLoading: isLoadingDocuments } = useDocuments(); // Fetch all documents
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedQRCodeData, setSelectedQRCodeData] = useState<any>(null);
+  const [selectedDocumentForView, setSelectedDocumentForView] = useState<any>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
 
   const filteredQRCodes = qrCodes.filter(qr => 
@@ -28,11 +28,15 @@ const QRCodes = () => {
     // Find the full document data to pass to ViewDocumentDialog
     const fullDocument = documents.find(doc => doc.id === qrData.document_id);
     if (fullDocument) {
-      setSelectedQRCodeData(fullDocument); // Pass the full document object
+      setSelectedDocumentForView(fullDocument); // Pass the full document object
       setIsViewDialogOpen(true);
     } else {
       console.error("Document not found for QR code:", qrData.document_id);
     }
+  };
+
+  const handleRegenerateQRCode = (documentId: string) => {
+    generateQRCode(documentId);
   };
 
   return (
@@ -45,7 +49,8 @@ const QRCodes = () => {
               Générer et gérer les codes QR des documents
             </p>
           </div>
-          <GenerateQRCodeForDocumentDialog /> {/* Use the new dialog here */}
+          {/* Removed GenerateQRCodeForDocumentDialog as QR codes are auto-generated */}
+          {/* <GenerateQRCodeForDocumentDialog /> */}
         </div>
 
         {/* Recherche */}
@@ -115,7 +120,7 @@ const QRCodes = () => {
                     {/* QR Code Image */}
                     <div className="w-32 h-32 border rounded-lg overflow-hidden bg-white">
                       <img
-                        src={qrData.qr_code ? `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrData.qr_code)}` : ''}
+                        src={qrData.qr_code ? generateQRCodeImage(qrData.qr_code) : ''} // Use utility function
                         alt={`QR Code pour ${qrData.document?.title || 'Document'}`}
                         className="w-full h-full object-contain"
                       />
@@ -146,7 +151,7 @@ const QRCodes = () => {
                         className="flex-1"
                         onClick={() => {
                           if (qrData.qr_code) {
-                            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrData.qr_code)}`;
+                            const qrUrl = generateQRCodeImage(qrData.qr_code); // Use utility function
                             const link = document.createElement('a');
                             link.href = qrUrl;
                             link.download = `qr-${qrData.document?.title.replace(/[^a-z0-9]/gi, '_').toLowerCase() || qrData.id}.png`;
@@ -157,6 +162,16 @@ const QRCodes = () => {
                         <Download className="w-4 h-4 mr-1" />
                         Télécharger
                       </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1"
+                        onClick={() => handleRegenerateQRCode(qrData.document_id)} // Add regenerate button
+                        disabled={isGenerating}
+                      >
+                        <History className="w-4 h-4 mr-1" />
+                        Regénérer
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
@@ -166,9 +181,9 @@ const QRCodes = () => {
         )}
 
         {/* Dialog for viewing QR Code details (using ViewDocumentDialog) */}
-        {selectedQRCodeData && (
+        {selectedDocumentForView && (
           <ViewDocumentDialog
-            document={selectedQRCodeData}
+            document={selectedDocumentForView}
             open={isViewDialogOpen}
             onOpenChange={setIsViewDialogOpen}
           />
