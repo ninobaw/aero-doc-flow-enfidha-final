@@ -21,7 +21,16 @@ const ActionDecideeSchema = new Schema({
 
 const ProcesVerbalSchema = new Schema({
   _id: { type: String, required: true },
-  documentId: { type: String, ref: 'Document', required: true },
+  // Removed documentId as ProcesVerbal will now be a standalone entity
+  title: { type: String, required: true }, // Added title directly to ProcesVerbal
+  authorId: { type: String, ref: 'User', required: true }, // Added authorId directly
+  qrCode: { type: String, unique: true, required: true }, // Added qrCode directly
+  filePath: { type: String }, // Added filePath directly
+  fileType: { type: String }, // Added fileType directly
+  version: { type: Number, default: 1 }, // Added version directly
+  viewsCount: { type: Number, default: 0 }, // Added viewsCount directly
+  downloadsCount: { type: Number, default: 0 }, // Added downloadsCount directly
+
   meetingDate: { type: Date, required: true },
   participants: [{ type: String }],
   agenda: { type: String, required: true },
@@ -36,6 +45,7 @@ const ProcesVerbalSchema = new Schema({
   nextMeetingDate: { type: Date },
   actionsDecidees: [ActionDecideeSchema],
   createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }, // Added updatedAt
 });
 
 const ProcesVerbal = model('ProcesVerbal', ProcesVerbalSchema);

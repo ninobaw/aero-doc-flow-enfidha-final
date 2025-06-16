@@ -5,7 +5,7 @@ const DocumentSchema = new Schema({
   title: { type: String, required: true },
   type: { 
     type: String, 
-    enum: ['FORMULAIRE_DOC', 'CORRESPONDANCE', 'PROCES_VERBAL', 'QUALITE_DOC', 'NOUVEAU_DOC', 'GENERAL', 'TEMPLATE'], // Added TEMPLATE
+    enum: ['FORMULAIRE_DOC', 'QUALITE_DOC', 'NOUVEAU_DOC', 'GENERAL', 'TEMPLATE'], // Removed CORRESPONDANCE and PROCES_VERBAL
     required: true 
   },
   content: { type: String },
