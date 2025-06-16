@@ -42,8 +42,12 @@ router.get('/stats', async (req, res) => {
     if (userRole === 'AGENT_BUREAU_ORDRE') {
       documentFilter = {
         $or: [
-          { type: 'CORRESPONDANCE' },
-          { authorId: userId }
+          { type: 'FORMULAIRE_DOC' }, // Agent can create/view forms
+          { type: 'QUALITE_DOC' },
+          { type: 'NOUVEAU_DOC' },
+          { type: 'GENERAL' },
+          { type: 'TEMPLATE' },
+          { authorId: userId } // Documents authored by the agent
         ]
       };
       actionFilter = { assignedTo: userId };

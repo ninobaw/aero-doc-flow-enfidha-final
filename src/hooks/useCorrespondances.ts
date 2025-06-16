@@ -9,7 +9,16 @@ const API_BASE_URL = 'http://localhost:5000/api';
 
 export interface CorrespondanceData {
   id: string;
-  document_id: string;
+  // Removed document_id as Correspondance is now standalone
+  title: string; // Added directly
+  author_id: string; // Added directly
+  qr_code: string; // Added directly
+  file_path?: string; // Added directly
+  file_type?: string; // Added directly
+  version: number; // Added directly
+  views_count: number; // Added directly
+  downloads_count: number; // Added directly
+
   type: 'INCOMING' | 'OUTGOING'; // New field
   code?: string; // New field
   from_address: string;
@@ -22,16 +31,20 @@ export interface CorrespondanceData {
   attachments?: string[];
   actions_decidees?: ActionDecidee[];
   tags?: string[]; // Added tags field
-  file_path?: string; // New field
-  file_type?: string; // New field
   created_at: string;
-  document?: {
-    title: string;
-    author: {
-      first_name: string;
-      last_name: string;
-    };
+  updated_at: string; // Added updated_at
+
+  author?: { // Author details now directly on CorrespondanceData
+    first_name: string;
+    last_name: string;
   };
+  // Codification fields for generation
+  company_code?: string;
+  scope_code?: string;
+  department_code?: string;
+  sub_department_code?: string;
+  language_code?: string;
+  sequence_number?: number;
 }
 
 export const useCorrespondances = () => {
@@ -48,26 +61,31 @@ export const useCorrespondances = () => {
     enabled: !!user,
   });
 
-  const createCorrespondanceWithDocument = useMutation({
+  const createCorrespondance = useMutation({
     mutationFn: async (data: {
       title: string;
-      type: 'INCOMING' | 'OUTGOING'; // New field
-      code?: string; // New field
+      type: 'INCOMING' | 'OUTGOING';
+      code?: string;
       from_address: string;
       to_address: string;
       subject: string;
       content: string;
       priority: CorrespondanceData['priority'];
-      airport: Airport; // Updated to use Airport type
+      airport: Airport;
       attachments?: string[];
       actions_decidees?: ActionDecidee[];
-      tags?: string[]; // Added tags to mutation data
-      file_path?: string; // New field
-      file_type?: string; // New field
+      tags?: string[];
+      file_path?: string;
+      file_type?: string;
+      // Codification fields for generation
+      company_code?: string;
+      scope_code?: string;
+      department_code?: string;
+      sub_department_code?: string;
+      language_code?: string;
     }) => {
       if (!user?.id) throw new Error('Utilisateur non connecté');
 
-      // The backend handles document creation internally
       const response = await axios.post(`${API_BASE_URL}/correspondances`, {
         ...data,
         author_id: user.id, // Pass author_id to backend
@@ -76,7 +94,7 @@ export const useCorrespondances = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['correspondances'] });
-      queryClient.invalidateQueries({ queryKey: ['documents'] }); // Invalidate documents as a new one is created
+      // No need to invalidate 'documents' anymore as correspondences are separate
       toast({
         title: 'Correspondance créée',
         description: 'La correspondance a été créée avec succès.',
@@ -114,13 +132,36 @@ export const useCorrespondances = () => {
     },
   });
 
+  const deleteCorrespondance = useMutation({
+    mutationFn: async (id: string) => {
+      await axios.delete(`${API_BASE_URL}/correspondances/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['correspondances'] });
+      toast({
+        title: 'Correspondance supprimée',
+        description: 'La correspondance a été supprimée avec succès.',
+      });
+    },
+    onError: (error: any) => {
+      console.error('Erreur suppression correspondance:', error.response?.data || error.message);
+      toast({
+        title: 'Erreur',
+        description: error.response?.data?.message || error.message || 'Impossible de supprimer la correspondance.',
+        variant: 'destructive',
+      });
+    },
+  });
+
   return {
     correspondances,
     isLoading,
     error,
-    createCorrespondance: createCorrespondanceWithDocument.mutate,
+    createCorrespondance: createCorrespondance.mutate,
     updateCorrespondance: updateCorrespondance.mutate,
-    isCreating: createCorrespondanceWithDocument.isPending,
+    deleteCorrespondance: deleteCorrespondance.mutate,
+    isCreating: createCorrespondance.isPending,
     isUpdating: updateCorrespondance.isPending,
+    isDeleting: deleteCorrespondance.isPending,
   };
 };

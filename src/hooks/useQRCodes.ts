@@ -7,15 +7,15 @@ const API_BASE_URL = 'http://localhost:5000/api';
 
 export interface QRCodeData {
   id: string;
-  document_id: string;
+  document_id: string; // This will now be the ID of the document OR correspondence
   qr_code: string;
   generated_at: string;
   download_count: number;
   last_accessed?: string;
-  document?: {
+  document?: { // This object will now represent either a Document or a Correspondance
     title: string;
-    type: string;
-    airport: Airport; // Added airport to document sub-object
+    type: string; // Can be DocumentType or 'CORRESPONDANCE'
+    airport: Airport;
     author: {
       first_name: string;
       last_name: string;
@@ -31,40 +31,73 @@ export const useQRCodes = () => {
     queryKey: ['qr-codes'],
     queryFn: async () => {
       // Fetch documents that have a QR code
-      const response = await axios.get(`${API_BASE_URL}/documents`);
-      const documentsWithQRCodes = response.data.filter((doc: any) => doc.qr_code) as any[];
+      const documentsResponse = await axios.get(`${API_BASE_URL}/documents`);
+      const documentsWithQRCodes = documentsResponse.data.filter((doc: any) => doc.qr_code) as any[];
       
-      return documentsWithQRCodes.map(doc => ({
+      // Fetch correspondences that have a QR code
+      const correspondencesResponse = await axios.get(`${API_BASE_URL}/correspondances`);
+      const correspondencesWithQRCodes = correspondencesResponse.data.filter((corr: any) => corr.qr_code) as any[];
+
+      const mappedDocuments = documentsWithQRCodes.map(doc => ({
         id: doc.id,
         document_id: doc.id,
         qr_code: doc.qr_code,
-        generated_at: doc.created_at, // Assuming generated_at is document creation date for now
-        download_count: doc.downloads_count || 0, // Use document's download count
-        last_accessed: doc.updated_at, // Use document's last updated date for last accessed
+        generated_at: doc.created_at,
+        download_count: doc.downloads_count || 0,
+        last_accessed: doc.updated_at,
         document: {
           title: doc.title,
           type: doc.type,
-          airport: doc.airport, // Pass airport from document
+          airport: doc.airport,
           author: doc.author
         }
-      })) as QRCodeData[];
+      }));
+
+      const mappedCorrespondences = correspondencesWithQRCodes.map(corr => ({
+        id: corr.id,
+        document_id: corr.id, // Use correspondence ID here
+        qr_code: corr.qr_code,
+        generated_at: corr.created_at,
+        download_count: corr.downloads_count || 0,
+        last_accessed: corr.updated_at,
+        document: { // Map correspondence fields to 'document' structure for consistency
+          title: corr.subject, // Use subject as title for display
+          type: 'CORRESPONDANCE', // Explicitly set type
+          airport: corr.airport,
+          author: corr.author // Assuming author is populated
+        }
+      }));
+
+      return [...mappedDocuments, ...mappedCorrespondences] as QRCodeData[];
     },
   });
 
   const generateQRCode = useMutation({
     mutationFn: async (documentId: string) => {
-      const newQRCodeValue = `QR-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      
-      // Update the document with the new QR code value
-      const response = await axios.put(`${API_BASE_URL}/documents/${documentId}`, { qr_code: newQRCodeValue });
-      return response.data;
+      // Determine if it's a document or correspondence based on ID (or type if passed)
+      // For simplicity, we'll try to update document first, then correspondence
+      try {
+        const newQRCodeValue = `QR-${documentId.substring(0, 8).toUpperCase()}-${Date.now()}`;
+        const response = await axios.put(`${API_BASE_URL}/documents/${documentId}`, { qr_code: newQRCodeValue });
+        return response.data;
+      } catch (docError) {
+        // If not a document, try updating as a correspondence
+        try {
+          const newQRCodeValue = `QR-${documentId.substring(0, 8).toUpperCase()}-${Date.now()}`;
+          const response = await axios.put(`${API_BASE_URL}/correspondances/${documentId}`, { qr_code: newQRCodeValue });
+          return response.data;
+        } catch (corrError) {
+          throw new Error('Failed to generate QR code for document or correspondence.');
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['qr-codes'] });
-      queryClient.invalidateQueries({ queryKey: ['documents'] }); // Invalidate documents as well
+      queryClient.invalidateQueries({ queryKey: ['documents'] });
+      queryClient.invalidateQueries({ queryKey: ['correspondances'] }); // Invalidate correspondences too
       toast({
-        title: 'QR Code généré',
-        description: 'Le QR Code a été généré avec succès.',
+        title: "QR Code généré",
+        description: "Un nouveau QR code a été généré pour ce document/correspondance."
       });
     },
     onError: (error: any) => {
