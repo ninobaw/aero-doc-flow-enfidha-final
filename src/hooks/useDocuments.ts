@@ -10,7 +10,7 @@ const API_BASE_URL = 'http://localhost:5000/api';
 export interface DocumentData {
   id: string;
   title: string;
-  type: 'FORMULAIRE_DOC' | 'CORRESPONDANCE' | 'PROCES_VERBAL' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL' | 'TEMPLATE';
+  type: 'FORMULAIRE_DOC' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL' | 'TEMPLATE'; // Removed CORRESPONDANCE and PROCES_VERBAL
   content?: string;
   author_id: string;
   version: number;
@@ -60,7 +60,7 @@ export const useDocuments = () => {
   const createDocument = useMutation({
     mutationFn: async (documentData: {
       title: string;
-      type: 'FORMULAIRE_DOC' | 'CORRESPONDANCE' | 'PROCES_VERBAL' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL';
+      type: 'FORMULAIRE_DOC' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL'; // Removed CORRESPONDANCE and PROCES_VERBAL
       content?: string;
       airport: Airport; // Updated to use Airport type
       file_path?: string;
@@ -102,7 +102,7 @@ export const useDocuments = () => {
     mutationFn: async ({ id, ...updates }: { 
       id: string;
       title?: string;
-      type?: 'FORMULAIRE_DOC' | 'CORRESPONDANCE' | 'PROCES_VERBAL' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL';
+      type?: 'FORMULAIRE_DOC' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL'; // Removed CORRESPONDANCE and PROCES_VERBAL
       content?: string;
       status?: 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
       airport?: Airport; // Updated to use Airport type
