@@ -10,7 +10,6 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Documents from "./pages/Documents";
-import QualiteDoc from "./pages/QualiteDoc";
 import FormulairesDoc from "./pages/FormulairesDoc";
 import Correspondances from "./pages/Correspondances";
 import ProcesVerbaux from "./pages/ProcesVerbaux";
@@ -43,11 +42,7 @@ const App = () => (
                 <Documents />
               </ProtectedRoute>
             } />
-            <Route path="/documents/qualite" element={
-              <ProtectedRoute requiredPermission="view_documents">
-                <QualiteDoc />
-              </ProtectedRoute>
-            } />
+            {/* Removed /documents/qualite route */}
             <Route path="/documents/formulaires" element={
               <ProtectedRoute requiredPermission="manage_forms">
                 <FormulairesDoc />

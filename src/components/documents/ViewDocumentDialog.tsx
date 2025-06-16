@@ -53,9 +53,8 @@ export const ViewDocumentDialog: React.FC<ViewDocumentDialogProps> = ({ document
     switch (type) {
       case 'QUALITE_DOC': return 'Document Qualité';
       case 'NOUVEAU_DOC': return 'Nouveau Document';
-      case 'CORRESPONDANCE': return 'Correspondance';
-      case 'PROCES_VERBAL': return 'Procès-Verbal';
       case 'FORMULAIRE_DOC': return 'Formulaire';
+      case 'GENERAL': return 'Manuel / Instruction';
       case 'TEMPLATE': return 'Modèle';
       default: return type;
     }
