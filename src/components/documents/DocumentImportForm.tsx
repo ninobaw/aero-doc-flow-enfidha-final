@@ -331,7 +331,7 @@ export const DocumentImportForm: React.FC = () => {
           </Select>
           {user?.department && initialDepartmentCode !== undefined && (
             <p className="text-xs text-gray-500">
-              Département pré-rempli ({user.department})
+              Département pré-réglé ({user.department})
             </p>
           )}
         </div>
