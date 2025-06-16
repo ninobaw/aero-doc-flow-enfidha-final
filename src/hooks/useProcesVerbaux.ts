@@ -9,16 +9,7 @@ const API_BASE_URL = 'http://localhost:5000/api';
 
 export interface ProcesVerbalData {
   id: string;
-  // Removed document_id as ProcesVerbal is now standalone
-  title: string; // Added directly
-  author_id: string; // Added directly
-  qr_code: string; // Added directly
-  file_path?: string; // Added directly
-  file_type?: string; // Added directly
-  version: number; // Added directly
-  views_count: number; // Added directly
-  downloads_count: number; // Added directly
-
+  document_id: string;
   meeting_date: string;
   participants: string[];
   agenda: string;
@@ -29,19 +20,13 @@ export interface ProcesVerbalData {
   next_meeting_date?: string;
   actions_decidees?: ActionDecidee[];
   created_at: string;
-  updated_at: string; // Added updated_at
-
-  author?: { // Author details now directly on ProcesVerbalData
-    first_name: string;
-    last_name: string;
+  document?: {
+    title: string;
+    author: {
+      first_name: string;
+      last_name: string;
+    };
   };
-  // Codification fields for generation
-  company_code?: string;
-  scope_code?: string;
-  department_code?: string;
-  sub_department_code?: string;
-  language_code?: string;
-  sequence_number?: number;
 }
 
 export const useProcesVerbaux = () => {
@@ -58,7 +43,7 @@ export const useProcesVerbaux = () => {
     enabled: !!user,
   });
 
-  const createProcesVerbal = useMutation({
+  const createProcesVerbalWithDocument = useMutation({
     mutationFn: async (data: {
       title: string;
       meeting_date: string;
@@ -70,14 +55,6 @@ export const useProcesVerbaux = () => {
       airport: Airport; // Updated to use Airport type
       next_meeting_date?: string;
       actions_decidees?: ActionDecidee[];
-      file_path?: string;
-      file_type?: string;
-      // Codification fields for generation
-      company_code?: string;
-      scope_code?: string;
-      department_code?: string;
-      sub_department_code?: string;
-      language_code?: string;
     }) => {
       if (!user?.id) throw new Error('Utilisateur non connecté');
 
@@ -90,7 +67,7 @@ export const useProcesVerbaux = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['proces-verbaux'] });
-      // No need to invalidate 'documents' anymore as PVs are separate
+      queryClient.invalidateQueries({ queryKey: ['documents'] }); // Invalidate documents as a new one is created
       toast({
         title: 'Procès-verbal créé',
         description: 'Le procès-verbal a été créé avec succès.',
@@ -128,36 +105,13 @@ export const useProcesVerbaux = () => {
     },
   });
 
-  const deleteProcesVerbal = useMutation({
-    mutationFn: async (id: string) => {
-      await axios.delete(`${API_BASE_URL}/proces-verbaux/${id}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['proces-verbaux'] });
-      toast({
-        title: 'Procès-verbal supprimé',
-        description: 'Le procès-verbal a été supprimé avec succès.',
-      });
-    },
-    onError: (error: any) => {
-      console.error('Erreur suppression PV:', error.response?.data || error.message);
-      toast({
-        title: 'Erreur',
-        description: error.response?.data?.message || error.message || 'Impossible de supprimer le procès-verbal.',
-        variant: 'destructive',
-      });
-    },
-  });
-
   return {
     procesVerbaux,
     isLoading,
     error,
-    createProcesVerbal: createProcesVerbal.mutate,
+    createProcesVerbal: createProcesVerbalWithDocument.mutate,
     updateProcesVerbal: updateProcesVerbal.mutate,
-    deleteProcesVerbal: deleteProcesVerbal.mutate,
-    isCreating: createProcesVerbal.isPending,
+    isCreating: createProcesVerbalWithDocument.isPending,
     isUpdating: updateProcesVerbal.isPending,
-    isDeleting: deleteProcesVerbal.isPending,
   };
 };
