@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } => '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext'; // Correction: '=>' remplacé par 'from'
 import { Airport } from '@/shared/types';
 
 const API_BASE_URL = 'http://localhost:5000/api';
