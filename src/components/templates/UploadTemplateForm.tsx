@@ -11,14 +11,14 @@ import { useFileUpload } from '@/hooks/useFileUpload';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Airport } from '@/shared/types';
-import { useDocumentCodeConfig } from '@/hooks/useDocumentCodeConfig'; // Import useDocumentCodeConfig
-import { generateDocumentCodePreview } from '@/shared/utils'; // Import generateDocumentCodePreview
+import { useDocumentCodeConfig } from '@/hooks/useDocumentCodeConfig';
+import { generateDocumentCodePreview } from '@/shared/utils';
 
 export const UploadTemplateForm: React.FC = () => {
   const { user } = useAuth();
   const { createTemplate, isCreating } = useTemplates();
   const { uploadTemplate, uploading: isUploadingFile } = useFileUpload();
-  const { config: codeConfig, isLoading: isLoadingCodeConfig } = useDocumentCodeConfig(); // Use document code config
+  const { config: codeConfig, isLoading: isLoadingCodeConfig } = useDocumentCodeConfig();
   const { toast } = useToast();
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -144,14 +144,18 @@ export const UploadTemplateForm: React.FC = () => {
 
     if (uploadedFile) {
       console.log('Fichier uploadé avec succès:', uploadedFile);
+
+      // Map 'GEN' to 'GENERALE' for the backend enum
+      const mappedAirport = formData.airport === 'GEN' ? 'GENERALE' : formData.airport;
+
       createTemplate({
         title: formData.title,
         content: formData.description,
-        airport: formData.airport,
+        airport: mappedAirport, // Use the mapped airport value
         file_path: uploadedFile.path,
         file_type: selectedFile.type,
         company_code: formData.company_code,
-        scope_code: formData.airport, // airport maps to scope_code
+        scope_code: formData.airport, // scope_code still uses 'GEN' for code generation
         department_code: formData.department_code,
         sub_department_code: formData.sub_department_code,
         document_type_code: formData.document_type_code,
