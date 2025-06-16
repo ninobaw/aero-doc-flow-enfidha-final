@@ -68,16 +68,7 @@ export const DOCUMENT_TYPES = {
     icon: 'FileSpreadsheet',
     color: 'blue'
   },
-  CORRESPONDANCE: {
-    label: 'Correspondance',
-    icon: 'Mail',
-    color: 'purple'
-  },
-  PROCES_VERBAL: {
-    label: 'Procès-Verbal',
-    icon: 'ClipboardList',
-    color: 'orange'
-  },
+  // Removed CORRESPONDANCE and PROCES_VERBAL from DOCUMENT_TYPES
   QUALITE_DOC: {
     label: 'Qualité Doc',
     icon: 'FileCheck',

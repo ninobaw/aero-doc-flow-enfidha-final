@@ -16,8 +16,7 @@ export enum ActionStatus {
 
 export enum DocumentType {
   FORMULAIRE_DOC = 'FORMULAIRE_DOC',
-  CORRESPONDANCE = 'CORRESPONDANCE',
-  PROCES_VERBAL = 'PROCES_VERBAL',
+  // Removed CORRESPONDANCE and PROCES_VERBAL from DocumentType enum
   QUALITE_DOC = 'QUALITE_DOC',
   NOUVEAU_DOC = 'NOUVEAU_DOC',
   GENERAL = 'GENERAL'
@@ -51,7 +50,7 @@ export interface User {
 export interface Document {
   id: string;
   title: string;
-  type: DocumentType;
+  type: DocumentType; // Now restricted to quality document types
   content: string;
   authorId: string;
   createdAt: Date;
@@ -59,14 +58,17 @@ export interface Document {
   qrCode: string; // This will now store the full generated code
   version: number;
   status: 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
-  actions: Action[];
+  actions: Action[]; // This might need to be re-evaluated if actions are linked to documents
   history: DocumentHistory[];
   filePath?: string;
   fileType?: string;
   airport: Airport; // Updated to use Airport type
   // New fields for document code components
+  company_code?: string; // Added company_code
+  scope_code?: string;
   department_code?: string;
   sub_department_code?: string;
+  document_type_code?: string;
   language_code?: string;
   sequence_number?: number;
 }
@@ -96,27 +98,48 @@ export interface FormField {
 
 export interface Correspondance {
   id: string;
-  documentId: string;
+  // Removed documentId, now standalone
+  title: string; // Added directly
+  authorId: string; // Added directly
+  qrCode: string; // Added directly
+  filePath?: string; // Added directly
+  fileType?: string; // Added directly
+  version: number; // Added directly
+  viewsCount: number; // Added directly
+  downloadsCount: number; // Added directly
+
   from: string;
   to: string;
   subject: string;
   content: string;
   attachments: string[];
-  actions: Action[];
+  actions: Action[]; // This might need to be re-evaluated if actions are linked to correspondences
   createdAt: Date;
   priority: Priority;
   status: 'DRAFT' | 'SENT' | 'RECEIVED' | 'ARCHIVED';
   airport: Airport; // Updated to use Airport type
+  type: 'INCOMING' | 'OUTGOING'; // New field for correspondence type
+  code?: string; // New field for manual or generated code
+  tags?: string[]; // New field for tags
 }
 
 export interface ProcesVerbal {
   id: string;
-  documentId: string;
+  // Removed documentId, now standalone
+  title: string; // Added directly
+  authorId: string; // Added directly
+  qrCode: string; // Added directly
+  filePath?: string; // Added directly
+  fileType?: string; // Added directly
+  version: number; // Added directly
+  viewsCount: number; // Added directly
+  downloadsCount: number; // Added directly
+
   meetingDate: Date;
   participants: string[];
   agenda: string;
   decisions: string;
-  actions: Action[];
+  actions: Action[]; // This might need to be re-evaluated if actions are linked to PVs
   nextMeetingDate?: Date;
   location: string;
   meetingType: string;
@@ -133,7 +156,7 @@ export interface Action {
   priority: Priority;
   createdAt: Date;
   updatedAt: Date;
-  parentDocumentId: string;
+  parentDocumentId: string; // This might need to be re-evaluated if actions are linked to documents/correspondences/PVs
   tasks: Task[];
   progress: number;
   estimatedHours?: number;
