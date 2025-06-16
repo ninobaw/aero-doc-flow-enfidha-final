@@ -198,11 +198,14 @@ export const UploadTemplateForm: React.FC = () => {
                 id="template-file-upload"
                 ref={fileInputRef} // Attach the ref here
               />
-              <Label htmlFor="template-file-upload" className="cursor-pointer">
-                <Button type="button" variant="outline">
-                  Sélectionner un fichier
-                </Button>
-              </Label>
+              {/* Modified button to directly trigger the hidden input */}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                Sélectionner un fichier
+              </Button>
             </div>
 
             {selectedFile && (
