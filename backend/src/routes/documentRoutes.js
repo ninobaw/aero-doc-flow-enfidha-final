@@ -188,6 +188,26 @@ router.put('/:id', async (req, res) => {
       return res.status(404).json({ message: 'Document not found' });
     }
 
+    // Check if any codification fields are being updated
+    const codificationFieldsChanged = [
+      'company_code', 'scope_code', 'department_code', 'sub_department_code',
+      'document_type_code', 'language_code'
+    ].some(field => updates[field] !== undefined && updates[field] !== oldDocument[field]);
+
+    // If codification fields changed, regenerate QR code and sequence number
+    if (codificationFieldsChanged) {
+      const { qrCode, sequence_number } = await generateDocumentCodeAndSequence(
+        updates.company_code || oldDocument.company_code,
+        updates.scope_code || oldDocument.scope_code,
+        updates.department_code || oldDocument.department_code,
+        updates.sub_department_code || oldDocument.sub_department_code,
+        updates.document_type_code || oldDocument.document_type_code,
+        updates.language_code || oldDocument.language_code
+      );
+      updates.qrCode = qrCode;
+      updates.sequence_number = sequence_number;
+    }
+
     // Handle approval specific fields
     if (updates.status === 'ACTIVE' && updates.approved_by_id && oldDocument.status !== 'ACTIVE') {
       updates.approvedBy = updates.approved_by_id; // Map frontend field to backend
