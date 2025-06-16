@@ -27,6 +27,7 @@ export interface TemplateData {
     first_name: string;
     last_name: string;
   };
+  document_type_code?: string; // Added document_type_code to TemplateData
 }
 
 export const useTemplates = () => {
