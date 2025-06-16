@@ -330,32 +330,21 @@ const seedDatabase = async () => {
 
     // --- Seed Proces Verbaux ---
     console.log('Seeding proces verbaux...');
-    const pvDocId = uuidv4();
-    const pvDocument = new Document({
-      _id: pvDocId,
-      title: 'PV Réunion Sécurité Mensuelle',
-      type: 'PROCES_VERBAL',
-      content: 'Compte-rendu de la réunion mensuelle du comité de sécurité.',
-      authorId: approverId,
-      airport: 'ENFIDHA',
-      qrCode: `QR-${uuidv4()}`,
-      version: 1,
-      status: 'ACTIVE',
-      viewsCount: 25,
-      downloadsCount: 8,
-      createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000), // 15 days ago
-      company_code: 'TAVTUN',
-      scope_code: 'NBE',
-      department_code: 'SEC',
-      document_type_code: 'PV',
-      language_code: 'FR',
-      sequence_number: 1,
-    });
-    await pvDocument.save();
+    // Removed creation of pvDocument and generalPvDocument as ProcesVerbal is now standalone
+    // and no longer a Document type.
 
     const pvToSeed = {
       _id: uuidv4(),
-      documentId: pvDocId,
+      // Removed documentId as ProcesVerbal is now standalone
+      title: 'PV Réunion Sécurité Mensuelle', // Added title directly
+      authorId: approverId, // Added authorId directly
+      qrCode: `TAVTUN-NBE-SEC-PV-001-FR`, // Example generated QR code
+      filePath: null, // No file path for now, can be added later
+      fileType: null,
+      version: 1,
+      viewsCount: 25,
+      downloadsCount: 8,
+
       meetingDate: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
       participants: ['Ahmed Ben Ali (Président)', 'Fatma Trabelsi (Secrétaire)', 'Mohamed Sassi (Membre)'],
       agenda: '1. Revue des incidents de sécurité\n2. Mise à jour des procédures\n3. Questions diverses',
@@ -383,35 +372,26 @@ const seedDatabase = async () => {
         },
       ],
       createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
+      company_code: 'TAVTUN',
+      scope_code: 'NBE',
+      department_code: 'SEC',
+      language_code: 'FR',
+      sequence_number: 1,
     };
     await ProcesVerbal.create(pvToSeed);
 
-    const generalPvDocId = uuidv4();
-    const generalPvDocument = new Document({
-      _id: generalPvDocId,
-      title: 'PV Réunion Stratégique (Général)',
-      type: 'PROCES_VERBAL',
-      content: 'Compte-rendu de la réunion stratégique inter-aéroports.',
-      authorId: superAdminId,
-      airport: 'GENERALE',
-      qrCode: `QR-${uuidv4()}`,
-      version: 1,
-      status: 'ACTIVE',
-      viewsCount: 30,
-      downloadsCount: 5,
-      createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
-      company_code: 'TAVTUN',
-      scope_code: 'GEN',
-      department_code: 'DIR',
-      document_type_code: 'PV',
-      language_code: 'FR',
-      sequence_number: 1,
-    });
-    await generalPvDocument.save();
-
     const generalPvToSeed = {
       _id: uuidv4(),
-      documentId: generalPvDocId,
+      // Removed documentId as ProcesVerbal is now standalone
+      title: 'PV Réunion Stratégique (Général)', // Added title directly
+      authorId: superAdminId, // Added authorId directly
+      qrCode: `TAVTUN-GEN-DIR-PV-001-FR`, // Example generated QR code
+      filePath: null,
+      fileType: null,
+      version: 1,
+      viewsCount: 30,
+      downloadsCount: 5,
+
       meetingDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
       participants: ['Super Admin', 'Airport Admin', 'Doc Approver'],
       agenda: '1. Stratégie 2025\n2. Budgets\n3. Projets inter-sites',
@@ -431,6 +411,11 @@ const seedDatabase = async () => {
         },
       ],
       createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+      company_code: 'TAVTUN',
+      scope_code: 'GEN',
+      department_code: 'DIR',
+      language_code: 'FR',
+      sequence_number: 1,
     };
     await ProcesVerbal.create(generalPvToSeed);
     console.log('Proces Verbaux seeded successfully!');
