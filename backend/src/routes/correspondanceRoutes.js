@@ -206,9 +206,9 @@ router.put('/:id', async (req, res) => {
         updates.type === 'INCOMING' ? 'IN' : 'OUT' || oldCorrespondance.type === 'INCOMING' ? 'IN' : 'OUT', // Use IN/OUT as correspondence type code
         updates.language_code || oldCorrespondance.language_code
       );
-      updates.code = generatedCode;
-      updates.qrCode = generatedCode; // Update QR code with the new structured code
-      updates.sequence_number = sequence_number;
+      generatedCode = newGeneratedCode;
+      qrCode = newGeneratedCode; // Update QR code with the new structured code
+      sequence_number = newSequenceNumber;
     }
 
 
