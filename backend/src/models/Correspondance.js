@@ -21,7 +21,10 @@ const ActionDecideeSchema = new Schema({
 
 const CorrespondanceSchema = new Schema({
   _id: { type: String, required: true },
-  documentId: { type: String, ref: 'Document', required: true },
+  authorId: { type: String, ref: 'User', required: true }, // Added authorId
+  qrCode: { type: String, unique: true, required: true }, // Added qrCode
+  filePath: { type: String }, // Added filePath
+  fileType: { type: String }, // Added fileType
   type: { // New field: INCOMING or OUTGOING
     type: String,
     enum: ['INCOMING', 'OUTGOING'],
@@ -50,10 +53,9 @@ const CorrespondanceSchema = new Schema({
   attachments: [{ type: String }],
   actionsDecidees: [ActionDecideeSchema],
   tags: [{ type: String }], // New field for tags
-  filePath: { type: String }, // New field for uploaded file path
-  fileType: { type: String }, // New field for uploaded file type
   createdAt: { type: Date, default: Date.now },
-});
+  updatedAt: { type: Date, default: Date.now }, // Added updatedAt
+}, { timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' } }); // Ensure timestamps are handled
 
 const Correspondance = model('Correspondance', CorrespondanceSchema);
 module.exports = { Correspondance };
