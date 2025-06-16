@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react'; // Import useRef
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,8 +27,11 @@ export const UploadTemplateForm: React.FC = () => {
     description: '',
   });
 
+  const fileInputRef = useRef<HTMLInputElement>(null); // Ref for the hidden file input
+
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
+    console.log('handleFileUpload triggered. File:', file); // Log file detection
     if (file) {
       console.log('Fichier sélectionné:', file);
       setSelectedFile(file);
@@ -45,6 +48,9 @@ export const UploadTemplateForm: React.FC = () => {
         }
         setPreviewUrl(null);
       }
+    } else {
+      console.log('Aucun fichier sélectionné.');
+      removeFile(); // Clear file if none selected (e.g., user cancels dialog)
     }
   };
 
@@ -54,6 +60,9 @@ export const UploadTemplateForm: React.FC = () => {
     }
     setSelectedFile(null);
     setPreviewUrl(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''; // Clear the input value to allow re-selection of the same file
+    }
     console.log('Fichier supprimé.');
   };
 
@@ -187,6 +196,7 @@ export const UploadTemplateForm: React.FC = () => {
                 accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
                 className="hidden"
                 id="template-file-upload"
+                ref={fileInputRef} // Attach the ref here
               />
               <Label htmlFor="template-file-upload" className="cursor-pointer">
                 <Button type="button" variant="outline">
