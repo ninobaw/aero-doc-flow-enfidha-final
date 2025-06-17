@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react'; // Ajout de React
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -5,17 +6,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'; // Import Tabs components
-import { Settings as SettingsIcon, Save, Bell, Shield, Globe, Database, Mail, Code, MessageSquare } from 'lucide-react'; // Import MessageSquare icon
-import { useState, useEffect } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Settings as SettingsIcon, Save, Bell, Shield, Globe, Database, Mail, Code, MessageSquare } from 'lucide-react';
 import { useSettings } from '@/hooks/useSettings';
 import { Airport } from '@/shared/types';
-import { DocumentCodeConfigManagement } from '@/components/settings/DocumentCodeConfigManagement'; // Import the new component
-import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
+import { DocumentCodeConfigManagement } from '@/components/settings/DocumentCodeConfigManagement';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Settings = () => {
   const { settings, isLoading, updateSettings, isUpdating } = useSettings();
-  const { hasPermission } = useAuth(); // Get hasPermission from AuthContext
+  const { hasPermission } = useAuth();
 
   const [formData, setFormData] = useState({
     company_name: '',
@@ -35,7 +35,6 @@ const Settings = () => {
     smtp_port: 587,
     smtp_username: '',
     use_ssl: true,
-    // Nouveaux champs pour la configuration SMS (Twilio)
     twilio_account_sid: '',
     twilio_auth_token: '',
     twilio_phone_number: '',
@@ -79,7 +78,6 @@ const Settings = () => {
     setFormData(prev => ({ ...prev, [key]: value }));
   };
 
-  // Ajout d'un log pour isUpdating
   console.log('Frontend: Settings component rendered. isUpdating:', isUpdating);
 
   if (isLoading) {
@@ -133,7 +131,7 @@ const Settings = () => {
               <Shield className="w-4 h-4" />
               <span>Sécurité</span>
             </TabsTrigger>
-            {canManageSettings && ( // Only show this tab if user has permission
+            {canManageSettings && (
               <TabsTrigger value="document-codes" className="flex items-center space-x-2">
                 <Code className="w-4 h-4" />
                 <span>Codes Doc</span>
@@ -143,7 +141,6 @@ const Settings = () => {
 
           <TabsContent value="general" className="space-y-6 mt-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Paramètres généraux */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
@@ -217,7 +214,6 @@ const Settings = () => {
                 </CardContent>
               </Card>
 
-              {/* Paramètres des documents */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
@@ -264,11 +260,10 @@ const Settings = () => {
                 </CardContent>
               </Card>
             </div>
-            {/* Bouton de sauvegarde pour les paramètres généraux */}
             <div className="flex justify-end">
               <Button 
                 type="submit" 
-                // disabled={isUpdating} // Temporairement désactivé pour le débogage
+                // disabled={isUpdating}
                 className="bg-aviation-sky hover:bg-aviation-sky-dark"
               >
                 <Save className="w-4 h-4 mr-2" />
@@ -329,7 +324,6 @@ const Settings = () => {
                 </div>
               </CardContent>
             </Card>
-            {/* Configuration Email */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
@@ -388,7 +382,6 @@ const Settings = () => {
                 </div>
               </CardContent>
             </Card>
-            {/* Nouvelle section pour la configuration SMS (Twilio) */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
@@ -435,11 +428,10 @@ const Settings = () => {
                 </p>
               </CardContent>
             </Card>
-            {/* Bouton de sauvegarde pour les notifications */}
             <div className="flex justify-end">
               <Button 
                 type="submit" 
-                // disabled={isUpdating} // Temporairement désactivé pour le débogage
+                // disabled={isUpdating}
                 className="bg-aviation-sky hover:bg-aviation-sky-dark"
               >
                 <Save className="w-4 h-4 mr-2" />
@@ -494,11 +486,10 @@ const Settings = () => {
                 </div>
               </CardContent>
             </Card>
-            {/* Bouton de sauvegarde pour la sécurité */}
             <div className="flex justify-end">
               <Button 
                 type="submit" 
-                // disabled={isUpdating} // Temporairement désactivé pour le débogage
+                // disabled={isUpdating}
                 className="bg-aviation-sky hover:bg-aviation-sky-dark"
               >
                 <Save className="w-4 h-4 mr-2" />
