@@ -354,6 +354,7 @@ const Settings = () => {
                       type="number"
                       value={formData.smtp_port}
                       onChange={(e) => updateSetting('smtp_port', parseInt(e.target.value))}
+                      placeholder="587"
                     />
                   </div>
 
@@ -363,6 +364,7 @@ const Settings = () => {
                       id="smtpUsername"
                       value={formData.smtp_username}
                       onChange={(e) => updateSetting('smtp_username', e.target.value)}
+                      placeholder="user@example.com"
                     />
                   </div>
 
