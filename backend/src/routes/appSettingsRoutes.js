@@ -73,6 +73,10 @@ router.put('/:userId', async (req, res) => {
   const { userId } = req.params;
   const updates = req.body;
 
+  console.log('Backend: Requête PUT /api/settings/:userId reçue.'); // Nouveau log
+  console.log('Backend: userId:', userId); // Nouveau log
+  console.log('Backend: Données reçues (req.body):', updates); // Nouveau log
+
   // Map frontend field names to backend schema names
   const mappedUpdates = {};
   if (updates.company_name !== undefined) mappedUpdates.companyName = updates.company_name;
@@ -97,6 +101,7 @@ router.put('/:userId', async (req, res) => {
   if (updates.twilio_auth_token !== undefined) mappedUpdates.twilioAuthToken = updates.twilio_auth_token;
   if (updates.twilio_phone_number !== undefined) mappedUpdates.twilioPhoneNumber = updates.twilio_phone_number;
 
+  console.log('Backend: Données mappées pour la mise à jour:', mappedUpdates); // Nouveau log
 
   try {
     const settings = await AppSettings.findOneAndUpdate(
@@ -104,6 +109,13 @@ router.put('/:userId', async (req, res) => {
       { $set: mappedUpdates },
       { new: true, upsert: true } // upsert: true creates the document if it doesn't exist
     );
+
+    if (!settings) {
+      console.error('Backend: Erreur: Paramètres non trouvés ou non mis à jour.'); // Nouveau log
+      return res.status(404).json({ message: 'Settings not found or could not be updated.' });
+    }
+
+    console.log('Backend: Paramètres mis à jour avec succès:', settings); // Nouveau log
 
     res.json({
       ...settings.toObject(),
@@ -128,7 +140,7 @@ router.put('/:userId', async (req, res) => {
       twilio_phone_number: settings.twilioPhoneNumber,
     });
   } catch (error) {
-    console.error('Error updating app settings:', error);
+    console.error('Backend: Erreur lors de la mise à jour des paramètres de l\'application:', error); // Nouveau log
     res.status(500).json({ message: 'Server error' });
   }
 });

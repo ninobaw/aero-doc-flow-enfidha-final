@@ -70,6 +70,7 @@ const Settings = () => {
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Frontend: Données du formulaire avant envoi:', formData); // Nouveau log
     updateSettings(formData);
   };
 
