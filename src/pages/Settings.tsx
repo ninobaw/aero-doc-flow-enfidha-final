@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'; // Ajout de React
+import React, { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,7 @@ import { Airport } from '@/shared/types';
 import { DocumentCodeConfigManagement } from '@/components/settings/DocumentCodeConfigManagement';
 import { useAuth } from '@/contexts/AuthContext';
 
-const Settings = () => {
+const Settings: React.FC = () => { // Ajout de React.FC ici
   const { settings, isLoading, updateSettings, isUpdating } = useSettings();
   const { hasPermission } = useAuth();
 
