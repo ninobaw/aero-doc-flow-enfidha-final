@@ -15,7 +15,7 @@ import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
 
 const Settings = () => {
   const { settings, isLoading, updateSettings, isUpdating } = useSettings();
-  const { hasPermission, user } = useAuth(); // Get hasPermission and user from AuthContext
+  const { hasPermission } = useAuth(); // Get hasPermission from AuthContext
 
   const [formData, setFormData] = useState({
     company_name: '',
@@ -70,7 +70,7 @@ const Settings = () => {
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Frontend: handleSave function called.'); // TRÈS IMPORTANT : Vérifier si ce log apparaît
+    console.log('Frontend: handleSave function called.');
     console.log('Frontend: Données du formulaire avant envoi:', formData);
     updateSettings(formData);
   };
@@ -78,6 +78,9 @@ const Settings = () => {
   const updateSetting = (key: string, value: any) => {
     setFormData(prev => ({ ...prev, [key]: value }));
   };
+
+  // Ajout d'un log pour isUpdating
+  console.log('Frontend: Settings component rendered. isUpdating:', isUpdating);
 
   if (isLoading) {
     return (
@@ -265,7 +268,7 @@ const Settings = () => {
             <div className="flex justify-end">
               <Button 
                 type="submit" 
-                disabled={isUpdating}
+                // disabled={isUpdating} // Temporairement désactivé pour le débogage
                 className="bg-aviation-sky hover:bg-aviation-sky-dark"
               >
                 <Save className="w-4 h-4 mr-2" />
@@ -408,7 +411,7 @@ const Settings = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="twilioAuthToken">Auth Token</Label>
+                    <Label htmlFor="twilioAuthToken">Auth Token</LabeL>
                     <Input
                       id="twilioAuthToken"
                       type="password"
@@ -436,7 +439,7 @@ const Settings = () => {
             <div className="flex justify-end">
               <Button 
                 type="submit" 
-                disabled={isUpdating}
+                // disabled={isUpdating} // Temporairement désactivé pour le débogage
                 className="bg-aviation-sky hover:bg-aviation-sky-dark"
               >
                 <Save className="w-4 h-4 mr-2" />
@@ -495,7 +498,7 @@ const Settings = () => {
             <div className="flex justify-end">
               <Button 
                 type="submit" 
-                disabled={isUpdating}
+                // disabled={isUpdating} // Temporairement désactivé pour le débogage
                 className="bg-aviation-sky hover:bg-aviation-sky-dark"
               >
                 <Save className="w-4 h-4 mr-2" />
