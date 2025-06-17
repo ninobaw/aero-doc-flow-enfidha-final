@@ -57,15 +57,15 @@ export const useSettings = () => {
     mutationFn: async (settingsData: Partial<AppSettings>) => {
       if (!user?.id) throw new Error('Utilisateur non connecté');
 
-      console.log('Mise à jour des paramètres pour user_id:', user.id);
-      console.log('Données à sauvegarder:', settingsData);
+      console.log('Hook: Mise à jour des paramètres pour user_id:', user.id);
+      console.log('Hook: Données à sauvegarder (avant envoi API):', settingsData);
 
       const response = await axios.put(`${API_BASE_URL}/settings/${user.id}`, settingsData);
-      console.log('Paramètres sauvegardés avec succès:', response.data);
+      console.log('Hook: Paramètres sauvegardés avec succès (réponse API):', response.data);
       return response.data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['settings'] });
+    onSuccess: (data) => { // 'data' ici est la réponse du backend après la mise à jour
+      queryClient.setQueryData(['settings', user?.id], data); // Met à jour directement le cache avec les nouvelles données
       toast({
         title: 'Paramètres sauvegardés',
         description: 'Vos paramètres ont été mis à jour avec succès.',
