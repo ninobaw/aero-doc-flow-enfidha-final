@@ -15,7 +15,7 @@ import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
 
 const Settings = () => {
   const { settings, isLoading, updateSettings, isUpdating } = useSettings();
-  const { hasPermission } = useAuth(); // Get hasPermission from AuthContext
+  const { hasPermission, user } = useAuth(); // Get hasPermission and user from AuthContext
 
   const [formData, setFormData] = useState({
     company_name: '',
@@ -70,7 +70,8 @@ const Settings = () => {
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Frontend: Données du formulaire avant envoi:', formData); // Nouveau log
+    console.log('Frontend: handleSave function called.'); // TRÈS IMPORTANT : Vérifier si ce log apparaît
+    console.log('Frontend: Données du formulaire avant envoi:', formData);
     updateSettings(formData);
   };
 
