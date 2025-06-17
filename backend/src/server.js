@@ -14,9 +14,10 @@ const notificationRoutes = require('./routes/notificationRoutes.js');
 const appSettingsRoutes = require('./routes/appSettingsRoutes.js');
 const activityLogRoutes = require('./routes/activityLogRoutes.js');
 const documentCodeConfigRoutes = require('./routes/documentCodeConfigRoutes.js');
-const uploadRoutes = require('./routes/uploadRoutes.js'); // New import
-const dashboardRoutes = require('./routes/dashboardRoutes.js'); // New import
-const path = require('path'); // New import
+const uploadRoutes = require('./routes/uploadRoutes.js');
+const dashboardRoutes = require('./routes/dashboardRoutes.js');
+const onlyofficeRoutes = require('./routes/onlyofficeRoutes.js'); // New import for OnlyOffice routes
+const path = require('path');
 
 dotenv.config();
 
@@ -45,8 +46,9 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/settings', appSettingsRoutes);
 app.use('/api/activity-logs', activityLogRoutes);
 app.use('/api/document-code-config', documentCodeConfigRoutes);
-app.use('/api/uploads', uploadRoutes); // New route for file uploads
-app.use('/api/dashboard', dashboardRoutes); // New route for dashboard stats
+app.use('/api/uploads', uploadRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/onlyoffice', onlyofficeRoutes); // New route for OnlyOffice callbacks
 
 // Define a simple root route
 app.get('/', (req, res) => {
