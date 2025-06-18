@@ -13,7 +13,7 @@ import { Airport } from '@/shared/types';
 import { DocumentCodeConfigManagement } from '@/components/settings/DocumentCodeConfigManagement';
 import { useAuth } from '@/contexts/AuthContext';
 
-const SettingsPage: React.FC = () => { // Renommé en SettingsPage
+const SettingsPage: React.FC = () => {
   const { settings, isLoading, updateSettings, isUpdating } = useSettings();
   const { hasPermission } = useAuth();
 
