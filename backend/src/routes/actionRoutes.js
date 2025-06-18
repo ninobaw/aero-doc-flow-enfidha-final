@@ -1,9 +1,29 @@
 const { Router } = require('express');
 const { Action } = require('../models/Action.js'); // Changed to .js extension
 const { Document } = require('../models/Document.js'); // Changed to .js extension
+const { Notification } = require('../models/Notification.js'); // Import Notification model
+const { User } = require('../models/User.js'); // Import User model to get user email for notifications
 const { v4: uuidv4 } = require('uuid');
 
 const router = Router();
+
+// Helper function to create a notification (copied from notificationRoutes for local use)
+const createNotification = async (userId, title, message, type = 'info') => {
+  try {
+    const newNotification = new Notification({
+      _id: uuidv4(),
+      userId,
+      title,
+      message,
+      type,
+      isRead: false,
+    });
+    await newNotification.save();
+    console.log(`Notification created for user ${userId}: ${title}`);
+  } catch (error) {
+    console.error('Error creating notification:', error);
+  }
+};
 
 // GET /api/actions
 router.get('/', async (req, res) => {
@@ -57,6 +77,16 @@ router.post('/', async (req, res) => {
         type: populatedAction.parentDocumentId.type,
       } : null,
     };
+
+    // --- Notifications for new action ---
+    await createNotification(populatedAction.authorId, 'Nouvelle action créée', `L'action "${title}" a été créée.`);
+    if (assigned_to && assigned_to.length > 0) {
+      for (const assigneeId of assigned_to) {
+        await createNotification(assigneeId, 'Nouvelle action assignée', `Une nouvelle action "${title}" vous a été assignée.`);
+      }
+    }
+    // --- End Notifications ---
+
     res.status(201).json(formattedAction);
   } catch (error) {
     console.error('Error creating action:', error);
@@ -96,6 +126,11 @@ router.put('/:id', async (req, res) => {
   }
 
   try {
+    const oldAction = await Action.findById(id);
+    if (!oldAction) {
+      return res.status(404).json({ message: 'Action not found' });
+    }
+
     const action = await Action.findByIdAndUpdate(id, updates, { new: true }).populate('parentDocumentId', 'title type');
     if (!action) {
       return res.status(404).json({ message: 'Action not found' });
@@ -108,6 +143,45 @@ router.put('/:id', async (req, res) => {
         type: action.parentDocumentId.type,
       } : null,
     };
+
+    // --- Notifications for updated action ---
+    const changedFields = Object.keys(updates).filter(key => 
+      JSON.stringify(updates[key]) !== JSON.stringify(oldAction.toObject()[key])
+    );
+
+    if (changedFields.length > 0) {
+      // Notify assigned users if assignment changed
+      const oldAssignedTo = new Set(oldAction.assignedTo.map(String));
+      const newAssignedTo = new Set(action.assignedTo.map(String));
+
+      const addedAssignees = [...newAssignedTo].filter(id => !oldAssignedTo.has(id));
+      const removedAssignees = [...oldAssignedTo].filter(id => !newAssignedTo.has(id));
+
+      for (const assigneeId of addedAssignees) {
+        await createNotification(assigneeId, 'Action assignée', `L'action "${action.title}" vous a été assignée.`);
+      }
+      for (const assigneeId of removedAssignees) {
+        await createNotification(assigneeId, 'Action désassignée', `L'action "${action.title}" vous a été désassignée.`);
+      }
+
+      // Notify if status changed to COMPLETED
+      if (oldAction.status !== 'COMPLETED' && action.status === 'COMPLETED') {
+        for (const assigneeId of action.assignedTo) {
+          await createNotification(assigneeId, 'Action terminée', `L'action "${action.title}" a été marquée comme terminée.`);
+        }
+      } else if (oldAction.status === 'COMPLETED' && action.status !== 'COMPLETED') {
+        // Notify if status changed from COMPLETED
+        for (const assigneeId of action.assignedTo) {
+          await createNotification(assigneeId, 'Action réouverte', `L'action "${action.title}" a été réouverte.`);
+        }
+      }
+      // General update notification for assigned users
+      for (const assigneeId of action.assignedTo) {
+        await createNotification(assigneeId, 'Action mise à jour', `L'action "${action.title}" a été mise à jour. Champs modifiés: ${changedFields.join(', ')}.`);
+      }
+    }
+    // --- End Notifications ---
+
     res.json(formattedAction);
   } catch (error) {
     console.error('Error updating action:', error);
