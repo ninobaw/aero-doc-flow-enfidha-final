@@ -3,27 +3,34 @@ const { AppSettings } = require('../models/AppSettings.js');
 const { User } = require('../models/User.js'); // Pour récupérer l'email de l'utilisateur
 
 const sendEmail = async (userId, subject, text, html) => {
+  console.log(`[EmailSender] Tentative d'envoi d'email pour userId: ${userId}, Sujet: ${subject}`);
   try {
     const appSettings = await AppSettings.findOne({ userId });
-    if (!appSettings || !appSettings.emailNotifications) {
-      console.log(`Email notifications are disabled for user ${userId} or settings not found.`);
+    if (!appSettings) {
+      console.warn(`[EmailSender] AppSettings non trouvés pour l'utilisateur ${userId}.`);
+      return;
+    }
+    if (!appSettings.emailNotifications) {
+      console.log(`[EmailSender] Notifications email désactivées pour l'utilisateur ${userId}.`);
       return;
     }
 
     const user = await User.findById(userId);
     if (!user || !user.email) {
-      console.warn(`User ${userId} not found or has no email for notification.`);
+      console.warn(`[EmailSender] Utilisateur ${userId} non trouvé ou n'a pas d'adresse email pour la notification.`);
       return;
     }
 
     const smtpHost = appSettings.smtpHost || process.env.SMTP_HOST;
     const smtpPort = appSettings.smtpPort || process.env.SMTP_PORT;
     const smtpUsername = appSettings.smtpUsername || process.env.SMTP_USERNAME;
-    const smtpPassword = process.env.SMTP_PASSWORD; // Always from environment variable for security
+    const smtpPassword = process.env.SMTP_PASSWORD; // Toujours depuis les variables d'environnement
     const useSsl = appSettings.useSsl ?? true;
 
+    console.log(`[EmailSender] Paramètres SMTP: Host=${smtpHost}, Port=${smtpPort}, Username=${smtpUsername}, UseSSL=${useSsl}, Password_Defined=${!!smtpPassword}`);
+
     if (!smtpHost || !smtpPort || !smtpUsername || !smtpPassword) {
-      console.error('SMTP credentials are not fully configured in AppSettings or environment variables.');
+      console.error('[EmailSender] Les identifiants SMTP ne sont pas entièrement configurés dans AppSettings ou les variables d\'environnement.');
       return;
     }
 
@@ -50,10 +57,14 @@ const sendEmail = async (userId, subject, text, html) => {
       html: html,
     };
 
+    console.log(`[EmailSender] Envoi de l'email à: ${user.email}, From: ${mailOptions.from}, Sujet: ${subject}`);
     await transporter.sendMail(mailOptions);
-    console.log(`Email sent to ${user.email} for user ${userId}. Subject: ${subject}`);
+    console.log(`[EmailSender] Email envoyé avec succès à ${user.email} pour l'utilisateur ${userId}. Sujet: ${subject}`);
   } catch (error) {
-    console.error(`Error sending email to user ${userId}:`, error.message);
+    console.error(`[EmailSender] Erreur lors de l'envoi de l'email à l'utilisateur ${userId}:`, error.message);
+    if (error.response) {
+      console.error('[EmailSender] Réponse d\'erreur SMTP:', error.response);
+    }
   }
 };
 
