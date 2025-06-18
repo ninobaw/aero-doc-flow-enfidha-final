@@ -5,13 +5,14 @@ const { User } = require('../models/User.js'); // Pour récupérer l'email de l'
 const sendEmail = async (userId, subject, text, html) => {
   console.log(`[EmailSender] Tentative d'envoi d'email pour userId: ${userId}, Sujet: ${subject}`);
   try {
-    const appSettings = await AppSettings.findOne({ userId });
+    // Récupérer les paramètres globaux de l'application (le premier trouvé)
+    const appSettings = await AppSettings.findOne({}); 
     if (!appSettings) {
-      console.warn(`[EmailSender] AppSettings non trouvés pour l'utilisateur ${userId}.`);
+      console.warn(`[EmailSender] AppSettings globaux non trouvés. L'envoi d'email est désactivé.`);
       return;
     }
     if (!appSettings.emailNotifications) {
-      console.log(`[EmailSender] Notifications email désactivées pour l'utilisateur ${userId}.`);
+      console.log(`[EmailSender] Notifications email désactivées dans les paramètres globaux.`);
       return;
     }
 
@@ -37,14 +38,12 @@ const sendEmail = async (userId, subject, text, html) => {
     const transporter = nodemailer.createTransport({
       host: smtpHost,
       port: smtpPort,
-      secure: useSsl, // true for 465, false for other ports like 587
+      secure: useSsl,
       auth: {
         user: smtpUsername,
         pass: smtpPassword,
       },
       tls: {
-        // Do not fail on invalid certs, useful for self-signed certs in dev
-        // In production, you should remove this or set to true if you have valid certs
         rejectUnauthorized: false, 
       },
     });

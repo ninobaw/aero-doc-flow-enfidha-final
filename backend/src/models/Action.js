@@ -20,6 +20,7 @@ const ActionSchema = new Schema({
   progress: { type: Number, default: 0 },
   estimatedHours: { type: Number },
   actualHours: { type: Number },
+  authorId: { type: String, ref: 'User', required: true }, // Nouveau champ: ID de l'auteur de l'action
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 }, { timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' } });

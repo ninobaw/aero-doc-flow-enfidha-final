@@ -19,6 +19,7 @@ export interface ActionData {
   actual_hours?: number;
   created_at: string;
   updated_at: string;
+  author_id: string; // Ajouté author_id
   document?: {
     title: string;
     type: string;
@@ -49,7 +50,12 @@ export const useActions = () => {
       parent_document_id?: string;
       estimated_hours?: number;
     }) => {
-      const response = await axios.post(`${API_BASE_URL}/actions`, actionData);
+      if (!user?.id) throw new Error('Utilisateur non connecté'); // Vérifier l'utilisateur
+
+      const response = await axios.post(`${API_BASE_URL}/actions`, {
+        ...actionData,
+        author_id: user.id, // Envoyer l'ID de l'utilisateur connecté comme auteur
+      });
       return response.data;
     },
     onSuccess: () => {
