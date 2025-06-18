@@ -9,6 +9,7 @@ const router = Router();
 
 // Helper function to create a notification (copied from notificationRoutes for local use)
 const createNotification = async (userId, title, message, type = 'info') => {
+  console.log(`[createNotification] Fonction appelée pour userId: ${userId}, Titre: ${title}`); // NOUVEAU LOG DE TEST
   try {
     const newNotification = new Notification({
       _id: uuidv4(),
