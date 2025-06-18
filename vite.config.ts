@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-import { componentTagger } from "lovable-tagger";
+// import { componentTagger } from "lovable-tagger"; // Supprimé pour éviter toute interférence
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -13,8 +13,7 @@ export default defineConfig(({ mode }) => ({
     react({
       jsxRuntime: 'automatic' // Explicitly set JSX runtime
     }),
-    // Temporarily disabled to debug JSX parsing issue
-    // mode === 'development' && componentTagger(),
+    // La ligne componentTagger a été supprimée pour éviter toute interférence potentielle.
   ].filter(Boolean),
   resolve: {
     alias: {
