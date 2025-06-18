@@ -1,29 +1,11 @@
 const { Router } = require('express');
 const { Correspondance } = require('../models/Correspondance.js');
-const { Notification } = require('../models/Notification.js'); // Import Notification model
 const { User } = require('../models/User.js'); // Import User model to find users for notifications
 const { generateCodeAndSequence, generateSimpleQRCode } = require('../utils/codeGenerator.js'); // Import new code generator
 const { v4: uuidv4 } = require('uuid');
+const { createNotification } = require('./notificationRoutes.js'); // Import the central createNotification
 
 const router = Router();
-
-// Helper function to create a notification
-const createNotification = async (userId, title, message, type = 'info') => {
-  try {
-    const newNotification = new Notification({
-      _id: uuidv4(),
-      userId,
-      title,
-      message,
-      type,
-      isRead: false,
-    });
-    await newNotification.save();
-    console.log(`Notification created for user ${userId}: ${title}`);
-  } catch (error) {
-    console.error('Error creating notification:', error);
-  }
-};
 
 // GET /api/correspondances
 router.get('/', async (req, res) => {
@@ -196,7 +178,7 @@ router.put('/:id', async (req, res) => {
     ].some(field => updates[field] !== undefined && updates[field] !== oldCorrespondance[field]);
 
     if (codificationFieldsChanged) {
-      const { generatedCode, sequence_number } = await generateCodeAndSequence(
+      const { generatedCode: newGeneratedCode, sequence_number: newSequenceNumber } = await generateCodeAndSequence(
         'CORRESPONDANCE',
         updates.company_code || oldCorrespondance.company_code,
         updates.scope_code || oldCorrespondance.scope_code,
@@ -206,9 +188,9 @@ router.put('/:id', async (req, res) => {
         updates.type === 'INCOMING' ? 'IN' : 'OUT' || oldCorrespondance.type === 'INCOMING' ? 'IN' : 'OUT', // Use IN/OUT as correspondence type code
         updates.language_code || oldCorrespondance.language_code
       );
-      generatedCode = newGeneratedCode;
-      qrCode = newGeneratedCode; // Update QR code with the new structured code
-      sequence_number = newSequenceNumber;
+      updates.code = newGeneratedCode; // Update code with the new structured code
+      updates.qrCode = newGeneratedCode; // Update QR code with the new structured code
+      updates.sequence_number = newSequenceNumber;
     }
 
 
