@@ -17,7 +17,7 @@ import Users from "./pages/Users";
 import Actions from "./pages/Actions";
 import QRCodes from "./pages/QRCodes";
 import Reports from "./pages/Reports";
-import Settings from "./pages/Settings";
+import SettingsPage from "./pages/SettingsPage"; // Importe le nouveau composant
 import Profile from "./pages/Profile";
 import Templates from "./pages/Templates";
 import AuditLogs from "./pages/AuditLogs";
@@ -42,7 +42,6 @@ const App = () => (
                 <Documents />
               </ProtectedRoute>
             } />
-            {/* Removed /documents/qualite route */}
             <Route path="/documents/formulaires" element={
               <ProtectedRoute requiredPermission="manage_forms">
                 <FormulairesDoc />
@@ -90,7 +89,7 @@ const App = () => (
             } />
             <Route path="/settings" element={
               <ProtectedRoute requiredPermission="manage_settings">
-                <Settings />
+                <SettingsPage /> {/* Utilise le nouveau composant */}
               </ProtectedRoute>
             } />
             <Route path="/profile" element={

@@ -6,14 +6,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'; // Import Tabs components
-import { Settings as SettingsIcon, Save, Bell, Shield, Globe, Database, Mail, Code, MessageSquare } from 'lucide-react'; // Import MessageSquare icon
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Settings as SettingsIcon, Save, Bell, Shield, Globe, Database, Mail, Code, MessageSquare } from 'lucide-react';
 import { useSettings } from '@/hooks/useSettings';
 import { Airport } from '@/shared/types';
-import { DocumentCodeConfigManagement } from '@/components/settings/DocumentCodeConfigManagement'; // Import the new component
-import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
+import { DocumentCodeConfigManagement } from '@/components/settings/DocumentCodeConfigManagement';
+import { useAuth } from '@/contexts/AuthContext';
 
-const Settings: React.FC = () => {
+const SettingsPage: React.FC = () => { // Renommé en SettingsPage
   const { settings, isLoading, updateSettings, isUpdating } = useSettings();
   const { hasPermission } = useAuth();
 
@@ -35,7 +35,6 @@ const Settings: React.FC = () => {
     smtp_port: 587,
     smtp_username: '',
     use_ssl: true,
-    // Nouveaux champs pour la configuration SMS (Twilio)
     twilio_account_sid: '',
     twilio_auth_token: '',
     twilio_phone_number: '',
@@ -510,4 +509,4 @@ const Settings: React.FC = () => {
   );
 };
 
-export default Settings;
+export default SettingsPage;
