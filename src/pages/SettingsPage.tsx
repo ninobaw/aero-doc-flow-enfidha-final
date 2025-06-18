@@ -1,3 +1,4 @@
+en <Label> dans SettingsPage.tsx.">
 import React, { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -404,7 +405,7 @@ const SettingsPage: React.FC = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="twilioAuthToken">Auth Token</LabeL>
+                    <Label htmlFor="twilioAuthToken">Auth Token</Label> {/* Corrected: </LabeL> to </Label> */}
                     <Input
                       id="twilioAuthToken"
                       type="password"
