@@ -5,14 +5,14 @@ const { User } = require('../models/User.js'); // Pour récupérer l'email de l'
 const sendEmail = async (userId, subject, text, html) => {
   console.log(`[EmailSender] Tentative d'envoi d'email pour userId: ${userId}, Sujet: ${subject}`);
   try {
-    // Récupérer les paramètres globaux de l'application (le premier trouvé)
-    const appSettings = await AppSettings.findOne({}); 
+    // Récupérer les paramètres de l'application spécifiques à cet utilisateur
+    const appSettings = await AppSettings.findOne({ userId }); 
     if (!appSettings) {
-      console.warn(`[EmailSender] AppSettings globaux non trouvés. L'envoi d'email est désactivé.`);
+      console.warn(`[EmailSender] AppSettings non trouvés pour l'utilisateur ${userId}. L'envoi d'email est désactivé.`);
       return;
     }
     if (!appSettings.emailNotifications) {
-      console.log(`[EmailSender] Notifications email désactivées dans les paramètres globaux.`);
+      console.log(`[EmailSender] Notifications email désactivées pour l'utilisateur ${userId}.`);
       return;
     }
 
