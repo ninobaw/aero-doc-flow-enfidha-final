@@ -121,6 +121,11 @@ export default {
 					'75%': { transform: 'translate(-5px, 5px) rotate(-1deg)', opacity: '0.8' },
 					'100%': { transform: 'translate(0, 0) rotate(0deg)', opacity: '0.7' },
 				},
+				'gradient-shift': { // Nouvelle keyframe pour le dégradé animé
+					'0%': { 'background-position': '0% 50%' },
+					'50%': { 'background-position': '100% 50%' },
+					'100%': { 'background-position': '0% 50%' },
+				},
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
@@ -128,6 +133,7 @@ export default {
 				'fade-in': 'fade-in 0.3s ease-out',
 				'slide-in': 'slide-in 0.3s ease-out',
 				'fly-plane': 'fly-plane 8s ease-in-out infinite', // Nouvelle animation
+				'gradient-shift': 'gradient-shift 15s ease infinite', // Animation de dégradé
 			},
 			backgroundImage: { // Nouvelle propriété pour l'image de fond
 				'wallpaper': "url('/assets/wallpaper.png')",

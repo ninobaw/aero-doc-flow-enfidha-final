@@ -48,6 +48,10 @@ export const LoginForm = () => {
       {/* Calque pour améliorer la lisibilité du texte sur l'image de fond */}
       <div className="absolute inset-0 bg-black opacity-30"></div>
       
+      {/* Nouvelle animation de fond subtile */}
+      <div className="absolute inset-0 bg-gradient-to-r from-aviation-sky-dark via-aviation-sky to-aviation-sky-dark opacity-20 animate-gradient-shift"
+           style={{ backgroundSize: '200% 200%' }}></div>
+
       <Card className="w-full max-w-md shadow-xl relative z-10"> {/* z-10 pour que la carte soit au-dessus du calque */}
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-center">
