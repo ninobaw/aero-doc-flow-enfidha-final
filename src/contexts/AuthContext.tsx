@@ -31,7 +31,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: fetchedUser.id,
         email: fetchedUser.email,
         firstName: fetchedUser.firstName,
-        lastName: fetchedUser.lastName,
+        lastName: fetchedToasts.lastName,
         role: fetchedUser.role as UserRole,
         profilePhoto: fetchedUser.profilePhoto,
         airport: fetchedUser.airport as Airport,

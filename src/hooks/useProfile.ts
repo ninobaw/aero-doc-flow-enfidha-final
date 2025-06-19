@@ -63,6 +63,7 @@ export const useProfile = () => {
       toast({
         title: 'Profil mis à jour',
         description: 'Votre profil a été mis à jour avec succès.',
+        variant: 'success', // Appliquer la variante 'success'
       });
     },
     onError: (error: any) => {
