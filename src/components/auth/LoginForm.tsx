@@ -4,16 +4,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Lock, User, Plane } from 'lucide-react';
+import { Lock, User, Plane, Loader2 } from 'lucide-react'; // Import Loader2
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils'; // Import cn utility
+import { cn } from '@/lib/utils';
 
 export const LoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showTestAccounts, setShowTestAccounts] = useState(false);
-  const [isShaking, setIsShaking] = useState(false); // New state for shake animation
+  const [isShaking, setIsShaking] = useState(false);
   const { login, isLoading } = useAuth();
   const { toast } = useToast();
 
@@ -26,8 +26,8 @@ export const LoginForm = () => {
         description: "Veuillez remplir tous les champs.",
         variant: "destructive"
       });
-      setIsShaking(true); // Trigger shake on validation error
-      setTimeout(() => setIsShaking(false), 500); // Remove shake class after animation
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 500);
       return;
     }
 
@@ -39,8 +39,8 @@ export const LoginForm = () => {
         description: "Email ou mot de passe incorrect.",
         variant: "destructive"
       });
-      setIsShaking(true); // Trigger shake on login failure
-      setTimeout(() => setIsShaking(false), 500); // Remove shake class after animation
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 500);
     }
   };
 
@@ -59,13 +59,13 @@ export const LoginForm = () => {
            style={{ backgroundSize: '200% 200%' }}></div>
 
       <Card className={cn(
-        "w-full max-w-md shadow-xl relative z-10 animate-bounce-in", // Initial bounce-in animation
-        { "animate-shake": isShaking } // Apply shake animation conditionally
+        "w-full max-w-md shadow-xl relative z-10 animate-bounce-in",
+        { "animate-shake": isShaking }
       )}>
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-center">
             <div className="bg-aviation-sky p-3 rounded-full relative overflow-hidden">
-              <Plane className="w-8 h-8 text-white animate-fly-plane" /> {/* Application de l'animation */}
+              <Plane className="w-8 h-8 text-white animate-fly-plane" />
             </div>
           </div>
           <CardTitle className="text-2xl font-bold text-gray-900">
@@ -115,7 +115,14 @@ export const LoginForm = () => {
               className="w-full bg-aviation-sky hover:bg-aviation-sky-dark"
               disabled={isLoading}
             >
-              {isLoading ? 'Connexion...' : 'Se connecter'}
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Connexion...
+                </>
+              ) : (
+                'Se connecter'
+              )}
             </Button>
           </form>
 
