@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -114,14 +113,25 @@ export default {
 					'100%': {
 						transform: 'translateX(0)'
 					}
-				}
+				},
+				'fly-plane': { // Nouvelle keyframe pour l'animation de l'avion
+					'0%': { transform: 'translate(0, 0) rotate(0deg)', opacity: '0.7' },
+					'25%': { transform: 'translate(5px, -5px) rotate(1deg)', opacity: '0.8' },
+					'50%': { transform: 'translate(0, 0) rotate(0deg)', opacity: '0.7' },
+					'75%': { transform: 'translate(-5px, 5px) rotate(-1deg)', opacity: '0.8' },
+					'100%': { transform: 'translate(0, 0) rotate(0deg)', opacity: '0.7' },
+				},
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'fade-in': 'fade-in 0.3s ease-out',
-				'slide-in': 'slide-in 0.3s ease-out'
-			}
+				'slide-in': 'slide-in 0.3s ease-out',
+				'fly-plane': 'fly-plane 8s ease-in-out infinite', // Nouvelle animation
+			},
+			backgroundImage: { // Nouvelle propriété pour l'image de fond
+				'wallpaper': "url('/assets/wallpaper.png')",
+			},
 		}
 	},
 	plugins: [require("tailwindcss-animate")],

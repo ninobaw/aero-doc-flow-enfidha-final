@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -45,12 +44,15 @@ export const LoginForm = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-aviation-terminal to-blue-50 p-4">
-      <Card className="w-full max-w-md shadow-xl">
+    <div className="min-h-screen flex items-center justify-center bg-wallpaper bg-cover bg-center p-4 relative">
+      {/* Calque pour améliorer la lisibilité du texte sur l'image de fond */}
+      <div className="absolute inset-0 bg-black opacity-30"></div>
+      
+      <Card className="w-full max-w-md shadow-xl relative z-10"> {/* z-10 pour que la carte soit au-dessus du calque */}
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-center">
-            <div className="bg-aviation-sky p-3 rounded-full">
-              <Plane className="w-8 h-8 text-white" />
+            <div className="bg-aviation-sky p-3 rounded-full relative overflow-hidden">
+              <Plane className="w-8 h-8 text-white animate-fly-plane" /> {/* Application de l'animation */}
             </div>
           </div>
           <CardTitle className="text-2xl font-bold text-gray-900">
