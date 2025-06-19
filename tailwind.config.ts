@@ -142,10 +142,10 @@ export default {
 						transform: 'translateY(0) scale(1)',
 					},
 				},
-				'shake': { // Ajusté pour une vibration plus subtile
+				'shake': { // Nouvelle keyframe pour l'animation de secousse
 					'0%, 100%': { transform: 'translateX(0)' },
-					'10%, 30%, 50%, 70%, 90%': { transform: 'translateX(-2px)' }, /* Réduit l'amplitude */
-					'20%, 40%, 60%, 80%': { transform: 'translateX(2px)' }, /* Réduit l'amplitude */
+					'10%, 30%, 50%, 70%, 90%': { transform: 'translateX(-5px)' },
+					'20%, 40%, 60%, 80%': { transform: 'translateX(5px)' },
 				},
 			},
 			animation: {
@@ -156,7 +156,7 @@ export default {
 				'fly-plane': 'fly-plane 8s ease-in-out infinite', // Nouvelle animation
 				'gradient-shift': 'gradient-shift 15s ease infinite', // Animation de dégradé
 				'bounce-in': 'bounce-in 0.8s ease-out forwards', // Appliquer la nouvelle animation
-				'shake': 'shake 0.3s cubic-bezier(.36,.07,.19,.97) both', // Raccourci la durée pour une vibration plus rapide
+				'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both', // Appliquer la nouvelle animation
 			},
 			backgroundImage: { // Nouvelle propriété pour l'image de fond
 				'wallpaper': "url('/assets/wallpaper.png')",
