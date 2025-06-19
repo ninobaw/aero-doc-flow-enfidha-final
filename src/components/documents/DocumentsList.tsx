@@ -26,6 +26,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useToast } from '@/hooks/use-toast'; // Import useToast
 
 interface DocumentsListProps {
   documents: DocumentData[];
@@ -40,7 +41,8 @@ export const DocumentsList = ({ documents, isLoading, onEdit, onDelete }: Docume
   const [documentToDelete, setDocumentToDelete] = useState<string | null>(null); // State for deletion confirmation
   
   const { user, hasPermission } = useAuth();
-  const { updateDocument, isUpdating } = useDocuments();
+  const { updateDocument, isUpdating, deleteDocument } = useDocuments(); // Get deleteDocument from hook
+  const { toast } = useToast(); // Initialize useToast
 
   if (isLoading) {
     return (
@@ -106,9 +108,25 @@ export const DocumentsList = ({ documents, isLoading, onEdit, onDelete }: Docume
   };
 
   const handleConfirmDelete = () => {
-    if (documentToDelete && onDelete) {
-      onDelete(documentToDelete);
-      setDocumentToDelete(null);
+    if (documentToDelete) {
+      deleteDocument(documentToDelete, {
+        onSuccess: () => {
+          toast({
+            title: "Document supprimé",
+            description: "Le document a été supprimé avec succès.",
+            variant: "success",
+          });
+          setDocumentToDelete(null);
+        },
+        onError: (error) => {
+          toast({
+            title: "Erreur de suppression",
+            description: error.message || "Impossible de supprimer le document.",
+            variant: "destructive",
+          });
+          setDocumentToDelete(null);
+        }
+      });
     }
   };
 
@@ -120,6 +138,21 @@ export const DocumentsList = ({ documents, isLoading, onEdit, onDelete }: Docume
         id: document.id,
         status: 'ACTIVE',
         approved_by_id: user.id,
+      }, {
+        onSuccess: () => {
+          toast({
+            title: "Document approuvé",
+            description: `Le document "${document.title}" a été approuvé et est maintenant actif.`,
+            variant: "success",
+          });
+        },
+        onError: (error) => {
+          toast({
+            title: "Erreur d'approbation",
+            description: error.message || `Impossible d'approuver le document "${document.title}".`,
+            variant: "destructive",
+          });
+        }
       });
     }
   };

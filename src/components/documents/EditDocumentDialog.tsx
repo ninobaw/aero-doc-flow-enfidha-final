@@ -143,7 +143,7 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
       const documentTypeEnum = mapDocumentTypeCodeToDocumentTypeEnum(formData.document_type_code!);
 
       const uploaded = await uploadFile(selectedFile, {
-        documentType: documentTypeEnum,
+        documentType: documentTypeEnum, // Use mapped type for folder
         scopeCode: formData.airport,
         departmentCode: formData.department_code,
         documentTypeCode: formData.document_type_code,
@@ -155,13 +155,23 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
           const oldFileDeleted = await deleteFile(document.file_path);
           if (!oldFileDeleted) {
             console.warn(`Failed to delete old file: ${document.file_path}. Proceeding with document update.`);
+            toast({
+              title: "Avertissement de suppression",
+              description: `L'ancien fichier physique n'a pas pu être supprimé. Veuillez le faire manuellement si nécessaire.`,
+              variant: "destructive",
+            });
           }
         }
         finalFilePath = uploaded.path;
         finalFileType = selectedFile.type;
         newVersion = (document.version || 0) + 1;
       } else {
-        return;
+        toast({
+          title: "Erreur d'upload",
+          description: "L'upload du fichier a échoué. Veuillez réessayer.",
+          variant: "destructive",
+        });
+        return; // Stop if file upload failed
       }
     }
 
@@ -188,6 +198,14 @@ export const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({ document
         toast({
           title: 'Document mis à jour',
           description: 'Le document a été mis à jour avec succès.',
+          variant: "success",
+        });
+      },
+      onError: (error) => {
+        toast({
+          title: 'Erreur',
+          description: error.message || 'Impossible de mettre à jour le document.',
+          variant: "destructive",
         });
       }
     });
