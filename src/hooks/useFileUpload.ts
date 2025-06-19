@@ -75,7 +75,6 @@ export const useFileUpload = () => {
       toast({
         title: 'Upload réussi',
         description: 'Le fichier a été uploadé avec succès.',
-        variant: 'success', // Appliquer la variante 'success'
       });
 
       return {
@@ -88,7 +87,7 @@ export const useFileUpload = () => {
       toast({
         title: 'Erreur d\'upload',
         description: error.response?.data?.message || error.message || 'Erreur lors de l\'upload du fichier.',
-        variant: 'destructive', // Appliquer la variante 'destructive'
+        variant: 'destructive',
       });
       return null;
     } finally {
@@ -140,7 +139,6 @@ export const useFileUpload = () => {
       toast({
         title: 'Modèle uploadé',
         description: 'Le modèle a été uploadé avec succès.',
-        variant: 'success', // Appliquer la variante 'success'
       });
 
       return {
@@ -153,7 +151,7 @@ export const useFileUpload = () => {
       toast({
         title: 'Erreur d\'upload modèle',
         description: error.response?.data?.message || error.message || 'Erreur lors de l\'upload du modèle.',
-        variant: 'destructive', // Appliquer la variante 'destructive'
+        variant: 'destructive',
       });
       return null;
     } finally {
@@ -183,7 +181,6 @@ export const useFileUpload = () => {
       toast({
         title: 'Modèle copié',
         description: 'Le modèle a été copié pour le nouveau document.',
-        variant: 'success', // Appliquer la variante 'success'
       });
 
       return {
@@ -195,7 +192,7 @@ export const useFileUpload = () => {
       toast({
         title: 'Erreur de copie',
         description: error.response?.data?.message || error.message || 'Erreur lors de la copie du modèle.',
-        variant: 'destructive', // Appliquer la variante 'destructive'
+        variant: 'destructive',
       });
       return null;
     } finally {
@@ -213,7 +210,6 @@ export const useFileUpload = () => {
       toast({
         title: 'Fichier supprimé',
         description: 'Le fichier a été supprimé avec succès.',
-        variant: 'success', // Appliquer la variante 'success'
       });
 
       return true;
@@ -222,7 +218,7 @@ export const useFileUpload = () => {
       toast({
         title: 'Erreur de suppression',
         description: error.response?.data?.message || error.message || 'Erreur lors de la suppression du fichier.',
-        variant: 'destructive', // Appliquer la variante 'destructive'
+        variant: 'destructive',
       });
       return false;
     }

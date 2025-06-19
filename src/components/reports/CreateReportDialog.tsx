@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -6,12 +7,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus } from 'lucide-react';
 import { useReports } from '@/hooks/useReports';
-import { useToast } from '@/hooks/use-toast'; // Import useToast
 
 export const CreateReportDialog = () => {
   const [open, setOpen] = useState(false);
   const { createReport, isCreating } = useReports();
-  const { toast } = useToast(); // Initialize useToast
   
   const [formData, setFormData] = useState({
     name: '',
@@ -23,11 +22,6 @@ export const CreateReportDialog = () => {
     e.preventDefault();
     
     if (!formData.name || !formData.type) {
-      toast({
-        title: "Champs manquants",
-        description: "Le nom et le type du rapport sont obligatoires.",
-        variant: "destructive", // Appliquer la variante 'destructive'
-      });
       return;
     }
 
@@ -46,18 +40,6 @@ export const CreateReportDialog = () => {
           frequency: '',
         });
         setOpen(false);
-        toast({
-          title: "Rapport créé",
-          description: "Le rapport a été créé avec succès.",
-          variant: "success", // Appliquer la variante 'success'
-        });
-      },
-      onError: (error) => {
-        toast({
-          title: "Erreur",
-          description: error.message || "Impossible de créer le rapport.",
-          variant: "destructive", // Appliquer la variante 'destructive'
-        });
       }
     });
   };

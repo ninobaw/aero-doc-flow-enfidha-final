@@ -69,7 +69,6 @@ export const useSettings = () => {
       toast({
         title: 'Paramètres sauvegardés',
         description: 'Vos paramètres ont été mis à jour avec succès.',
-        variant: 'success', // Appliquer la variante 'success'
       });
     },
     onError: (error: any) => {

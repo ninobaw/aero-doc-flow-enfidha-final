@@ -17,7 +17,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { TestComponent } from '@/components/TestComponent'; // Import the new TestComponent
 
 const Documents = () => {
   const navigate = useNavigate();
@@ -90,8 +89,6 @@ const Documents = () => {
             Gérer tous vos documents aéroportuaires
           </p>
         </div>
-
-        <TestComponent /> {/* Add the TestComponent here */}
 
         <Tabs defaultValue="list" className="w-full">
           <TabsList className="grid w-full grid-cols-2 max-w-lg">

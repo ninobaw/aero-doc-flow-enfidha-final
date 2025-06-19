@@ -165,7 +165,6 @@ export const UploadTemplateForm: React.FC = () => {
           toast({
             title: 'Modèle importé',
             description: 'Le modèle a été importé et enregistré avec succès.',
-            variant: "success", // Appliquer la variante 'success'
           });
           // Reset form
           setFormData({
@@ -180,22 +179,10 @@ export const UploadTemplateForm: React.FC = () => {
           });
           removeFile();
           console.log('Modèle créé et formulaire réinitialisé.');
-        },
-        onError: (error) => {
-          toast({
-            title: 'Erreur',
-            description: error.message || 'Impossible de créer le modèle.',
-            variant: "destructive", // Appliquer la variante 'destructive'
-          });
         }
       });
     } else {
       console.log('L\'upload du fichier a échoué, annulation de la création du modèle.');
-      toast({
-        title: 'Erreur d\'upload',
-        description: 'L\'upload du fichier a échoué. Veuillez réessayer.',
-        variant: "destructive", // Appliquer la variante 'destructive'
-      });
     }
   };
 

@@ -86,7 +86,6 @@ export const useDocuments = () => {
       toast({
         title: 'Document créé',
         description: 'Le document a été créé avec succès.',
-        variant: 'success', // Appliquer la variante 'success'
       });
     },
     onError: (error) => {
@@ -94,7 +93,7 @@ export const useDocuments = () => {
       toast({
         title: 'Erreur',
         description: 'Impossible de créer le document.',
-        variant: 'destructive', // Appliquer la variante 'destructive'
+        variant: 'destructive',
       });
     },
   });
@@ -131,7 +130,6 @@ export const useDocuments = () => {
       toast({
         title: 'Document mis à jour',
         description: 'Le document a été mis à jour avec succès.',
-        variant: 'success', // Appliquer la variante 'success'
       });
     },
     onError: (error) => {
@@ -139,7 +137,7 @@ export const useDocuments = () => {
       toast({
         title: 'Erreur',
         description: 'Impossible de mettre à jour le document.',
-        variant: 'destructive', // Appliquer la variante 'destructive'
+        variant: 'destructive',
       });
     },
   });
@@ -153,7 +151,6 @@ export const useDocuments = () => {
       toast({
         title: 'Document supprimé',
         description: 'Le document a été supprimé avec succès.',
-        variant: 'success', // Appliquer la variante 'success'
       });
     },
     onError: (error) => {
@@ -161,7 +158,7 @@ export const useDocuments = () => {
       toast({
         title: 'Erreur',
         description: 'Impossible de supprimer le document.',
-        variant: 'destructive', // Appliquer la variante 'destructive'
+        variant: 'destructive',
       });
     },
   });

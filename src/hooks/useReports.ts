@@ -54,7 +54,6 @@ export const useReports = () => {
       toast({
         title: 'Rapport créé',
         description: 'Le rapport a été créé avec succès avec les données actuelles.',
-        variant: 'success', // Appliquer la variante 'success'
       });
     },
     onError: (error: any) => {
@@ -76,7 +75,6 @@ export const useReports = () => {
       toast({
         title: 'Rapport supprimé',
         description: 'Le rapport a été supprimé avec succès.',
-        variant: 'success', // Appliquer la variante 'success'
       });
     },
     onError: (error: any) => {

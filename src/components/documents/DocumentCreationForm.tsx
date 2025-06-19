@@ -12,13 +12,13 @@ import { useToast } from '@/hooks/use-toast';
 import { Airport } from '@/shared/types';
 import { useDocumentCodeConfig } from '@/hooks/useDocumentCodeConfig';
 import { generateDocumentCodePreview, mapDocumentTypeCodeToDocumentTypeEnum } from '@/shared/utils';
-import { useTemplates } from '@/hooks/useTemplates';
+import { useTemplates } from '@/hooks/useTemplates'; // Import useTemplates
 
 export const DocumentCreationForm: React.FC = () => {
   const { user } = useAuth();
   const { createDocument, isCreating } = useDocuments();
   const { config: codeConfig } = useDocumentCodeConfig();
-  const { templates, isLoading: isLoadingTemplates } = useTemplates();
+  const { templates, isLoading: isLoadingTemplates } = useTemplates(); // Fetch templates
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -43,7 +43,7 @@ export const DocumentCreationForm: React.FC = () => {
     content: ''
   });
 
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null); // New state for selected template
 
   useEffect(() => {
     if (user && codeConfig) {
@@ -95,7 +95,6 @@ export const DocumentCreationForm: React.FC = () => {
       toast({
         title: 'Modèle chargé',
         description: `Le modèle "${template.title}" a été chargé dans le formulaire.`,
-        variant: "success",
       });
     } else {
       // If "Aucun modèle" is selected or template not found, clear relevant fields
@@ -154,16 +153,8 @@ export const DocumentCreationForm: React.FC = () => {
         toast({
           title: 'Document créé',
           description: 'Le document a été créé avec succès.',
-          variant: "success",
         });
         navigate('/documents');
-      },
-      onError: (error) => {
-        toast({
-          title: 'Erreur',
-          description: error.message || 'Impossible de créer le document.',
-          variant: "destructive",
-        });
       }
     });
   };

@@ -59,7 +59,6 @@ export const useUsers = () => {
       toast({
         title: 'Utilisateur créé',
         description: `L'utilisateur ${data.firstName} ${data.lastName} a été créé avec succès.`,
-        variant: 'success', // Appliquer la variante 'success'
       });
     },
     onError: (error: any) => {
@@ -82,7 +81,6 @@ export const useUsers = () => {
       toast({
         title: 'Utilisateur mis à jour',
         description: 'L\'utilisateur a été mis à jour avec succès.',
-        variant: 'success', // Appliquer la variante 'success'
       });
     },
     onError: (error: any) => {
@@ -104,7 +102,6 @@ export const useUsers = () => {
       toast({
         title: 'Utilisateur désactivé',
         description: 'L\'utilisateur a été désactivé avec succès.',
-        variant: 'success', // Appliquer la variante 'success'
       });
     },
     onError: (error: any) => {

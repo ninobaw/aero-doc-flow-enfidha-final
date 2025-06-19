@@ -54,15 +54,14 @@ export const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
         onQRCodeUpdated?.(data.qr_code, data.downloads_count || 0, data.updated_at);
         toast({
           title: "QR Code généré",
-          description: "Un nouveau QR code a été généré pour ce document.",
-          variant: "success", // Appliquer la variante 'success'
+          description: "Un nouveau QR code a été généré pour ce document."
         });
       },
       onError: () => {
         toast({
           title: "Erreur de génération",
           description: "Impossible de générer le QR code.",
-          variant: "destructive" // Appliquer la variante 'destructive'
+          variant: "destructive"
         });
       }
     });
@@ -92,15 +91,14 @@ export const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
           onQRCodeUpdated?.(data.qr_code, data.downloads_count || 0, data.updated_at);
           toast({
             title: "QR Code téléchargé",
-            description: "Le QR code a été téléchargé avec succès.",
-            variant: "success", // Appliquer la variante 'success'
+            description: "Le QR code a été téléchargé avec succès."
           });
         },
         onError: () => {
           toast({
             title: "Erreur de téléchargement",
             description: "Impossible de mettre à jour le compteur de téléchargement.",
-            variant: "destructive" // Appliquer la variante 'destructive'
+            variant: "destructive"
           });
         }
       });

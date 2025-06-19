@@ -59,7 +59,6 @@ export const useNotifications = () => {
       toast({
         title: 'Notifications marquées',
         description: 'Toutes les notifications ont été marquées comme lues.',
-        variant: 'success', // Appliquer la variante 'success'
       });
     },
     onError: (error: any) => {

@@ -87,23 +87,10 @@ export const CreateFormulaireForm = () => {
       category: data.category || '',
       description: data.description || '',
       instructions: data.instructions || '',
-    }, {
-      onSuccess: () => {
-        toast({
-          title: 'Formulaire créé',
-          description: 'Le formulaire a été créé avec succès.',
-          variant: 'success', // Appliquer la variante 'success'
-        });
-        resetForm();
-      },
-      onError: (error) => {
-        toast({
-          title: 'Erreur',
-          description: error.message || 'Impossible de créer le formulaire.',
-          variant: 'destructive', // Appliquer la variante 'destructive'
-        });
-      }
     });
+
+    // Reset form après création réussie
+    resetForm();
   };
 
   const resetForm = () => {
