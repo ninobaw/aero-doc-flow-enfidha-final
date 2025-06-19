@@ -66,7 +66,8 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, open, onOp
         onOpenChange(false);
         toast({
           title: "Utilisateur modifié",
-          description: "L'utilisateur a été modifié avec succès"
+          description: "L'utilisateur a été modifié avec succès",
+          variant: "success", // Appliquer la variante 'success'
         });
       }
     });

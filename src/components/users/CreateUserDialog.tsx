@@ -75,6 +75,11 @@ export const CreateUserDialog = () => {
           password: ''
         });
         setOpen(false);
+        toast({
+          title: "Utilisateur créé",
+          description: "L'utilisateur a été créé avec succès",
+          variant: "success", // Appliquer la variante 'success'
+        });
       }
     });
   };
