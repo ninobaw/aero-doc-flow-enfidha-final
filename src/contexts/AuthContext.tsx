@@ -2,8 +2,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, UserRole, Airport } from '@/shared/types';
 import { useToast } from '@/hooks/use-toast';
 import axios from 'axios';
-import { getAbsoluteFilePath } from '@/shared/utils'; // Import getAbsoluteFilePath
-import { USER_ROLES } from '@/shared/constants'; // Import USER_ROLES from constants
+import { getAbsoluteFilePath } from '@/shared/utils';
+import { USER_ROLES } from '@/shared/constants';
 
 const API_BASE_URL = 'http://localhost:5000/api';
 
@@ -13,7 +13,7 @@ interface AuthContextType {
   logout: () => void;
   isLoading: boolean;
   hasPermission: (permission: string) => boolean;
-  refreshUser: () => Promise<void>; // New function to refresh user data
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -33,7 +33,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         firstName: fetchedUser.firstName,
         lastName: fetchedUser.lastName,
         role: fetchedUser.role as UserRole,
-        profilePhoto: fetchedUser.profilePhoto, // This is the relative path
+        profilePhoto: fetchedUser.profilePhoto,
         airport: fetchedUser.airport as Airport,
         createdAt: new Date(fetchedUser.createdAt),
         updatedAt: new Date(fetchedUser.updatedAt),
@@ -46,7 +46,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error('Failed to fetch user data:', error);
       setUser(null);
-      localStorage.removeItem('userId'); // Clear invalid userId from storage
+      localStorage.removeItem('userId');
       return false;
     }
   };
@@ -65,18 +65,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     checkUserSession();
 
-    // Listen for storage events to synchronize logout across tabs
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === 'userId' && event.newValue === null) {
-        // userId was removed from localStorage, meaning another tab logged out
         console.log('AuthContext: userId removed from localStorage, logging out this tab.');
         setUser(null);
         toast({
           title: "Déconnexion",
           description: "Vous avez été déconnecté d'un autre onglet.",
+          variant: "destructive", // Keep destructive for external logout
         });
       } else if (event.key === 'userId' && event.newValue !== null && !user) {
-        // userId was added to localStorage, meaning another tab logged in
         console.log('AuthContext: userId added to localStorage, attempting to log in this tab.');
         fetchAndSetUser(event.newValue);
       }
@@ -87,7 +85,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, []); // Empty dependency array means this runs once on mount
+  }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
@@ -102,7 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         firstName: loggedInUser.firstName,
         lastName: loggedInUser.lastName,
         role: loggedInUser.role as UserRole,
-        profilePhoto: loggedInUser.profilePhoto, // This is the relative path
+        profilePhoto: loggedInUser.profilePhoto,
         airport: loggedInUser.airport as Airport,
         createdAt: new Date(loggedInUser.createdAt),
         updatedAt: new Date(loggedInUser.updatedAt),
@@ -111,11 +109,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         department: loggedInUser.department,
       };
       setUser(mappedUser);
-      localStorage.setItem('userId', mappedUser.id); // Persist userId
+      localStorage.setItem('userId', mappedUser.id);
       console.log('AuthContext: Login successful, user set and userId stored in localStorage:', mappedUser);
       toast({
         title: "Connexion réussie",
         description: "Vous êtes maintenant connecté.",
+        variant: "success", // Apply success variant
       });
       return true;
     } catch (error: any) {
@@ -137,13 +136,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.log('AuthContext: Attempting logout.');
     try {
       await axios.post(`${API_BASE_URL}/auth/logout`);
-      setUser(null);
-      localStorage.removeItem('userId'); // Remove userId from localStorage
-      console.log('AuthContext: Logout successful, user set to null and userId removed from localStorage.');
       toast({
         title: "Déconnexion réussie",
         description: "Vous avez été déconnecté.",
+        variant: "success", // Apply success variant
       });
+      // Add a small delay before clearing user state to allow toast to display
+      setTimeout(() => {
+        setUser(null);
+        localStorage.removeItem('userId');
+        console.log('AuthContext: Logout successful, user set to null and userId removed from localStorage.');
+      }, 100); // 100ms delay
     } catch (error: any) {
       console.error('AuthContext: Logout failed:', error.response?.data?.message || error.message);
       toast({
