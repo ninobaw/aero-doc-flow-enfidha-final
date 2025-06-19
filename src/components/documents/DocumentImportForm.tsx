@@ -91,18 +91,16 @@ export const DocumentImportForm: React.FC = () => {
       setSelectedFile(file);
       setSelectedTemplateId(null); // Clear selected template if a file is uploaded
       
-      if (file.type.startsWith('image/') || file.type === 'application/pdf') {
-        if (previewUrl) {
-          URL.revokeObjectURL(previewUrl);
-        }
-        const url = URL.createObjectURL(file);
-        setPreviewUrl(url);
-      } else {
-        if (previewUrl) {
-          URL.revokeObjectURL(previewUrl);
-        }
-        setPreviewUrl(null);
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
       }
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+    } else {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+      setPreviewUrl(null);
     }
   };
 
@@ -173,6 +171,11 @@ export const DocumentImportForm: React.FC = () => {
         finalFilePath = uploaded.path;
         finalFileType = selectedFile.type;
       } else {
+        toast({
+          title: 'Erreur d\'upload',
+          description: 'L\'upload du fichier a échoué. Veuillez réessayer.',
+          variant: 'destructive',
+        });
         return; // Stop if file upload failed
       }
     } else if (selectedTemplateId) {
@@ -235,8 +238,16 @@ export const DocumentImportForm: React.FC = () => {
         toast({
           title: 'Document importé',
           description: 'Le document a été importé et enregistré avec succès.',
+          variant: "success",
         });
         navigate('/documents');
+      },
+      onError: (error) => {
+        toast({
+          title: 'Erreur',
+          description: error.message || 'Impossible d\'importer le document.',
+          variant: "destructive",
+        });
       }
     });
   };
@@ -462,7 +473,7 @@ export const DocumentImportForm: React.FC = () => {
                 ) : (
                   templates.map(template => (
                     <SelectItem key={template.id} value={template.id}>
-                      {template.title} ({template.airport})
+                      {template.title} ({template.airport} - {template.document_type_code})
                     </SelectItem>
                   ))
                 )}
@@ -474,56 +485,58 @@ export const DocumentImportForm: React.FC = () => {
         {(selectedFile || selectedTemplateId) && (
           <div className="bg-gray-50 p-4 rounded-lg">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">
-                  {selectedFile?.name || templates.find(t => t.id === selectedTemplateId)?.title || 'Fichier sélectionné'}
-                </p>
-                <p className="text-sm text-gray-500">
-                  {selectedFile ? (selectedFile.size / 1024 / 1024).toFixed(2) + ' MB' : 'Modèle sélectionné'}
-                </p>
+                  <div>
+                    <p className="font-medium">
+                      {selectedFile?.name || templates.find(t => t.id === selectedTemplateId)?.title || 'Fichier sélectionné'}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {selectedFile ? (selectedFile.size / 1024 / 1024).toFixed(2) + ' MB' : 'Modèle sélectionné'}
+                    </p>
+                  </div>
+                  <div className="flex space-x-2">
+                    {(selectedFile && previewUrl) || (selectedTemplateId && previewUrl) ? (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        type="button"
+                        onClick={() => window.open(previewUrl!, '_blank')}
+                      >
+                        <Eye className="w-4 h-4 mr-2" />
+                        Prévisualiser
+                      </Button>
+                    ) : null}
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      type="button"
+                      onClick={() => {
+                        removeFile();
+                        setSelectedTemplateId(null);
+                      }}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
               </div>
-              <div className="flex space-x-2">
-                {(selectedFile && previewUrl) || (selectedTemplateId && previewUrl) ? (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    type="button"
-                    onClick={() => window.open(previewUrl!, '_blank')}
-                  >
-                    <Eye className="w-4 h-4 mr-2" />
-                    Prévisualiser
-                  </Button>
-                ) : null}
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  type="button"
-                  onClick={() => {
-                    removeFile();
-                    setSelectedTemplateId(null);
-                  }}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
+            )}
           </div>
-        )}
-      </div>
 
-      <div className="flex justify-end space-x-4">
-        <Button type="button" variant="outline" onClick={() => navigate('/documents')}>
-          Annuler
-        </Button>
-        <Button
-          type="submit"
-          disabled={isCreating || isUploadingFile || !importData.title.trim() || !importData.airport || !importData.document_type_code || !importData.department_code || !importData.language_code || (!selectedFile && !selectedTemplateId)}
-          className="bg-aviation-sky hover:bg-aviation-sky-dark"
-        >
-          <Save className="w-4 h-4 mr-2" />
-          {isCreating || isUploadingFile ? 'Import...' : 'Importer et Enregistrer'}
-        </Button>
-      </div>
-    </form>
+          <div className="flex justify-end space-x-4">
+            <Button type="button" variant="outline" onClick={() => navigate('/documents')}>
+              Annuler
+            </Button>
+            <Button
+              type="submit"
+              disabled={isCreating || isUploadingFile || !importData.title.trim() || !importData.airport || !importData.document_type_code || !importData.department_code || !importData.language_code || (!selectedFile && !selectedTemplateId)}
+              className="bg-aviation-sky hover:bg-aviation-sky-dark"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {isCreating || isUploadingFile ? 'Import...' : 'Importer et Enregistrer'}
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   );
 };
