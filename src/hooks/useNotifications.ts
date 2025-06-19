@@ -38,11 +38,6 @@ export const useNotifications = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      toast({
-        title: 'Notification marquée',
-        description: 'La notification a été marquée comme lue.',
-        variant: 'success', // Ajout de la variante success
-      });
     },
     onError: (error: any) => {
       console.error('Erreur marquage notification:', error.response?.data || error.message);
@@ -64,7 +59,6 @@ export const useNotifications = () => {
       toast({
         title: 'Notifications marquées',
         description: 'Toutes les notifications ont été marquées comme lues.',
-        variant: 'success', // Ajout de la variante success
       });
     },
     onError: (error: any) => {
