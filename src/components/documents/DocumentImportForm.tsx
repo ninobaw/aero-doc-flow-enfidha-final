@@ -258,7 +258,6 @@ export const DocumentImportForm: React.FC = () => {
     );
   }
 
-  // Simplified validation for the submit button's disabled state
   const isFormInvalid = useMemo(() => {
     return (
       !importData.title.trim() ||
