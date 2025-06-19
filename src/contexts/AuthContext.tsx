@@ -46,22 +46,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error('Failed to fetch user data:', error);
       setUser(null);
+      localStorage.removeItem('userId'); // Clear invalid userId from storage
       return false;
     }
   };
 
   useEffect(() => {
     const checkUserSession = async () => {
-      // In a real app, you'd check for a token in localStorage and validate it.
-      // For this mock setup, we'll assume no persistent session on frontend for now.
-      // If you had a token, you'd use it to fetch user details here.
-      // Example: const storedUserId = localStorage.getItem('userId');
-      // if (storedUserId) { await fetchAndSetUser(storedUserId); }
-      console.log('AuthContext: Initial session check completed. Setting isLoading to false.');
+      const storedUserId = localStorage.getItem('userId');
+      if (storedUserId) {
+        console.log('AuthContext: Found userId in localStorage, attempting to fetch user data.');
+        await fetchAndSetUser(storedUserId);
+      } else {
+        console.log('AuthContext: No userId found in localStorage.');
+      }
       setIsLoading(false);
     };
+
     checkUserSession();
-  }, []);
+
+    // Listen for storage events to synchronize logout across tabs
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'userId' && event.newValue === null) {
+        // userId was removed from localStorage, meaning another tab logged out
+        console.log('AuthContext: userId removed from localStorage, logging out this tab.');
+        setUser(null);
+        toast({
+          title: "Déconnexion",
+          description: "Vous avez été déconnecté d'un autre onglet.",
+        });
+      } else if (event.key === 'userId' && event.newValue !== null && !user) {
+        // userId was added to localStorage, meaning another tab logged in
+        console.log('AuthContext: userId added to localStorage, attempting to log in this tab.');
+        fetchAndSetUser(event.newValue);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []); // Empty dependency array means this runs once on mount
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
@@ -85,7 +111,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         department: loggedInUser.department,
       };
       setUser(mappedUser);
-      console.log('AuthContext: Login successful, user set:', mappedUser);
+      localStorage.setItem('userId', mappedUser.id); // Persist userId
+      console.log('AuthContext: Login successful, user set and userId stored in localStorage:', mappedUser);
       toast({
         title: "Connexion réussie",
         description: "Vous êtes maintenant connecté.",
@@ -111,7 +138,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await axios.post(`${API_BASE_URL}/auth/logout`);
       setUser(null);
-      console.log('AuthContext: Logout successful, user set to null.');
+      localStorage.removeItem('userId'); // Remove userId from localStorage
+      console.log('AuthContext: Logout successful, user set to null and userId removed from localStorage.');
       toast({
         title: "Déconnexion réussie",
         description: "Vous avez été déconnecté.",
@@ -140,7 +168,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const hasPermission = (permission: string): boolean => {
     if (!user) return false;
     
-    // Retrieve permissions directly from the USER_ROLES constant
     const rolePermissions = USER_ROLES[user.role as keyof typeof USER_ROLES]?.permissions || [];
 
     return rolePermissions.includes('all') || rolePermissions.includes(permission);
