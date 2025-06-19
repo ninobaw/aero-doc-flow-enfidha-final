@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Input }1 from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Lock, User, Plane } from 'lucide-react';
@@ -52,7 +52,7 @@ export const LoginForm = () => {
       <div className="absolute inset-0 bg-gradient-to-r from-aviation-sky-dark via-aviation-sky to-aviation-sky-dark opacity-20 animate-gradient-shift"
            style={{ backgroundSize: '200% 200%' }}></div>
 
-      <Card className="w-full max-w-md shadow-xl relative z-10"> {/* z-10 pour que la carte soit au-dessus du calque */}
+      <Card className="w-full max-w-md shadow-xl relative z-10 animate-fade-in"> {/* Ajout de animate-fade-in ici */}
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-center">
             <div className="bg-aviation-sky p-3 rounded-full relative overflow-hidden">
