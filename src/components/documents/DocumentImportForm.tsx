@@ -467,7 +467,7 @@ export const DocumentImportForm: React.FC = () => {
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionner un modèle" />
               </SelectTrigger>
-              <SelectContent>
+            <SelectContent>
                 {templates.length === 0 ? (
                   <SelectItem value="no-templates" disabled>Aucun modèle disponible</SelectItem>
                 ) : (
