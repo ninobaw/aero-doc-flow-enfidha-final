@@ -94,8 +94,20 @@ export const CreateProcesVerbalForm = () => {
 
       createProcesVerbal(pvData, {
         onSuccess: () => {
+          toast({
+            title: 'Procès-verbal créé',
+            description: 'Le procès-verbal a été créé avec succès.',
+            variant: 'success', // Appliquer la variante 'success'
+          });
           resetForm();
           navigate('/proces-verbaux');
+        },
+        onError: (error) => {
+          toast({
+            title: 'Erreur',
+            description: error.message || 'Une erreur est survenue lors de la sauvegarde du procès-verbal.',
+            variant: 'destructive', // Appliquer la variante 'destructive'
+          });
         }
       });
 
@@ -104,7 +116,7 @@ export const CreateProcesVerbalForm = () => {
       toast({
         title: 'Erreur',
         description: 'Une erreur est survenue lors de la sauvegarde du procès-verbal.',
-        variant: 'destructive',
+        variant: 'destructive', // Appliquer la variante 'destructive'
       });
     }
   };
