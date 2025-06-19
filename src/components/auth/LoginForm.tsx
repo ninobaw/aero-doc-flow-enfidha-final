@@ -7,11 +7,13 @@ import { Separator } from '@/components/ui/separator';
 import { Lock, User, Plane } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils'; // Import cn utility
 
 export const LoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showTestAccounts, setShowTestAccounts] = useState(false);
+  const [isShaking, setIsShaking] = useState(false); // New state for shake animation
   const { login, isLoading } = useAuth();
   const { toast } = useToast();
 
@@ -24,6 +26,8 @@ export const LoginForm = () => {
         description: "Veuillez remplir tous les champs.",
         variant: "destructive"
       });
+      setIsShaking(true); // Trigger shake on validation error
+      setTimeout(() => setIsShaking(false), 500); // Remove shake class after animation
       return;
     }
 
@@ -35,6 +39,8 @@ export const LoginForm = () => {
         description: "Email ou mot de passe incorrect.",
         variant: "destructive"
       });
+      setIsShaking(true); // Trigger shake on login failure
+      setTimeout(() => setIsShaking(false), 500); // Remove shake class after animation
     }
   };
 
@@ -52,7 +58,10 @@ export const LoginForm = () => {
       <div className="absolute inset-0 bg-gradient-to-r from-aviation-sky-dark via-aviation-sky to-aviation-sky-dark opacity-20 animate-gradient-shift"
            style={{ backgroundSize: '200% 200%' }}></div>
 
-      <Card className="w-full max-w-md shadow-xl relative z-10 animate-bounce-in"> {/* Changement de animate-slide-in à animate-bounce-in */}
+      <Card className={cn(
+        "w-full max-w-md shadow-xl relative z-10 animate-bounce-in", // Initial bounce-in animation
+        { "animate-shake": isShaking } // Apply shake animation conditionally
+      )}>
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-center">
             <div className="bg-aviation-sky p-3 rounded-full relative overflow-hidden">
