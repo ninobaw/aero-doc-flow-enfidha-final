@@ -126,6 +126,22 @@ export default {
 					'50%': { 'background-position': '100% 50%' },
 					'100%': { 'background-position': '0% 50%' },
 				},
+				'bounce-in': { // Nouvelle keyframe pour l'animation de rebond
+					'0%': {
+						opacity: '0',
+						transform: 'translateY(50px) scale(0.8)',
+					},
+					'60%': {
+						opacity: '1',
+						transform: 'translateY(-10px) scale(1.05)',
+					},
+					'80%': {
+						transform: 'translateY(5px) scale(0.98)',
+					},
+					'100%': {
+						transform: 'translateY(0) scale(1)',
+					},
+				},
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
@@ -134,6 +150,7 @@ export default {
 				'slide-in': 'slide-in 0.3s ease-out',
 				'fly-plane': 'fly-plane 8s ease-in-out infinite', // Nouvelle animation
 				'gradient-shift': 'gradient-shift 15s ease infinite', // Animation de dégradé
+				'bounce-in': 'bounce-in 0.8s ease-out forwards', // Appliquer la nouvelle animation
 			},
 			backgroundImage: { // Nouvelle propriété pour l'image de fond
 				'wallpaper': "url('/assets/wallpaper.png')",
