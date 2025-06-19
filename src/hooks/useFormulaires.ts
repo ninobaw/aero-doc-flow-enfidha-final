@@ -89,6 +89,7 @@ export const useFormulaires = () => {
       toast({
         title: 'Formulaire créé',
         description: 'Le formulaire a été créé avec succès.',
+        variant: 'success', // Appliquer la variante 'success'
       });
     },
     onError: (error: any) => {
@@ -96,7 +97,7 @@ export const useFormulaires = () => {
       toast({
         title: 'Erreur',
         description: error.response?.data?.message || error.message || 'Impossible de créer le formulaire.',
-        variant: 'destructive',
+        variant: 'destructive', // Appliquer la variante 'destructive'
       });
     },
   });
@@ -112,6 +113,7 @@ export const useFormulaires = () => {
       toast({
         title: 'Formulaire supprimé',
         description: 'Le formulaire a été supprimé avec succès.',
+        variant: 'success', // Appliquer la variante 'success'
       });
     },
     onError: (error: any) => {
@@ -119,7 +121,7 @@ export const useFormulaires = () => {
       toast({
         title: 'Erreur',
         description: error.response?.data?.message || error.message || 'Impossible de supprimer le formulaire.',
-        variant: 'destructive',
+        variant: 'destructive', // Appliquer la variante 'destructive'
       });
     },
   });
