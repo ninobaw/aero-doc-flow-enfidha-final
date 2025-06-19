@@ -32,6 +32,8 @@ const toastVariants = cva(
         default: "border bg-background text-foreground",
         destructive:
           "destructive group border-destructive bg-destructive text-destructive-foreground",
+        success: // Nouvelle variante pour le succès
+          "group border-green-500 bg-green-500 text-white",
       },
     },
     defaultVariants: {
@@ -135,8 +137,8 @@ export {
   Toast,
   ToastTitle,
   ToastDescription,
-  ToastAction, // Export ToastAction
-  ToastClose, // Export ToastClose
+  ToastAction,
+  ToastClose,
   type ToastProps,
   type ToastActionElement,
 }
