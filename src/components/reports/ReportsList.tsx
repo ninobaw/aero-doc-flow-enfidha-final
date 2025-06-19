@@ -1,10 +1,11 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FileText, Download, Trash2, Play } from 'lucide-react';
 import { formatDate } from '@/shared/utils';
 import type { ReportData } from '@/hooks/useReports';
+import { useReports } from '@/hooks/useReports'; // Import useReports to access delete mutation
+import { useToast } from '@/hooks/use-toast'; // Import useToast
 
 interface ReportsListProps {
   reports: ReportData[];
@@ -13,6 +14,9 @@ interface ReportsListProps {
 }
 
 export const ReportsList = ({ reports, isLoading, onDelete }: ReportsListProps) => {
+  const { deleteReport, isDeleting } = useReports(); // Use deleteReport from hook
+  const { toast } = useToast(); // Initialize useToast
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -71,6 +75,27 @@ export const ReportsList = ({ reports, isLoading, onDelete }: ReportsListProps) 
     }
   };
 
+  const handleDelete = (id: string, name: string) => {
+    if (window.confirm(`Êtes-vous sûr de vouloir supprimer le rapport "${name}" ? Cette action est irréversible.`)) {
+      deleteReport(id, {
+        onSuccess: () => {
+          toast({
+            title: "Rapport supprimé",
+            description: `Le rapport "${name}" a été supprimé avec succès.`,
+            variant: "success", // Appliquer la variante 'success'
+          });
+        },
+        onError: (error) => {
+          toast({
+            title: "Erreur de suppression",
+            description: error.message || `Impossible de supprimer le rapport "${name}".`,
+            variant: "destructive", // Appliquer la variante 'destructive'
+          });
+        }
+      });
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {reports.map((report) => (
@@ -126,7 +151,7 @@ export const ReportsList = ({ reports, isLoading, onDelete }: ReportsListProps) 
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    onClick={() => onDelete(report.id)}
+                    onClick={() => handleDelete(report.id, report.name)} // Pass report name for confirmation
                     className="text-red-600 hover:text-red-800"
                   >
                     <Trash2 className="w-4 h-4" />
