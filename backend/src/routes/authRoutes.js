@@ -6,10 +6,12 @@ const router = Router();
 
 // POST /api/auth/login
 router.post('/login', async (req, res) => {
+  console.log('*** Tentative de connexion reçue ! ***'); // <-- NOUVEAU LOG TEMPORAIRE
   const { email, password } = req.body;
 
   // Basic validation
   if (!email || !password) {
+    console.log('Email ou mot de passe manquant.'); // Log pour le débogage
     return res.status(400).json({ message: 'Email and password are required' });
   }
 
@@ -17,6 +19,7 @@ router.post('/login', async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
+      console.log(`Utilisateur non trouvé pour l'email: ${email}`); // Log pour le débogage
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
@@ -24,6 +27,7 @@ router.post('/login', async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
+      console.log(`Mot de passe incorrect pour l'email: ${email}`); // Log pour le débogage
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
@@ -44,6 +48,7 @@ router.post('/login', async (req, res) => {
       lastLogin: user.lastLogin,
     };
 
+    console.log(`Connexion réussie pour l'utilisateur: ${email}`); // Log pour le débogage
     res.json({ user: userResponse, token: 'mock-jwt-token' }); // Return a mock token
   } catch (error) {
     console.error('Login error:', error);
@@ -55,6 +60,7 @@ router.post('/login', async (req, res) => {
 router.post('/logout', (req, res) => {
   // In a real application, you would invalidate the user's session/token here.
   // For this mock backend, we simply send a success response.
+  console.log('Déconnexion réussie.'); // Log pour le débogage
   res.status(200).json({ message: 'Logged out successfully' });
 });
 
