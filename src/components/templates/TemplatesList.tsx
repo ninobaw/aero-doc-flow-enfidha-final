@@ -6,6 +6,7 @@ import { formatDate, getAbsoluteFilePath } from '@/shared/utils'; // Import getA
 import type { TemplateData } from '@/hooks/useTemplates';
 import { useTemplates } from '@/hooks/useTemplates';
 import { useFileUpload } from '@/hooks/useFileUpload'; // To delete the actual file
+import { useToast } from '@/hooks/use-toast'; // Import useToast
 
 interface TemplatesListProps {
   templates: TemplateData[];
@@ -15,6 +16,7 @@ interface TemplatesListProps {
 export const TemplatesList = ({ templates, isLoading }: TemplatesListProps) => {
   const { deleteTemplate, isDeleting } = useTemplates();
   const { deleteFile } = useFileUpload();
+  const { toast } = useToast(); // Initialize useToast
 
   if (isLoading) {
     return (
@@ -62,10 +64,30 @@ export const TemplatesList = ({ templates, isLoading }: TemplatesListProps) => {
           // If file deletion fails, you might want to stop here or log a warning
           // For now, we'll proceed to delete the database entry even if the file remains
           console.warn(`Failed to delete physical file for template ${title}. Proceeding with database deletion.`);
+          toast({
+            title: "Avertissement de suppression",
+            description: `Le fichier physique du modèle "${title}" n'a pas pu être supprimé. Veuillez le faire manuellement si nécessaire.`,
+            variant: "destructive", // Utiliser destructive pour les avertissements importants
+          });
         }
       }
       // Then, delete the template entry from the database
-      deleteTemplate(templateId);
+      deleteTemplate(templateId, {
+        onSuccess: () => {
+          toast({
+            title: "Modèle supprimé",
+            description: `Le modèle "${title}" a été supprimé avec succès.`,
+            variant: "success", // Appliquer la variante 'success'
+          });
+        },
+        onError: (error) => {
+          toast({
+            title: "Erreur de suppression",
+            description: error.message || `Impossible de supprimer le modèle "${title}".`,
+            variant: "destructive", // Appliquer la variante 'destructive'
+          });
+        }
+      });
     }
   };
 
