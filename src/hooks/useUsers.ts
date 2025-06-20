@@ -59,7 +59,6 @@ export const useUsers = () => {
       toast({
         title: 'Utilisateur créé',
         description: `L'utilisateur ${data.firstName} ${data.lastName} a été créé avec succès.`,
-        variant: "success" // Succès en vert
       });
     },
     onError: (error: any) => {
@@ -67,7 +66,7 @@ export const useUsers = () => {
       toast({
         title: 'Erreur',
         description: error.response?.data?.message || error.message || 'Impossible de créer l\'utilisateur.',
-        variant: 'destructive', // Échec en rouge
+        variant: 'destructive',
       });
     },
   });
@@ -82,7 +81,6 @@ export const useUsers = () => {
       toast({
         title: 'Utilisateur mis à jour',
         description: 'L\'utilisateur a été mis à jour avec succès.',
-        variant: "success" // Succès en vert
       });
     },
     onError: (error: any) => {
@@ -90,7 +88,7 @@ export const useUsers = () => {
       toast({
         title: 'Erreur',
         description: error.response?.data?.message || error.message || 'Impossible de mettre à jour l\'utilisateur.',
-        variant: 'destructive', // Échec en rouge
+        variant: 'destructive',
       });
     },
   });
@@ -104,7 +102,6 @@ export const useUsers = () => {
       toast({
         title: 'Utilisateur désactivé',
         description: 'L\'utilisateur a été désactivé avec succès.',
-        variant: "destructive" // Désactivation (type suppression) en rouge
       });
     },
     onError: (error: any) => {
@@ -112,7 +109,7 @@ export const useUsers = () => {
       toast({
         title: 'Erreur',
         description: error.response?.data?.message || error.message || 'Impossible de désactiver l\'utilisateur.',
-        variant: 'destructive', // Échec en rouge
+        variant: 'destructive',
       });
       },
   });
