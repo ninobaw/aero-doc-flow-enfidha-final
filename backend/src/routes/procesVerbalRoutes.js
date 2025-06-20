@@ -1,29 +1,14 @@
 const { Router } = require('express');
 const { ProcesVerbal } = require('../models/ProcesVerbal.js'); // Changed to require with .js extension
-const { Document } = require('../models/Document.js'); // Changed to require with .js extension
-const { Notification } = require('../models/Notification.js'); // Changed to require with .js extension
+const { createNotification } = require('./notificationRoutes.js'); // Importation de la fonction centralisée
+const { User } = require('../models/User.js'); // Importation de User pour les notifications
 const { generateCodeAndSequence, generateSimpleQRCode } = require('../utils/codeGenerator.js'); // Import new code generator
 const { v4: uuidv4 } = require('uuid'); // uuid is a CommonJS module, no change needed here
 
 const router = Router();
 
-// Helper function to create a notification
-const createNotification = async (userId, title, message, type = 'info') => {
-  try {
-    const newNotification = new Notification({
-      _id: uuidv4(),
-      userId,
-      title,
-      message,
-      type,
-      isRead: false,
-    });
-    await newNotification.save();
-    console.log(`Notification created for user ${userId}: ${title}`);
-  } catch (error) {
-    console.error('Error creating notification:', error);
-  }
-};
+// La fonction createNotification est maintenant importée depuis notificationRoutes.js
+// Elle n'est plus définie ici pour éviter la duplication et assurer l'envoi d'emails.
 
 // GET /api/proces-verbaux
 router.get('/', async (req, res) => {
