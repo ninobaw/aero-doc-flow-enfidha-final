@@ -140,4 +140,4 @@ router.put('/mark-all-read', async (req, res) => {
   }
 });
 
-module.exports = router;
+module.exports = { router, createNotification }; // Export both router and createNotification
