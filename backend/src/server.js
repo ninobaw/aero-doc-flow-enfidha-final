@@ -10,7 +10,7 @@ const actionRoutes = require('./routes/actionRoutes.js');
 const correspondanceRoutes = require('./routes/correspondanceRoutes.js');
 const procesVerbalRoutes = require('./routes/procesVerbalRoutes.js');
 const reportRoutes = require('./routes/reportRoutes.js');
-const notificationRoutes = require('./routes/notificationRoutes.js');
+const { router: notificationRouter } = require('./routes/notificationRoutes.js'); // Correction ici: déstructuration
 const appSettingsRoutes = require('./routes/appSettingsRoutes.js');
 const activityLogRoutes = require('./routes/activityLogRoutes.js');
 const documentCodeConfigRoutes = require('./routes/documentCodeConfigRoutes.js');
@@ -42,7 +42,7 @@ app.use('/api/actions', actionRoutes);
 app.use('/api/correspondances', correspondanceRoutes);
 app.use('/api/proces-verbaux', procesVerbalRoutes);
 app.use('/api/reports', reportRoutes);
-app.use('/api/notifications', notificationRoutes);
+app.use('/api/notifications', notificationRouter); // Utilisation du routeur déstructuré
 app.use('/api/settings', appSettingsRoutes);
 app.use('/api/activity-logs', activityLogRoutes);
 app.use('/api/document-code-config', documentCodeConfigRoutes);
