@@ -13,7 +13,7 @@ export const LoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showTestAccounts, setShowTestAccounts] = useState(false);
-  const [isShaking, setIsShaking] = useState(false);
+  const [isShaking, setIsShaking] = useState(false); // Nouveau state pour l'animation
   const { login, isLoading } = useAuth();
   const { toast } = useToast();
 
@@ -26,8 +26,8 @@ export const LoginForm = () => {
         description: "Veuillez remplir tous les champs.",
         variant: "destructive"
       });
-      setIsShaking(true);
-      setTimeout(() => setIsShaking(false), 500);
+      setIsShaking(true); // Déclenche l'animation
+      setTimeout(() => setIsShaking(false), 500); // Réinitialise après 500ms
       return;
     }
 
@@ -39,8 +39,8 @@ export const LoginForm = () => {
         description: "Email ou mot de passe incorrect.",
         variant: "destructive"
       });
-      setIsShaking(true);
-      setTimeout(() => setIsShaking(false), 500);
+      setIsShaking(true); // Déclenche l'animation
+      setTimeout(() => setIsShaking(false), 500); // Réinitialise après 500ms
     }
   };
 
@@ -60,7 +60,7 @@ export const LoginForm = () => {
 
       <Card className={cn(
         "w-full max-w-md shadow-xl relative z-10 animate-bounce-in",
-        { "animate-shake": isShaking }
+        { "animate-shake": isShaking } // Applique la classe animate-shake si isShaking est true
       )}>
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-center">
