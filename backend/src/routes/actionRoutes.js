@@ -1,30 +1,14 @@
 const { Router } = require('express');
 const { Action } = require('../models/Action.js');
 const { Document } = require('../models/Document.js');
-const { Notification } = require('../models/Notification.js');
-const { User } = require('../models/User.js');
+const { createNotification } = require('./notificationRoutes.js'); // Importation de la fonction centralisée
+const { User } = require('../models/User.js'); // Importation de User pour les notifications
 const { v4: uuidv4 } = require('uuid');
 
 const router = Router();
 
-// Helper function to create a notification
-const createNotification = async (userId, title, message, type = 'info') => {
-  console.log(`[createNotification] Fonction appelée pour userId: ${userId}, Titre: ${title}`);
-  try {
-    const newNotification = new Notification({
-      _id: uuidv4(),
-      userId,
-      title,
-      message,
-      type,
-      isRead: false,
-    });
-    await newNotification.save();
-    console.log(`Notification created for user ${userId}: ${title}`);
-  } catch (error) {
-    console.error('Error creating notification:', error);
-  }
-};
+// La fonction createNotification est maintenant importée depuis notificationRoutes.js
+// Elle n'est plus définie ici pour éviter la duplication et assurer l'envoi d'emails.
 
 // GET /api/actions
 router.get('/', async (req, res) => {
@@ -47,9 +31,9 @@ router.get('/', async (req, res) => {
 
 // POST /api/actions
 router.post('/', async (req, res) => {
-  const { title, description, assigned_to, due_date, priority, parent_document_id, estimated_hours, author_id } = req.body; // Récupérer author_id
+  const { title, description, assigned_to, due_date, priority, parent_document_id, estimated_hours, author_id } = req.body;
 
-  if (!title || !due_date || !assigned_to || !author_id) { // author_id est maintenant requis
+  if (!title || !due_date || !assigned_to || !author_id) {
     return res.status(400).json({ message: 'Missing required fields: title, due_date, assigned_to, author_id' });
   }
 
@@ -65,7 +49,7 @@ router.post('/', async (req, res) => {
       progress: 0,
       estimatedHours: estimated_hours,
       status: 'PENDING',
-      authorId: author_id, // Assigner l'authorId
+      authorId: author_id,
     });
 
     await newAction.save();
@@ -81,7 +65,7 @@ router.post('/', async (req, res) => {
     };
 
     // Notifications pour la nouvelle action
-    await createNotification(author_id, 'Nouvelle action créée', `L'action "${title}" a été créée.`); // Utiliser author_id
+    await createNotification(author_id, 'Nouvelle action créée', `L'action "${title}" a été créée.`);
     if (assigned_to && assigned_to.length > 0) {
       for (const assigneeId of assigned_to) {
         await createNotification(assigneeId, 'Nouvelle action assignée', `Une nouvelle action "${title}" vous a été assignée.`);
@@ -105,7 +89,7 @@ router.put('/:id', async (req, res) => {
   if (updates.parent_document_id) { updates.parentDocumentId = updates.parent_document_id; delete updates.parent_document_id; }
   if (updates.estimated_hours) { updates.estimatedHours = updates.estimated_hours; delete updates.estimated_hours; }
   if (updates.actual_hours) { updates.actualHours = updates.actual_hours; delete updates.actual_hours; }
-  if (updates.author_id) { updates.authorId = updates.author_id; delete updates.author_id; } // Gérer author_id si mis à jour
+  if (updates.author_id) { updates.authorId = updates.author_id; delete updates.author_id; }
 
   try {
     const oldAction = await Action.findById(id);
@@ -154,8 +138,11 @@ router.put('/:id', async (req, res) => {
           await createNotification(assigneeId, 'Action réouverte', `L'action "${action.title}" a été réouverte.`);
         }
       }
-      for (const assigneeId of action.assignedTo) {
-        await createNotification(assigneeId, 'Action mise à jour', `L'action "${action.title}" a été mise à jour. Champs modifiés: ${changedFields.join(', ')}.`);
+      // Send a general update notification to all assigned users if other fields changed
+      if (changedFields.some(field => field !== 'status' && field !== 'assignedTo')) {
+        for (const assigneeId of action.assignedTo) {
+          await createNotification(assigneeId, 'Action mise à jour', `L'action "${action.title}" a été mise à jour. Champs modifiés: ${changedFields.join(', ')}.`);
+        }
       }
     }
 

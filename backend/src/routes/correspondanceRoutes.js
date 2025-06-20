@@ -1,40 +1,25 @@
 const { Router } = require('express');
 const { Correspondance } = require('../models/Correspondance.js');
-const { Notification } = require('../models/Notification.js'); // Import Notification model
-const { User } = require('../models/User.js'); // Import User model to find users for notifications
-const { generateCodeAndSequence, generateSimpleQRCode } = require('../utils/codeGenerator.js'); // Import new code generator
+const { createNotification } = require('./notificationRoutes.js'); // Importation de la fonction centralisée
+const { User } = require('../models/User.js'); // Importation de User pour les notifications
+const { generateCodeAndSequence, generateSimpleQRCode } = require('../utils/codeGenerator.js');
 const { v4: uuidv4 } = require('uuid');
 
 const router = Router();
 
-// Helper function to create a notification
-const createNotification = async (userId, title, message, type = 'info') => {
-  try {
-    const newNotification = new Notification({
-      _id: uuidv4(),
-      userId,
-      title,
-      message,
-      type,
-      isRead: false,
-    });
-    await newNotification.save();
-    console.log(`Notification created for user ${userId}: ${title}`);
-  } catch (error) {
-    console.error('Error creating notification:', error);
-  }
-};
+// La fonction createNotification est maintenant importée depuis notificationRoutes.js
+// Elle n'est plus définie ici pour éviter la duplication et assurer l'envoi d'emails.
 
 // GET /api/correspondances
 router.get('/', async (req, res) => {
   try {
     const correspondances = await Correspondance.find({})
-      .populate('authorId', 'firstName lastName'); // Populate author details directly
+      .populate('authorId', 'firstName lastName');
     
     const formattedCorrespondances = correspondances.map(corr => ({
       ...corr.toObject(),
       id: corr._id,
-      author: corr.authorId ? { // Map authorId to author for frontend
+      author: corr.authorId ? {
         first_name: corr.authorId.firstName,
         last_name: corr.authorId.lastName,
       } : null,
@@ -44,10 +29,10 @@ router.get('/', async (req, res) => {
       code: corr.code,
       file_path: corr.filePath,
       file_type: corr.fileType,
-      qr_code: corr.qrCode, // Include qr_code
-      version: corr.version, // Include version
-      views_count: corr.viewsCount, // Include views_count
-      downloads_count: corr.downloadsCount, // Include downloads_count
+      qr_code: corr.qrCode,
+      version: corr.version,
+      views_count: corr.viewsCount,
+      downloads_count: corr.downloadsCount,
     }));
     res.json(formattedCorrespondances);
   } catch (error) {
@@ -69,11 +54,10 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    let generatedCode = code; // Use provided code if available
-    let qrCode = generateSimpleQRCode(); // Generate a simple UUID-based QR code by default
+    let generatedCode = code;
+    let qrCode = generateSimpleQRCode();
     let sequence_number = null;
 
-    // If codification fields are provided, generate a structured code and QR
     if (company_code && scope_code && department_code && language_code) {
       const { generatedCode: newGeneratedCode, sequence_number: newSequenceNumber } = await generateCodeAndSequence(
         'CORRESPONDANCE',
@@ -81,39 +65,38 @@ router.post('/', async (req, res) => {
         scope_code,
         department_code,
         sub_department_code,
-        null, // document_type_code is null for correspondences
-        type === 'INCOMING' ? 'IN' : 'OUT', // Use IN/OUT as correspondence type code
+        null,
+        type === 'INCOMING' ? 'IN' : 'OUT',
         language_code
       );
       generatedCode = newGeneratedCode;
-      qrCode = newGeneratedCode; // Use the structured code as QR code
+      qrCode = newGeneratedCode;
       sequence_number = newSequenceNumber;
     }
 
     const newCorrespondance = new Correspondance({
       _id: uuidv4(),
-      title, // Directly on Correspondance
-      authorId: author_id, // Directly on Correspondance
-      qrCode, // Directly on Correspondance
-      filePath: file_path, // Directly on Correspondance
-      fileType: file_type, // Directly on Correspondance
-      version: 1, // Directly on Correspondance
-      viewsCount: 0, // Directly on Correspondance
-      downloadsCount: 0, // Directly on Correspondance
+      title,
+      authorId: author_id,
+      qrCode,
+      filePath: file_path,
+      fileType: file_type,
+      version: 1,
+      viewsCount: 0,
+      downloadsCount: 0,
 
       type,
-      code: generatedCode, // Use generated code or provided code
+      code: generatedCode,
       fromAddress: from_address,
       toAddress: to_address,
       subject,
       content,
       priority,
-      status: 'DRAFT', // Default status
+      status: 'DRAFT',
       airport,
       attachments: attachments || [],
       actionsDecidees: actions_decidees || [],
       tags: tags || [],
-      // Store codification fields if generated
       company_code, scope_code, department_code, sub_department_code, language_code, sequence_number
     });
 
@@ -170,7 +153,6 @@ router.put('/:id', async (req, res) => {
   const { id } = req.params;
   const updates = req.body;
 
-  // Map frontend field names to backend schema names
   if (updates.from_address) { updates.fromAddress = updates.from_address; delete updates.from_address; }
   if (updates.to_address) { updates.toAddress = updates.to_address; delete updates.to_address; }
   if (updates.actions_decidees) { updates.actionsDecidees = updates.actions_decidees; delete updates.actions_decidees; }
@@ -189,26 +171,32 @@ router.put('/:id', async (req, res) => {
       return res.status(404).json({ message: 'Correspondance not found' });
     }
 
-    // Check if any codification fields are being updated to regenerate code/QR
+    let generatedCode = oldCorrespondance.code; // Keep existing code by default
+    let qrCode = oldCorrespondance.qrCode; // Keep existing QR by default
+    let sequence_number = oldCorrespondance.sequence_number; // Keep existing sequence by default
+
     const codificationFieldsChanged = [
       'company_code', 'scope_code', 'department_code', 'sub_department_code',
-      'type', 'language_code' // 'type' here refers to INCOMING/OUTGOING for correspondence code generation
+      'type', 'language_code'
     ].some(field => updates[field] !== undefined && updates[field] !== oldCorrespondance[field]);
 
     if (codificationFieldsChanged) {
-      const { generatedCode, sequence_number } = await generateCodeAndSequence(
+      const { generatedCode: newGeneratedCode, sequence_number: newSequenceNumber } = await generateCodeAndSequence(
         'CORRESPONDANCE',
         updates.company_code || oldCorrespondance.company_code,
         updates.scope_code || oldCorrespondance.scope_code,
         updates.department_code || oldCorrespondance.department_code,
         updates.sub_department_code || oldCorrespondance.sub_department_code,
-        null, // document_type_code is null for correspondences
-        updates.type === 'INCOMING' ? 'IN' : 'OUT' || oldCorrespondance.type === 'INCOMING' ? 'IN' : 'OUT', // Use IN/OUT as correspondence type code
+        null,
+        updates.type === 'INCOMING' ? 'IN' : 'OUT' || oldCorrespondance.type === 'INCOMING' ? 'IN' : 'OUT',
         updates.language_code || oldCorrespondance.language_code
       );
       generatedCode = newGeneratedCode;
-      qrCode = newGeneratedCode; // Update QR code with the new structured code
+      qrCode = newGeneratedCode;
       sequence_number = newSequenceNumber;
+      updates.code = generatedCode; // Update the code field in updates
+      updates.qrCode = qrCode; // Update the qrCode field in updates
+      updates.sequence_number = sequence_number; // Update the sequence_number field in updates
     }
 
 
