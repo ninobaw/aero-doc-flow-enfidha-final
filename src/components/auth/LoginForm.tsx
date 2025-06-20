@@ -59,8 +59,8 @@ export const LoginForm = () => {
            style={{ backgroundSize: '200% 200%' }}></div>
 
       <Card className={cn(
-        "w-full max-w-md shadow-xl relative z-10 animate-bounce-in",
-        { "animate-shake": isShaking } // Applique la classe animate-shake si isShaking est true
+        "w-full max-w-md shadow-xl relative z-10 animate-bounce-in"
+        // Removed { "animate-shake": isShaking } from here
       )}>
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-center">
@@ -76,7 +76,7 @@ export const LoginForm = () => {
           </CardDescription>
         </CardHeader>
         
-        <CardContent className="space-y-6">
+        <CardContent className={cn("space-y-6", { "animate-shake": isShaking })}> {/* Applied animate-shake here */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
