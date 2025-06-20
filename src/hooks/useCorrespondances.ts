@@ -98,7 +98,6 @@ export const useCorrespondances = () => {
       toast({
         title: 'Correspondance créée',
         description: 'La correspondance a été créée avec succès.',
-        variant: 'success', // Vert pour le succès
       });
     },
     onError: (error: any) => {
@@ -106,7 +105,7 @@ export const useCorrespondances = () => {
       toast({
         title: 'Erreur',
         description: error.response?.data?.message || error.message || 'Impossible de créer la correspondance.',
-        variant: 'destructive', // Rouge pour l'échec
+        variant: 'destructive',
       });
     },
   });
@@ -121,7 +120,6 @@ export const useCorrespondances = () => {
       toast({
         title: 'Correspondance mise à jour',
         description: 'La correspondance a été mise à jour avec succès.',
-        variant: 'success', // Vert pour le succès
       });
     },
     onError: (error: any) => {
@@ -129,7 +127,7 @@ export const useCorrespondances = () => {
       toast({
         title: 'Erreur',
         description: error.response?.data?.message || error.message || 'Impossible de mettre à jour la correspondance.',
-        variant: 'destructive', // Rouge pour l'échec
+        variant: 'destructive',
       });
     },
   });
@@ -143,7 +141,6 @@ export const useCorrespondances = () => {
       toast({
         title: 'Correspondance supprimée',
         description: 'La correspondance a été supprimée avec succès.',
-        variant: 'destructive', // Rouge pour la suppression
       });
     },
     onError: (error: any) => {
@@ -151,7 +148,7 @@ export const useCorrespondances = () => {
       toast({
         title: 'Erreur',
         description: error.response?.data?.message || error.message || 'Impossible de supprimer la correspondance.',
-        variant: 'destructive', // Rouge pour l'échec
+        variant: 'destructive',
       });
     },
   });

@@ -20,7 +20,7 @@ export const useDocumentCodeConfig = () => {
         toast({
           title: 'Erreur de configuration',
           description: err.response?.data?.message || 'Impossible de charger la configuration des codes documentaires.',
-          variant: 'destructive', // Rouge pour l'échec
+          variant: 'destructive',
         });
         throw err;
       }
@@ -40,7 +40,6 @@ export const useDocumentCodeConfig = () => {
       toast({
         title: 'Configuration mise à jour',
         description: 'La configuration des codes documentaires a été mise à jour avec succès.',
-        variant: 'success', // Vert pour le succès
       });
     },
     onError: (err: any) => {
@@ -48,7 +47,7 @@ export const useDocumentCodeConfig = () => {
       toast({
         title: 'Erreur',
         description: err.response?.data?.message || 'Impossible de mettre à jour la configuration des codes documentaires.',
-        variant: 'destructive', // Rouge pour l'échec
+        variant: 'destructive',
       });
     },
   });
