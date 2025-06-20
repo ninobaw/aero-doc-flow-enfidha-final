@@ -23,10 +23,10 @@ const sendEmail = async (userId, subject, text, html) => {
     }
 
     const smtpHost = appSettings.smtpHost || process.env.SMTP_HOST;
-    const smtpPort = appSettings.smtpPort || process.env.SMTP_PORT;
+    const smtpPort = appSettings.smtpPort || parseInt(process.env.SMTP_PORT || '587'); // Ensure port is a number
     const smtpUsername = appSettings.smtpUsername || process.env.SMTP_USERNAME;
     const smtpPassword = process.env.SMTP_PASSWORD; // Toujours depuis les variables d'environnement
-    const useSsl = appSettings.useSsl ?? true;
+    const useSsl = appSettings.useSsl ?? true; // Default to true if not set
 
     console.log(`[EmailSender] Paramètres SMTP: Host=${smtpHost}, Port=${smtpPort}, Username=${smtpUsername}, UseSSL=${useSsl}, Password_Defined=${!!smtpPassword}`);
 
@@ -38,13 +38,17 @@ const sendEmail = async (userId, subject, text, html) => {
     const transporter = nodemailer.createTransport({
       host: smtpHost,
       port: smtpPort,
-      secure: useSsl,
+      secure: smtpPort === 465 || (smtpPort === 443 && useSsl), // Use 'secure: true' for port 465 or if port 443 and useSsl is true
+      requireTLS: smtpPort === 587, // Use STARTTLS for port 587
       auth: {
         user: smtpUsername,
         pass: smtpPassword,
       },
       tls: {
-        rejectUnauthorized: false, 
+        // This is crucial for self-signed certs or non-standard setups.
+        // For Office 365, it might not be strictly needed if certs are valid.
+        // But if port 443 is used, it might be a custom setup.
+        rejectUnauthorized: false, // Keep this for now as it helps with various server configurations
       },
     });
 
