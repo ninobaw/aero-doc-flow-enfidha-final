@@ -24,7 +24,7 @@ export const LoginForm = () => {
       toast({
         title: "Erreur",
         description: "Veuillez remplir tous les champs.",
-        variant: "destructive" // Rouge pour l'erreur de validation
+        variant: "destructive"
       });
       setIsShaking(true); // Déclenche l'animation
       setTimeout(() => setIsShaking(false), 500); // Réinitialise après 500ms
@@ -34,9 +34,11 @@ export const LoginForm = () => {
     const success = await login(email, password);
     
     if (!success) {
-      // Le toast d'échec de connexion est déjà géré dans AuthContext,
-      // mais si vous voulez un toast spécifique ici, assurez-vous qu'il est rouge.
-      // Pour l'instant, je laisse le toast de AuthContext gérer le message.
+      toast({
+        title: "Erreur de connexion",
+        description: "Email ou mot de passe incorrect.",
+        variant: "destructive"
+      });
       setIsShaking(true); // Déclenche l'animation
       setTimeout(() => setIsShaking(false), 500); // Réinitialise après 500ms
     }
