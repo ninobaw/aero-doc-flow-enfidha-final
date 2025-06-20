@@ -74,6 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         toast({
           title: "Déconnexion",
           description: "Vous avez été déconnecté d'un autre onglet.",
+          variant: "destructive" // Déconnexion est un événement important, peut être rouge
         });
       } else if (event.key === 'userId' && event.newValue !== null && !user) {
         // userId was added to localStorage, meaning another tab logged in
@@ -116,6 +117,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toast({
         title: "Connexion réussie",
         description: "Vous êtes maintenant connecté.",
+        variant: "success" // Vert pour le succès
       });
       return true;
     } catch (error: any) {
@@ -123,7 +125,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toast({
         title: "Erreur de connexion",
         description: error.response?.data?.message || "Email ou mot de passe incorrect.",
-        variant: "destructive"
+        variant: "destructive" // Rouge pour l'échec
       });
       return false;
     } finally {
@@ -143,13 +145,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toast({
         title: "Déconnexion réussie",
         description: "Vous avez été déconnecté.",
+        variant: "success" // Vert pour le succès
       });
     } catch (error: any) {
       console.error('AuthContext: Logout failed:', error.response?.data?.message || error.message);
       toast({
         title: "Erreur de déconnexion",
         description: error.response?.data?.message || "Impossible de se déconnecter.",
-        variant: "destructive"
+        variant: "destructive" // Rouge pour l'échec
       });
     } finally {
       setIsLoading(false);

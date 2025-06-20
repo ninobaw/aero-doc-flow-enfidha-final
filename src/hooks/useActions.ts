@@ -63,6 +63,7 @@ export const useActions = () => {
       toast({
         title: 'Action créée',
         description: 'L\'action a été créée avec succès.',
+        variant: "success" // Vert pour le succès
       });
     },
     onError: (error: any) => {
@@ -70,7 +71,7 @@ export const useActions = () => {
       toast({
         title: 'Erreur',
         description: error.response?.data?.message || error.message || 'Impossible de créer l\'action.',
-        variant: 'destructive',
+        variant: 'destructive', // Rouge pour l'échec
       });
     },
   });
@@ -85,6 +86,7 @@ export const useActions = () => {
       toast({
         title: 'Action mise à jour',
         description: 'L\'action a été mise à jour avec succès.',
+        variant: "success" // Vert pour le succès
       });
     },
     onError: (error: any) => {
@@ -92,7 +94,7 @@ export const useActions = () => {
       toast({
         title: 'Erreur',
         description: error.response?.data?.message || error.message || 'Impossible de mettre à jour l\'action.',
-        variant: 'destructive',
+        variant: 'destructive', // Rouge pour l'échec
       });
     },
   });
