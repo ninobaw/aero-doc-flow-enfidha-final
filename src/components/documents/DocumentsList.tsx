@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { FileText, Eye, Download, Calendar, User, Edit, Trash2, CheckCircle } from 'lucide-react';
+import { FileText, Eye, Download, Calendar, User, Edit, Trash2, CheckCircle, FileEdit } from 'lucide-react'; // Added FileEdit icon
 import { formatDate, getAbsoluteFilePath } from '@/shared/utils';
 import type { DocumentData } from '@/hooks/useDocuments';
 import { ViewDocumentDialog } from '@/components/documents/ViewDocumentDialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDocuments } from '@/hooks/useDocuments';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import {
   Table,
   TableBody,
@@ -41,6 +42,7 @@ export const DocumentsList = ({ documents, isLoading, onEdit, onDelete }: Docume
   
   const { user, hasPermission } = useAuth();
   const { updateDocument, isUpdating } = useDocuments();
+  const navigate = useNavigate(); // Initialize useNavigate
 
   if (isLoading) {
     return (
@@ -124,7 +126,13 @@ export const DocumentsList = ({ documents, isLoading, onEdit, onDelete }: Docume
     }
   };
 
+  const handleOpenInEditor = (documentId: string) => {
+    navigate(`/documents/${documentId}/edit`);
+  };
+
   const canApprove = hasPermission('approve_documents');
+  const canEdit = hasPermission('update_documents');
+  const canDelete = hasPermission('delete_documents');
 
   return (
     <>
@@ -216,12 +224,17 @@ export const DocumentsList = ({ documents, isLoading, onEdit, onDelete }: Docume
                             <CheckCircle className="w-4 h-4" />
                           </Button>
                         )}
-                        {onEdit && (
+                        {canEdit && (
+                          <Button variant="outline" size="sm" onClick={() => handleOpenInEditor(document.id)}>
+                            <FileEdit className="w-4 h-4" />
+                          </Button>
+                        )}
+                        {onEdit && ( // Keep original onEdit if it's used elsewhere
                           <Button variant="outline" size="sm" onClick={() => onEdit(document)}>
                             <Edit className="w-4 h-4" />
                           </Button>
                         )}
-                        {onDelete && (
+                        {canDelete && onDelete && (
                           <Button variant="outline" size="sm" onClick={() => handleDeleteClick(document.id)} className="text-red-600 hover:text-red-700">
                             <Trash2 className="w-4 h-4" />
                           </Button>
