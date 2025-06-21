@@ -1,8 +1,8 @@
-const os = require('os');
-const fs = require('fs');
-const path = require('path');
+import os from 'os';
+import fs from 'fs';
+import path from 'path';
 
-const envFilePath = path.resolve(__dirname, '../.env.development.local');
+const envFilePath = path.resolve(process.cwd(), '.env.development.local'); // Utiliser process.cwd() pour une meilleure compatibilité
 const backendPort = 5000; // Assurez-vous que c'est le port sur lequel votre backend Express.js tourne
 
 function getLocalIpAddress() {
