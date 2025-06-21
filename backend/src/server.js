@@ -16,7 +16,7 @@ const activityLogRoutes = require('./routes/activityLogRoutes.js');
 const documentCodeConfigRoutes = require('./routes/documentCodeConfigRoutes.js');
 const uploadRoutes = require('./routes/uploadRoutes.js');
 const dashboardRoutes = require('./routes/dashboardRoutes.js');
-const onlyofficeRoutes = require('./routes/onlyofficeRoutes.js'); // New import for OnlyOffice routes
+// const onlyofficeRoutes = require('./routes/onlyofficeRoutes.js'); // Removed OnlyOffice routes
 const path = require('path');
 
 dotenv.config();
@@ -48,7 +48,7 @@ app.use('/api/activity-logs', activityLogRoutes);
 app.use('/api/document-code-config', documentCodeConfigRoutes);
 app.use('/api/uploads', uploadRoutes);
 app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/onlyoffice', onlyofficeRoutes); // New route for OnlyOffice callbacks
+// app.use('/api/onlyoffice', onlyofficeRoutes); // Removed OnlyOffice routes
 
 // Define a simple root route
 app.get('/', (req, res) => {

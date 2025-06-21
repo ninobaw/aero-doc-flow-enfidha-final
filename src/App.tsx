@@ -17,10 +17,11 @@ import Users from "./pages/Users";
 import Actions from "./pages/Actions";
 import QRCodes from "./pages/QRCodes";
 import Reports from "./pages/Reports";
-import SettingsPage from "./pages/SettingsPage"; // Importe le nouveau composant
+import SettingsPage from "./pages/SettingsPage";
 import Profile from "./pages/Profile";
 import Templates from "./pages/Templates";
 import AuditLogs from "./pages/AuditLogs";
+import { SyncfusionDocumentEditor } from './components/documents/SyncfusionDocumentEditor'; // Import the new Syncfusion editor
 
 const queryClient = new QueryClient();
 
@@ -50,6 +51,11 @@ const App = () => (
             <Route path="/documents/templates" element={
               <ProtectedRoute requiredPermission="manage_documents">
                 <Templates />
+              </ProtectedRoute>
+            } />
+            <Route path="/documents/:documentId/edit" element={
+              <ProtectedRoute requiredPermission="update_documents"> {/* Assuming edit permission is needed */}
+                <SyncfusionDocumentEditor />
               </ProtectedRoute>
             } />
             <Route path="/correspondances" element={
@@ -89,7 +95,7 @@ const App = () => (
             } />
             <Route path="/settings" element={
               <ProtectedRoute requiredPermission="manage_settings">
-                <SettingsPage /> {/* Utilise le nouveau composant */}
+                <SettingsPage />
               </ProtectedRoute>
             } />
             <Route path="/profile" element={
