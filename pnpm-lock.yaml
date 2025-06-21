@@ -116,6 +116,9 @@ importers:
       '@syncfusion/ej2-react-popups':
         specifier: ^29.2.8
         version: 29.2.8
+      '@syncfusion/ej2-splitbuttons':
+        specifier: ^29.2.4
+        version: 29.2.4
       '@tanstack/react-query':
         specifier: ^5.56.2
         version: 5.80.6(react@18.3.1)
