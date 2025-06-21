@@ -98,6 +98,9 @@ importers:
       '@syncfusion/ej2-buttons':
         specifier: ^29.2.5
         version: 29.2.5
+      '@syncfusion/ej2-documenteditor':
+        specifier: ^29.2.11
+        version: 29.2.11
       '@syncfusion/ej2-popups':
         specifier: ^29.2.8
         version: 29.2.8

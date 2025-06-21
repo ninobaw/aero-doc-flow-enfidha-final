@@ -30,6 +30,7 @@
     "@radix-ui/react-tooltip": "^1.1.4",
     "@syncfusion/ej2-base": "^29.2.11",
     "@syncfusion/ej2-buttons": "^29.2.5",
+    "@syncfusion/ej2-documenteditor": "^29.2.11",
     "@syncfusion/ej2-popups": "^29.2.8",
     "@syncfusion/ej2-react-buttons": "^29.2.5",
     "@syncfusion/ej2-react-documenteditor": "^29.2.11",
