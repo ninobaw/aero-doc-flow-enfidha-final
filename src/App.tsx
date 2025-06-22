@@ -39,62 +39,62 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/documents" element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredPermission="view_documents">
                 <Documents />
               </ProtectedRoute>
             } />
             <Route path="/documents/formulaires" element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredPermission="manage_forms">
                 <FormulairesDoc />
               </ProtectedRoute>
             } />
             <Route path="/documents/templates" element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredPermission="manage_templates">
                 <Templates />
               </ProtectedRoute>
             } />
             <Route path="/documents/edit-onlyoffice/:documentId" element={ 
-              <ProtectedRoute>
+              <ProtectedRoute requiredPermission="update_documents">
                 <OnlyOfficeEditorPage />
               </ProtectedRoute>
             } />
             <Route path="/correspondances" element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredPermission="view_correspondences">
                 <Correspondances />
               </ProtectedRoute>
             } />
             <Route path="/proces-verbaux" element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredPermission="view_proces_verbaux">
                 <ProcesVerbaux />
               </ProtectedRoute>
             } />
             <Route path="/users" element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredPermission="manage_users">
                 <Users />
               </ProtectedRoute>
             } />
             <Route path="/actions" element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredPermission="view_actions">
                 <Actions />
               </ProtectedRoute>
             } />
             <Route path="/qr-codes" element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredPermission="view_qr_codes">
                 <QRCodes />
               </ProtectedRoute>
             } />
             <Route path="/reports" element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredPermission="view_reports">
                 <Reports />
               </ProtectedRoute>
             } />
             <Route path="/audit-logs" element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredPermission="view_audit_logs">
                 <AuditLogs />
               </ProtectedRoute>
             } />
             <Route path="/settings" element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredPermission="manage_settings">
                 <SettingsPage />
               </ProtectedRoute>
             } />

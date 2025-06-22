@@ -136,7 +136,7 @@ export const ActionsDecideesField: React.FC<ActionsDecideesFieldProps> = ({
                 selectedUserIds={newAction.responsable}
                 onUserIdsChange={(ids) => setNewAction({ ...newAction, responsable: ids })}
                 disabled={disabled}
-                placeholder="Sélectionner un ou plusieurs responsables"
+                placeholder="Sélectionner un ou plusieurs utilisateurs"
               />
             </div>
             <div className="space-y-2">

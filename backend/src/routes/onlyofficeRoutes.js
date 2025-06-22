@@ -185,14 +185,15 @@ router.post('/track', async (req, res) => {
       );
 
       // Log document update activity
-      const editorUser = users && users.length > 0 ? users[0] : { id: 'unknown', name: 'Unknown Editor' };
+      // Extract user ID from the 'users' array in the callback body
+      const editorUserId = users && users.length > 0 && users[0].id ? users[0].id : 'unknown_user';
       await ActivityLog.create({
         _id: uuidv4(),
         action: 'DOCUMENT_UPDATED_ONLYOFFICE',
-        details: `Document "${updatedDocument.title}" (ID: ${updatedOffice.id}) modifié via OnlyOffice. Nouvelle version: ${updatedDocument.version}.`,
+        details: `Document "${updatedDocument.title}" (ID: ${updatedDocument.id}) modifié via OnlyOffice. Nouvelle version: ${updatedDocument.version}.`,
         entityId: updatedDocument._id,
         entityType: 'DOCUMENT',
-        userId: editorUser.id, // Use the user ID from OnlyOffice callback
+        userId: editorUserId, // Use the extracted user ID
         timestamp: new Date(),
       });
 
