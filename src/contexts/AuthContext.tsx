@@ -116,6 +116,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toast({
         title: "Connexion réussie",
         description: "Vous êtes maintenant connecté.",
+        variant: "success" // Ajout de la variante 'success'
       });
       return true;
     } catch (error: any) {
@@ -143,9 +144,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toast({
         title: "Déconnexion réussie",
         description: "Vous avez été déconnecté.",
+        variant: "success" // Ajout de la variante 'success'
       });
     } catch (error: any) {
       console.error('AuthContext: Logout failed:', error.response?.data?.message || error.message);
+      console.log('AuthContext: Calling toast for logout error.'); // Nouveau log pour le débogage
       toast({
         title: "Erreur de déconnexion",
         description: error.response?.data?.message || "Impossible de se déconnecter.",
