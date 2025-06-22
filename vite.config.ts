@@ -11,9 +11,10 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react({
-      jsxRuntime: 'automatic' // Explicitly set JSX runtime
+      jsxRuntime: 'automatic' // Explicitement défini le runtime JSX
     }),
     // La ligne componentTagger a été supprimée pour éviter toute interférence potentielle.
+    // Ajout d'un commentaire pour forcer la re-détection de la configuration.
   ].filter(Boolean),
   resolve: {
     alias: {
