@@ -1,4 +1,4 @@
-import React from 'react'; // Ajout de cet import explicite
+import React from 'react';
 import 'react/jsx-runtime';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -39,62 +39,62 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/documents" element={
-              <ProtectedRoute requiredPermission="view_documents">
+              <ProtectedRoute> {/* Removed requiredPermission */}
                 <Documents />
               </ProtectedRoute>
             } />
             <Route path="/documents/formulaires" element={
-              <ProtectedRoute requiredPermission="manage_forms">
+              <ProtectedRoute> {/* Removed requiredPermission */}
                 <FormulairesDoc />
               </ProtectedRoute>
             } />
             <Route path="/documents/templates" element={
-              <ProtectedRoute requiredPermission="manage_documents">
+              <ProtectedRoute> {/* Removed requiredPermission */}
                 <Templates />
               </ProtectedRoute>
             } />
             <Route path="/documents/edit-onlyoffice/:documentId" element={ {/* New route for OnlyOffice editor */}
-              <ProtectedRoute requiredPermission="update_documents">
+              <ProtectedRoute> {/* Removed requiredPermission */}
                 <OnlyOfficeEditorPage />
               </ProtectedRoute>
             } />
             <Route path="/correspondances" element={
-              <ProtectedRoute requiredPermission="view_correspondences">
+              <ProtectedRoute> {/* Removed requiredPermission */}
                 <Correspondances />
               </ProtectedRoute>
             } />
             <Route path="/proces-verbaux" element={
-              <ProtectedRoute requiredPermission="view_proces_verbaux">
+              <ProtectedRoute> {/* Removed requiredPermission */}
                 <ProcesVerbaux />
               </ProtectedRoute>
             } />
             <Route path="/users" element={
-              <ProtectedRoute requiredPermission="manage_users">
+              <ProtectedRoute> {/* Removed requiredPermission */}
                 <Users />
               </ProtectedRoute>
             } />
             <Route path="/actions" element={
-              <ProtectedRoute requiredPermission="view_actions">
+              <ProtectedRoute> {/* Removed requiredPermission */}
                 <Actions />
               </ProtectedRoute>
             } />
             <Route path="/qr-codes" element={
-              <ProtectedRoute requiredPermission="view_qr_codes">
+              <ProtectedRoute> {/* Removed requiredPermission */}
                 <QRCodes />
               </ProtectedRoute>
             } />
             <Route path="/reports" element={
-              <ProtectedRoute requiredPermission="view_reports">
+              <ProtectedRoute> {/* Removed requiredPermission */}
                 <Reports />
               </ProtectedRoute>
             } />
             <Route path="/audit-logs" element={
-              <ProtectedRoute requiredPermission="view_audit_logs">
+              <ProtectedRoute> {/* Removed requiredPermission */}
                 <AuditLogs />
               </ProtectedRoute>
             } />
             <Route path="/settings" element={
-              <ProtectedRoute requiredPermission="manage_settings">
+              <ProtectedRoute> {/* Removed requiredPermission */}
                 <SettingsPage />
               </ProtectedRoute>
             } />
