@@ -126,8 +126,14 @@ export const DocumentsList = ({ documents, isLoading, onEdit, onDelete }: Docume
     }
   };
 
-  // Removed handleOpenInEditor as Syncfusion is being removed.
-  // If OnlyOffice editor is to be re-integrated, its specific logic would go here.
+  const handleOpenInOnlyOffice = (document: DocumentData) => {
+    if (document.file_path) {
+      // Navigate to the OnlyOffice editor page, passing the document ID
+      navigate(`/documents/edit-onlyoffice/${document.id}`);
+    } else {
+      alert('Ce document n\'a pas de fichier associé pour l\'édition.');
+    }
+  };
 
   const canApprove = hasPermission('approve_documents');
   const canEdit = hasPermission('update_documents');
@@ -226,6 +232,16 @@ export const DocumentsList = ({ documents, isLoading, onEdit, onDelete }: Docume
                         {onEdit && (
                           <Button variant="outline" size="sm" onClick={() => onEdit(document)}>
                             <Edit className="w-4 h-4" />
+                          </Button>
+                        )}
+                        {document.file_path && canEdit && ( // Only show if there's a file and user can edit
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleOpenInOnlyOffice(document)}
+                          >
+                            <img src="/onlyoffice-icon.svg" alt="OnlyOffice" className="w-4 h-4 mr-1" /> {/* Assuming you have an OnlyOffice icon */}
+                            Éditer
                           </Button>
                         )}
                         {canDelete && onDelete && (

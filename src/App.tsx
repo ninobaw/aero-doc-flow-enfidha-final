@@ -21,6 +21,7 @@ import SettingsPage from "./pages/SettingsPage";
 import Profile from "./pages/Profile";
 import Templates from "./pages/Templates";
 import AuditLogs from "./pages/AuditLogs";
+import OnlyOfficeEditorPage from "./pages/OnlyOfficeEditorPage"; // Import the new page
 
 const queryClient = new QueryClient();
 
@@ -52,7 +53,11 @@ const App = () => (
                 <Templates />
               </ProtectedRoute>
             } />
-            {/* La route pour l'éditeur de documents OnlyOffice sera gérée par le composant OnlyOfficeEditor si elle est réintroduite */}
+            <Route path="/documents/edit-onlyoffice/:documentId" element={ {/* New route for OnlyOffice editor */}
+              <ProtectedRoute requiredPermission="update_documents">
+                <OnlyOfficeEditorPage />
+              </ProtectedRoute>
+            } />
             <Route path="/correspondances" element={
               <ProtectedRoute requiredPermission="view_correspondences">
                 <Correspondances />
