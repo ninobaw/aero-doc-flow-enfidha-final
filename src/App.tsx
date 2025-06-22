@@ -21,7 +21,6 @@ import SettingsPage from "./pages/SettingsPage";
 import Profile from "./pages/Profile";
 import Templates from "./pages/Templates";
 import AuditLogs from "./pages/AuditLogs";
-import { SyncfusionDocumentEditor } from './components/documents/SyncfusionDocumentEditor'; // Import the new Syncfusion editor
 
 const queryClient = new QueryClient();
 
@@ -53,11 +52,7 @@ const App = () => (
                 <Templates />
               </ProtectedRoute>
             } />
-            <Route path="/documents/:documentId/edit" element={
-              <ProtectedRoute requiredPermission="update_documents"> {/* Assuming edit permission is needed */}
-                <SyncfusionDocumentEditor />
-              </ProtectedRoute>
-            } />
+            {/* La route pour l'éditeur de documents OnlyOffice sera gérée par le composant OnlyOfficeEditor si elle est réintroduite */}
             <Route path="/correspondances" element={
               <ProtectedRoute requiredPermission="view_correspondences">
                 <Correspondances />

@@ -2,13 +2,13 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { FileText, Eye, Download, Calendar, User, Edit, Trash2, CheckCircle, FileEdit } from 'lucide-react'; // Added FileEdit icon
+import { FileText, Eye, Download, Calendar, User, Edit, Trash2, CheckCircle } from 'lucide-react';
 import { formatDate, getAbsoluteFilePath } from '@/shared/utils';
 import type { DocumentData } from '@/hooks/useDocuments';
 import { ViewDocumentDialog } from '@/components/documents/ViewDocumentDialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDocuments } from '@/hooks/useDocuments';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useNavigate } from 'react-router-dom';
 import {
   Table,
   TableBody,
@@ -38,11 +38,11 @@ interface DocumentsListProps {
 export const DocumentsList = ({ documents, isLoading, onEdit, onDelete }: DocumentsListProps) => {
   const [selectedDocumentForView, setSelectedDocumentForView] = useState<DocumentData | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const [documentToDelete, setDocumentToDelete] = useState<string | null>(null); // State for deletion confirmation
+  const [documentToDelete, setDocumentToDelete] = useState<string | null>(null);
   
   const { user, hasPermission } = useAuth();
   const { updateDocument, isUpdating } = useDocuments();
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate();
 
   if (isLoading) {
     return (
@@ -126,9 +126,8 @@ export const DocumentsList = ({ documents, isLoading, onEdit, onDelete }: Docume
     }
   };
 
-  const handleOpenInEditor = (documentId: string) => {
-    navigate(`/documents/${documentId}/edit`);
-  };
+  // Removed handleOpenInEditor as Syncfusion is being removed.
+  // If OnlyOffice editor is to be re-integrated, its specific logic would go here.
 
   const canApprove = hasPermission('approve_documents');
   const canEdit = hasPermission('update_documents');
@@ -224,12 +223,7 @@ export const DocumentsList = ({ documents, isLoading, onEdit, onDelete }: Docume
                             <CheckCircle className="w-4 h-4" />
                           </Button>
                         )}
-                        {canEdit && (
-                          <Button variant="outline" size="sm" onClick={() => handleOpenInEditor(document.id)}>
-                            <FileEdit className="w-4 h-4" />
-                          </Button>
-                        )}
-                        {onEdit && ( // Keep original onEdit if it's used elsewhere
+                        {onEdit && (
                           <Button variant="outline" size="sm" onClick={() => onEdit(document)}>
                             <Edit className="w-4 h-4" />
                           </Button>

@@ -10,13 +10,13 @@ const actionRoutes = require('./routes/actionRoutes.js');
 const correspondanceRoutes = require('./routes/correspondanceRoutes.js');
 const procesVerbalRoutes = require('./routes/procesVerbalRoutes.js');
 const reportRoutes = require('./routes/reportRoutes.js');
-const { router: notificationRouter } = require('./routes/notificationRoutes.js'); // Correction ici: déstructuration
+const { router: notificationRouter } = require('./routes/notificationRoutes.js');
 const appSettingsRoutes = require('./routes/appSettingsRoutes.js');
 const activityLogRoutes = require('./routes/activityLogRoutes.js');
 const documentCodeConfigRoutes = require('./routes/documentCodeConfigRoutes.js');
 const uploadRoutes = require('./routes/uploadRoutes.js');
 const dashboardRoutes = require('./routes/dashboardRoutes.js');
-// const onlyofficeRoutes = require('./routes/onlyofficeRoutes.js'); // Removed OnlyOffice routes
+const onlyofficeRoutes = require('./routes/onlyofficeRoutes.js'); // Réactivé OnlyOffice routes
 const path = require('path');
 
 dotenv.config();
@@ -42,13 +42,13 @@ app.use('/api/actions', actionRoutes);
 app.use('/api/correspondances', correspondanceRoutes);
 app.use('/api/proces-verbaux', procesVerbalRoutes);
 app.use('/api/reports', reportRoutes);
-app.use('/api/notifications', notificationRouter); // Utilisation du routeur déstructuré
+app.use('/api/notifications', notificationRouter);
 app.use('/api/settings', appSettingsRoutes);
 app.use('/api/activity-logs', activityLogRoutes);
 app.use('/api/document-code-config', documentCodeConfigRoutes);
 app.use('/api/uploads', uploadRoutes);
 app.use('/api/dashboard', dashboardRoutes);
-// app.use('/api/onlyoffice', onlyofficeRoutes); // Removed OnlyOffice routes
+app.use('/api/onlyoffice', onlyofficeRoutes); // Réactivé OnlyOffice routes
 
 // Define a simple root route
 app.get('/', (req, res) => {
