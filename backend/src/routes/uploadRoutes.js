@@ -69,12 +69,19 @@ router.post('/file', upload.single('file'), (req, res) => {
   console.log('req.file (after multer processing):', req.file);
   console.log('req.body (after multer processing):', req.body);
 
+  const { documentType, scopeCode, departmentCode, correspondenceType } = req.body;
+
+  // --- NOUVEAUX LOGS POUR LE DÉBOGAGE DE LA CLASSIFICATION DES CORRESPONDANCES ---
+  console.log('DEBUG CLASSIFICATION: documentType reçu:', documentType);
+  console.log('DEBUG CLASSIFICATION: scopeCode (aéroport) reçu:', scopeCode);
+  console.log('DEBUG CLASSIFICATION: correspondenceType reçu:', correspondenceType);
+  // --- FIN DES NOUVEAUX LOGS ---
+
   if (!req.file) {
     console.error('Aucun fichier uploadé.');
     return res.status(400).json({ message: 'No file uploaded.' });
   }
 
-  const { documentType, scopeCode, departmentCode, correspondenceType } = req.body;
   const originalTempPath = req.file.path;
   const fileName = req.file.filename; // This now includes the original name + unique suffix
 
