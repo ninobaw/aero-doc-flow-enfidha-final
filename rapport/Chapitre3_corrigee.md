@@ -93,7 +93,7 @@ Le projet est découpé en 4 sprints :
 
 ---
 
-### IV. Sprint 2 – Utilisateurs, rôles, actions, journaux d'audit, Dashboard, rapports (du 21 Avril au 19 Mai)
+### IV. Sprint 2 : Utilisateurs, rôles, actions, journaux d'audit, Dashboard, rapports (du 21 Avril au 19 Mai)
 
 **Objectifs :**
 *   Mettre en place la gestion des comptes utilisateurs.
