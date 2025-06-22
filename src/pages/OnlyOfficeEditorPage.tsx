@@ -5,6 +5,7 @@ import axios from 'axios';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppLayout } from '@/components/layout/AppLayout';
+import { Loader2, AlertCircle, XCircle } from 'lucide-react'; // Import new icons
 
 const API_BASE_URL = 'http://localhost:5000/api';
 
@@ -16,28 +17,29 @@ const OnlyOfficeEditorPage: React.FC = () => {
   const [editorConfig, setEditorConfig] = useState<any>(null);
   const [isLoadingConfig, setIsLoadingConfig] = useState(true);
   const [errorConfig, setErrorConfig] = useState<string | null>(null);
+  const [isScriptLoading, setIsScriptLoading] = useState(true);
+  const [scriptError, setScriptError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchEditorConfig = async () => {
       if (!documentId || !user?.id) {
-        setErrorConfig('Document ID or user not available.');
+        setErrorConfig('Document ID ou utilisateur non disponible.');
         setIsLoadingConfig(false);
         return;
       }
 
       try {
-        // Request editor configuration from your backend
         const response = await axios.post(`${API_BASE_URL}/onlyoffice/editor`, {
           documentId: documentId,
           userId: user.id,
           userName: `${user.firstName} ${user.lastName}`,
           userEmail: user.email,
         });
-        setEditorConfig(response.data);
+        setEditorConfig(response.data.config); // Access the 'config' property
         setIsLoadingConfig(false);
       } catch (err: any) {
         console.error('Failed to fetch OnlyOffice editor config:', err);
-        setErrorConfig(err.response?.data?.message || 'Failed to load editor configuration.');
+        setErrorConfig(err.response?.data?.message || 'Échec du chargement de la configuration de l\'éditeur.');
         setIsLoadingConfig(false);
         toast({
           title: 'Erreur de chargement de l\'éditeur',
@@ -50,90 +52,32 @@ const OnlyOfficeEditorPage: React.FC = () => {
     fetchEditorConfig();
   }, [documentId, user, toast]);
 
-  if (isLoadingConfig) {
-    return (
-      <AppLayout>
-        <div className="flex items-center justify-center min-h-[calc(100vh-100px)]">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-aviation-sky"></div>
-          <p className="ml-4 text-gray-600">Chargement de l'éditeur OnlyOffice...</p>
-        </div>
-      </AppLayout>
-    );
-  }
-
-  if (errorConfig) {
-    return (
-      <AppLayout>
-        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-100px)] text-red-600">
-          <h2 className="text-xl font-bold mb-2">Erreur de chargement</h2>
-          <p>{errorConfig}</p>
-          <button onClick={() => navigate(-1)} className="mt-4 text-blue-600 hover:underline">Retour</button>
-        </div>
-      </AppLayout>
-    );
-  }
-
-  if (!editorConfig || !editorConfig.editorUrl || !editorConfig.document || !editorConfig.document.url) {
-    return (
-      <AppLayout>
-        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-100px)] text-orange-600">
-          <h2 className="text-xl font-bold mb-2">Configuration de l'éditeur incomplète</h2>
-          <p>Veuillez vérifier la configuration de votre serveur OnlyOffice Document Server et de votre backend.</p>
-          <button onClick={() => navigate(-1)} className="mt-4 text-blue-600 hover:underline">Retour</button>
-        </div>
-      </AppLayout>
-    );
-  }
-
-  // OnlyOffice editor expects a global DocsAPI object to be available.
-  // This is typically loaded via a script tag from the Document Server.
-  // For a React app, you might need to dynamically load it or ensure it's in index.html.
-  // For simplicity, we'll assume it's loaded or the iframe handles it.
-  // The iframe src will be the Document Server's editor URL with parameters.
-
-  // Construct the URL for the OnlyOffice editor iframe
-  // This is a simplified example. A real integration might involve more parameters
-  // and a more robust way to pass the config to the iframe.
-  // OnlyOffice typically uses a POST request to open the editor, or a complex URL.
-  // For this example, we'll simulate a direct URL for the iframe.
-  // In a full integration, you'd likely render a form and submit it to the Document Server.
-
-  // A more robust way would be to have the backend render a full HTML page with the editor
-  // configuration and redirect to it, or use a library like 'onlyoffice-document-editor-react'.
-  // For this direct iframe approach, we'll pass minimal info.
-
-  // The standard way to embed OnlyOffice is to load their API script and then
-  // create a new DocsAPI.DocEditor object. This cannot be done directly in an iframe src.
-  // The backend's /editor endpoint should ideally return a full HTML page that
-  // initializes the editor, or the frontend needs to dynamically load the API script
-  // and then initialize the editor.
-
-  // Given the current backend placeholder, we'll adjust the frontend to expect
-  // a direct URL to the OnlyOffice Document Server's editor page, passing document info.
-  // This is a simplification and might not work without a proper Document Server setup.
-
-  // For a proper integration, the backend's /onlyoffice/editor endpoint should return
-  // a JSON object containing all parameters for the DocsAPI.DocEditor constructor.
-  // Then, the frontend would dynamically load the OnlyOffice API script and initialize the editor.
-
-  // Let's assume the backend's /onlyoffice/editor endpoint returns a 'config' object
-  // that can be directly used by the DocsAPI.DocEditor.
-  // We'll need to dynamically load the OnlyOffice API script.
-
-  const onlyOfficeApiScriptUrl = editorConfig.apiScriptUrl || 'http://localhost:8000/web-apps/apps/api/documents/api.js'; // Default OnlyOffice API script URL
-
   useEffect(() => {
-    if (editorConfig) {
+    if (editorConfig && !scriptError) {
+      const onlyOfficeApiScriptUrl = editorConfig.apiScriptUrl || 'http://localhost:8000/web-apps/apps/api/documents/api.js';
+      
       const script = document.createElement('script');
       script.src = onlyOfficeApiScriptUrl;
       script.async = true;
       script.onload = () => {
+        setIsScriptLoading(false);
         if (window.DocsAPI) {
           console.log('OnlyOffice API loaded. Initializing editor...');
-          const docEditor = new window.DocsAPI.DocEditor('onlyoffice-editor-container', editorConfig.config);
-          console.log('OnlyOffice editor initialized:', docEditor);
+          try {
+            const docEditor = new window.DocsAPI.DocEditor('onlyoffice-editor-container', editorConfig);
+            console.log('OnlyOffice editor initialized:', docEditor);
+          } catch (e: any) {
+            console.error('Error initializing OnlyOffice editor:', e);
+            setScriptError(`Erreur d'initialisation de l'éditeur: ${e.message || 'Vérifiez la console pour plus de détails.'}`);
+            toast({
+              title: 'Erreur OnlyOffice',
+              description: 'L\'éditeur n\'a pas pu être initialisé. Vérifiez la configuration.',
+              variant: 'destructive',
+            });
+          }
         } else {
           console.error('DocsAPI not found after script load.');
+          setScriptError('L\'API OnlyOffice n\'a pas pu être chargée correctement. Vérifiez l\'URL du Document Server.');
           toast({
             title: 'Erreur OnlyOffice',
             description: 'L\'API OnlyOffice n\'a pas pu être chargée correctement.',
@@ -143,6 +87,8 @@ const OnlyOfficeEditorPage: React.FC = () => {
       };
       script.onerror = (e) => {
         console.error('Failed to load OnlyOffice API script:', e);
+        setIsScriptLoading(false);
+        setScriptError('Impossible de charger le script de l\'API OnlyOffice. Vérifiez l\'URL du Document Server dans vos variables d\'environnement.');
         toast({
           title: 'Erreur OnlyOffice',
           description: 'Impossible de charger le script de l\'API OnlyOffice. Vérifiez l\'URL du Document Server.',
@@ -153,22 +99,72 @@ const OnlyOfficeEditorPage: React.FC = () => {
 
       return () => {
         document.body.removeChild(script);
-        // Clean up editor instance if necessary
-        if (window.DocsAPI && window.DocsAPI.DocEditor) {
-          // Assuming there's a way to destroy the editor instance
-          // docEditor.destroy(); // This would be needed if we kept a reference
-        }
+        // Clean up editor instance if necessary (DocsAPI.DocEditor.destroy() if a reference is kept)
       };
     }
-  }, [editorConfig, onlyOfficeApiScriptUrl, toast]);
+  }, [editorConfig, scriptError, toast]);
+
+  if (isLoadingConfig) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center min-h-[calc(100vh-100px)]">
+          <Loader2 className="h-16 w-16 animate-spin text-aviation-sky" />
+          <p className="ml-4 text-gray-600">Chargement de la configuration de l'éditeur...</p>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (errorConfig) {
+    return (
+      <AppLayout>
+        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-100px)] text-red-600">
+          <XCircle className="w-16 h-16 mb-4" />
+          <h2 className="text-xl font-bold mb-2">Erreur de chargement</h2>
+          <p className="text-center">{errorConfig}</p>
+          <button onClick={() => navigate(-1)} className="mt-4 text-blue-600 hover:underline">Retour</button>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (!editorConfig || !editorConfig.document || !editorConfig.document.url) {
+    return (
+      <AppLayout>
+        <div className="flex flex-col items-center justify-center min-h-[calc(100vh-100px)] text-orange-600">
+          <AlertCircle className="w-16 h-16 mb-4" />
+          <h2 className="text-xl font-bold mb-2">Configuration de l'éditeur incomplète</h2>
+          <p className="text-center">Veuillez vérifier la configuration de votre serveur OnlyOffice Document Server et de votre backend.</p>
+          <button onClick={() => navigate(-1)} className="mt-4 text-blue-600 hover:underline">Retour</button>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
       <div className="flex flex-col h-full p-4">
         <h1 className="text-2xl font-bold mb-4">Édition du document : {editorConfig?.document?.title || 'Chargement...'}</h1>
         <div id="onlyoffice-editor-container" className="flex-1 border rounded-lg overflow-hidden" style={{ minHeight: '700px' }}>
+          {isScriptLoading && (
+            <div className="flex items-center justify-center h-full">
+              <Loader2 className="h-12 w-12 animate-spin text-aviation-sky" />
+              <p className="ml-4 text-gray-600">Chargement du script OnlyOffice API...</p>
+            </div>
+          )}
+          {scriptError && !isScriptLoading && (
+            <div className="flex flex-col items-center justify-center h-full text-red-600">
+              <XCircle className="w-12 h-12 mb-4" />
+              <p className="text-center">{scriptError}</p>
+              <p className="text-sm text-gray-500 mt-2">Assurez-vous que votre serveur OnlyOffice Document Server est en cours d'exécution et accessible.</p>
+            </div>
+          )}
           {/* The editor will be injected here by DocsAPI */}
-          <p className="text-center text-gray-500 py-10">Préparation de l'éditeur...</p>
+          {!isScriptLoading && !scriptError && !window.DocsAPI && (
+            <div className="text-center text-gray-500 py-10">
+              Préparation de l'éditeur... Si l'éditeur ne s'affiche pas, vérifiez la console pour les erreurs.
+            </div>
+          )}
         </div>
       </div>
     </AppLayout>
