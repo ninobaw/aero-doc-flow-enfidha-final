@@ -39,62 +39,62 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/documents" element={
-              <ProtectedRoute> {/* Removed requiredPermission */}
+              <ProtectedRoute>
                 <Documents />
               </ProtectedRoute>
             } />
             <Route path="/documents/formulaires" element={
-              <ProtectedRoute> {/* Removed requiredPermission */}
+              <ProtectedRoute>
                 <FormulairesDoc />
               </ProtectedRoute>
             } />
             <Route path="/documents/templates" element={
-              <ProtectedRoute> {/* Removed requiredPermission */}
+              <ProtectedRoute>
                 <Templates />
               </ProtectedRoute>
             } />
-            <Route path="/documents/edit-onlyoffice/:documentId" element={ {/* New route for OnlyOffice editor */}
-              <ProtectedRoute> {/* Removed requiredPermission */}
+            <Route path="/documents/edit-onlyoffice/:documentId" element={ 
+              <ProtectedRoute>
                 <OnlyOfficeEditorPage />
               </ProtectedRoute>
             } />
             <Route path="/correspondances" element={
-              <ProtectedRoute> {/* Removed requiredPermission */}
+              <ProtectedRoute>
                 <Correspondances />
               </ProtectedRoute>
             } />
             <Route path="/proces-verbaux" element={
-              <ProtectedRoute> {/* Removed requiredPermission */}
+              <ProtectedRoute>
                 <ProcesVerbaux />
               </ProtectedRoute>
             } />
             <Route path="/users" element={
-              <ProtectedRoute> {/* Removed requiredPermission */}
+              <ProtectedRoute>
                 <Users />
               </ProtectedRoute>
             } />
             <Route path="/actions" element={
-              <ProtectedRoute> {/* Removed requiredPermission */}
+              <ProtectedRoute>
                 <Actions />
               </ProtectedRoute>
             } />
             <Route path="/qr-codes" element={
-              <ProtectedRoute> {/* Removed requiredPermission */}
+              <ProtectedRoute>
                 <QRCodes />
               </ProtectedRoute>
             } />
             <Route path="/reports" element={
-              <ProtectedRoute> {/* Removed requiredPermission */}
+              <ProtectedRoute>
                 <Reports />
               </ProtectedRoute>
             } />
             <Route path="/audit-logs" element={
-              <ProtectedRoute> {/* Removed requiredPermission */}
+              <ProtectedRoute>
                 <AuditLogs />
               </ProtectedRoute>
             } />
             <Route path="/settings" element={
-              <ProtectedRoute> {/* Removed requiredPermission */}
+              <ProtectedRoute>
                 <SettingsPage />
               </ProtectedRoute>
             } />
