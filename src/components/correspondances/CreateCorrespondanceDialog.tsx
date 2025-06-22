@@ -87,12 +87,12 @@ export const CreateCorrespondanceDialog = () => {
     if (selectedFile) {
       console.log('Frontend: Préparation de l\'upload du fichier avec les options suivantes:');
       console.log('  documentType: correspondances');
-      console.log('  airportCode:', formData.airport);
+      console.log('  scopeCode:', formData.airport); // Corrected: Changed airportCode to scopeCode
       console.log('  correspondenceType:', formData.type);
 
       const uploaded = await uploadFile(selectedFile, {
         documentType: 'correspondances', // Base folder for all correspondences
-        airportCode: formData.airport, // Pass the selected airport
+        scopeCode: formData.airport, // Corrected: Changed airportCode to scopeCode
         correspondenceType: formData.type, // Pass the correspondence type (INCOMING/OUTGOING)
         allowedTypes: ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.jpg', '.jpeg', '.png'],
         maxSize: 10 // 10MB
@@ -195,27 +195,25 @@ export const CreateCorrespondanceDialog = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="from_address">De *</Label>
-              <Input
-                id="from_address"
-                value={formData.from_address}
-                onChange={(e) => setFormData({ ...formData, from_address: e.target.value })}
-                placeholder="expediteur@exemple.com"
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="to_address">À *</Label>
-              <Input
-                id="to_address"
-                value={formData.to_address}
-                onChange={(e) => setFormData({ ...formData, to_address: e.target.value })}
-                placeholder="destinataire@exemple.com"
-                required
-              />
-            </div>
+          <div>
+            <Label htmlFor="from_address">De *</Label>
+            <Input
+              id="from_address"
+              value={formData.from_address}
+              onChange={(e) => setFormData({ ...formData, from_address: e.target.value })}
+              placeholder="expediteur@exemple.com"
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="to_address">À *</Label>
+            <Input
+              id="to_address"
+              value={formData.to_address}
+              onChange={(e) => setFormData({ ...formData, to_address: e.target.value })}
+              placeholder="destinataire@exemple.com"
+              required
+            />
           </div>
 
           <div>
