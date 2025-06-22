@@ -42,6 +42,14 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Nouvelles variables pour les variantes de toast */
+    --success: 140 80% 40%; /* Une couleur verte pour le succès */
+    --success-foreground: 0 0% 100%; /* Texte blanc */
+    --warning: 40 90% 50%; /* Une couleur orange pour l'avertissement */
+    --warning-foreground: 222.2 84% 4.9%; /* Texte sombre */
+    --info: 200 80% 50%; /* Une couleur bleue pour l'information */
+    --info-foreground: 0 0% 100%; /* Texte blanc */
   }
 
   .dark {
@@ -80,6 +88,14 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Nouvelles variables pour les variantes de toast (mode sombre) */
+    --success: 140 70% 60%; /* Une couleur verte plus claire pour le succès */
+    --success-foreground: 222.2 84% 4.9%; /* Texte sombre */
+    --warning: 40 80% 60%; /* Une couleur orange plus claire pour l'avertissement */
+    --warning-foreground: 222.2 84% 4.9%; /* Texte sombre */
+    --info: 200 70% 60%; /* Une couleur bleue plus claire pour l'information */
+    --info-foreground: 222.2 84% 4.9%; /* Texte sombre */
   }
 }
 
