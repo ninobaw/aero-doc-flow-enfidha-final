@@ -74,6 +74,7 @@ const addToRemoveQueue = (toastId: string) => {
 export const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case "ADD_TOAST":
+      console.log("TOAST_DEBUG: ADD_TOAST action dispatched:", action.toast.id, action.toast.title); // NOUVEAU LOG
       return {
         ...state,
         toasts: [action.toast, ...state.toasts].slice(0, TOAST_LIMIT),
