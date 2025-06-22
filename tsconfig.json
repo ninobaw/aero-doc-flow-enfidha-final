@@ -12,7 +12,8 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx", // C'est la ligne la plus importante pour le JSX
+    "jsx": "react-jsx", // Assure que TypeScript comprend le JSX
+    "jsxImportSource": "react", // Indique où trouver les fonctions JSX (React)
 
     /* Linting */
     "strict": true,
