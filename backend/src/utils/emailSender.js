@@ -32,6 +32,7 @@ const sendEmail = async (userId, subject, text, html) => {
 
     if (!smtpHost || !smtpPort || !smtpUsername || !smtpPassword) {
       console.error('[EmailSender] Les identifiants SMTP ne sont pas entièrement configurés dans AppSettings ou les variables d\'environnement.');
+      console.error(`[EmailSender] Détails: Host=${smtpHost}, Port=${smtpPort}, Username=${smtpUsername}, Password_Defined=${!!smtpPassword}`);
       return;
     }
 
