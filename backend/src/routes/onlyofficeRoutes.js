@@ -1,8 +1,10 @@
 const { Router } = require('express');
 const { Document } = require('../models/Document.js'); // Import Document model
 const { User } = require('../models/User.js'); // Import User model
+const { ActivityLog } = require('../models/ActivityLog.js'); // Import ActivityLog model
 const path = require('path');
 const fs = require('fs');
+const axios = require('axios'); // Import axios for file download
 const { v4: uuidv4 } = require('uuid');
 
 const router = Router();
@@ -118,31 +120,93 @@ router.post('/editor', async (req, res) => {
 });
 
 // Endpoint for document tracking (OnlyOffice Document Server sends updates here)
-router.post('/track', (req, res) => {
+router.post('/track', async (req, res) => {
   // This is the callback URL where OnlyOffice Document Server sends document changes.
   // You would parse the body, save the document, handle co-editing, etc.
   console.log('OnlyOffice: Track callback received.');
-  console.log('OnlyOffice Callback Body:', req.body);
-
-  // Example: If status is 2 (document is being edited) or 6 (document is saved)
-  // In a real application, you would:
-  // 1. Validate the request (e.g., check document key, token)
-  // 2. Download the updated document from the URL provided in the body (req.body.url)
-  // 3. Save the updated document to your storage (e.g., overwrite the old file, create a new version)
-  // 4. Update your database (e.g., update document's `updatedAt` timestamp, increment version)
+  console.log('OnlyOffice Callback Body:', JSON.stringify(req.body, null, 2));
 
   const { status, url, key, users } = req.body;
 
-  if (status === 2 || status === 6) { // 2: document is being edited, 6: document is saved
-    console.log(`Document ${key} is being edited or saved. Download URL: ${url}`);
-    // Here you would implement logic to download the file from 'url'
-    // and save it to your server's 'uploads' directory, updating the document in MongoDB.
-    // This is a complex operation involving file streams and database updates.
-    // For this example, we'll just log it.
-  }
+  // Status 2: document is being edited (intermediate save)
+  // Status 6: document is saved (final save, editor closed or force save)
+  if (status === 2 || status === 6) {
+    try {
+      // Extract document ID from the key (assuming key format: documentId-timestamp)
+      const documentId = key.split('-')[0];
+      const document = await Document.findById(documentId);
 
-  // Respond with success to OnlyOffice Document Server
-  res.json({ error: 0 });
+      if (!document) {
+        console.error(`OnlyOffice: Document with ID ${documentId} not found for tracking.`);
+        return res.json({ error: 1, message: 'Document not found' });
+      }
+
+      if (!url) {
+        console.error('OnlyOffice: No download URL provided in callback.');
+        return res.json({ error: 1, message: 'No download URL' });
+      }
+
+      // Determine the full path where the file should be saved
+      // Reconstruct the original file path based on the document's filePath
+      const uploadsDir = path.join(__dirname, '../../uploads');
+      const targetFilePath = path.join(uploadsDir, document.filePath);
+
+      // Ensure the directory exists
+      const targetDir = path.dirname(targetFilePath);
+      if (!fs.existsSync(targetDir)) {
+        fs.mkdirSync(targetDir, { recursive: true });
+      }
+
+      // Download the updated file from OnlyOffice Document Server
+      const response = await axios({
+        method: 'get',
+        url: url,
+        responseType: 'stream',
+      });
+
+      const writer = fs.createWriteStream(targetFilePath);
+      response.data.pipe(writer);
+
+      await new Promise((resolve, reject) => {
+        writer.on('finish', resolve);
+        writer.on('error', reject);
+      });
+
+      console.log(`OnlyOffice: Document ${document.title} (ID: ${documentId}) saved to ${targetFilePath}`);
+
+      // Update document in MongoDB
+      const updatedDocument = await Document.findByIdAndUpdate(
+        documentId,
+        {
+          $inc: { version: 1 }, // Increment version
+          updatedAt: new Date(), // Update modification timestamp
+        },
+        { new: true }
+      );
+
+      // Log document update activity
+      const editorUser = users && users.length > 0 ? users[0] : { id: 'unknown', name: 'Unknown Editor' };
+      await ActivityLog.create({
+        _id: uuidv4(),
+        action: 'DOCUMENT_UPDATED_ONLYOFFICE',
+        details: `Document "${updatedDocument.title}" (ID: ${updatedOffice.id}) modifié via OnlyOffice. Nouvelle version: ${updatedDocument.version}.`,
+        entityId: updatedDocument._id,
+        entityType: 'DOCUMENT',
+        userId: editorUser.id, // Use the user ID from OnlyOffice callback
+        timestamp: new Date(),
+      });
+
+      res.json({ error: 0 }); // Respond with success to OnlyOffice Document Server
+
+    } catch (error) {
+      console.error('OnlyOffice: Error processing track callback:', error);
+      res.json({ error: 1, message: 'Internal server error during document save' });
+    }
+  } else {
+    // Handle other statuses if necessary (e.g., 1: document is being edited, 3: document is closed)
+    console.log(`OnlyOffice: Received status ${status} for document ${key}. No save action taken.`);
+    res.json({ error: 0 });
+  }
 });
 
 // Endpoint for document conversion (if you need to convert documents via OnlyOffice)
