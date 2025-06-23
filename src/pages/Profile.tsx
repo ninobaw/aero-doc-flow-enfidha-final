@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { User, Mail, Phone, Building2, Calendar, Save } from 'lucide-react';
+import { User, Mail, Phone, Building2, Calendar, Save, Lock } from 'lucide-react'; // Import Lock icon
 import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/contexts/AuthContext';
 import { useState, useEffect } from 'react';
@@ -14,6 +14,7 @@ import { ProfilePhotoUpload } from '@/components/profile/ProfilePhotoUpload';
 import { Airport } from '@/shared/types'; // Import Airport type
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import { useFileUpload } from '@/hooks/useFileUpload'; // Import useFileUpload
+import { ResetPasswordDialog } from '@/components/profile/ResetPasswordDialog'; // Import ResetPasswordDialog
 
 const Profile = () => {
   const { user } = useAuth();
@@ -28,6 +29,7 @@ const Profile = () => {
     department: '',
   });
   const [stagedProfilePhoto, setStagedProfilePhoto] = useState<File | null | undefined>(undefined); // undefined: no change, null: remove, File: new file
+  const [isResetPasswordDialogOpen, setIsResetPasswordDialogOpen] = useState(false); // State for reset password dialog
 
   const navigate = useNavigate(); // Initialize useNavigate
 
@@ -181,6 +183,14 @@ const Profile = () => {
                     <span>Inscrit le {formatDate(profile?.createdAt || '')}</span>
                   </div>
                 </div>
+                <Button 
+                  variant="outline" 
+                  className="w-full mt-4" 
+                  onClick={() => setIsResetPasswordDialogOpen(true)}
+                >
+                  <Lock className="w-4 h-4 mr-2" />
+                  Réinitialiser le mot de passe
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -291,6 +301,11 @@ const Profile = () => {
           </Card>
         </div>
       </div>
+      {/* Reset Password Dialog */}
+      <ResetPasswordDialog 
+        open={isResetPasswordDialogOpen} 
+        onOpenChange={setIsResetPasswordDialogOpen} 
+      />
     </AppLayout>
   );
 };
