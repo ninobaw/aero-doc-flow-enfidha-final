@@ -72,6 +72,19 @@ export default {
 					terminal: '#F8FAFC',
 					warning: '#F59E0B',
 					success: '#10B981'
+				},
+				// Nouvelles couleurs pour les toasts, liées aux variables CSS
+				success: {
+					DEFAULT: 'hsl(var(--success))',
+					foreground: 'hsl(var(--success-foreground))'
+				},
+				warning: {
+					DEFAULT: 'hsl(var(--warning))',
+					foreground: 'hsl(var(--warning-foreground))'
+				},
+				info: {
+					DEFAULT: 'hsl(var(--info))',
+					foreground: 'hsl(var(--info-foreground))'
 				}
 			},
 			borderRadius: {
