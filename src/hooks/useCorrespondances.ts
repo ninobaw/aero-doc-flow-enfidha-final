@@ -98,7 +98,7 @@ export const useCorrespondances = () => {
       toast({
         title: 'Correspondance créée',
         description: 'La correspondance a été créée avec succès.',
-        variant: 'success', // Ajout de la variante success
+        variant: 'success', // Explicitly set to success
       });
     },
     onError: (error: any) => {
@@ -121,7 +121,7 @@ export const useCorrespondances = () => {
       toast({
         title: 'Correspondance mise à jour',
         description: 'La correspondance a été mise à jour avec succès.',
-        variant: 'success', // Ajout de la variante success
+        variant: 'success', // Explicitly set to success
       });
     },
     onError: (error: any) => {
@@ -143,7 +143,7 @@ export const useCorrespondances = () => {
       toast({
         title: 'Correspondance supprimée',
         description: 'La correspondance a été supprimée avec succès.',
-        variant: 'destructive', // Ajout de la variante destructive
+        variant: 'destructive', // Explicitly set to destructive
       });
     },
     onError: (error: any) => {

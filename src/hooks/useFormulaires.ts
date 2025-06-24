@@ -89,6 +89,7 @@ export const useFormulaires = () => {
       toast({
         title: 'Formulaire créé',
         description: 'Le formulaire a été créé avec succès.',
+        variant: 'success', // Explicitly set to success
       });
     },
     onError: (error: any) => {
@@ -112,6 +113,7 @@ export const useFormulaires = () => {
       toast({
         title: 'Formulaire supprimé',
         description: 'Le formulaire a été supprimé avec succès.',
+        variant: 'destructive', // Explicitly set to destructive
       });
     },
     onError: (error: any) => {

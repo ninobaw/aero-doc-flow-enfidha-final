@@ -63,6 +63,7 @@ export const useProfile = () => {
       toast({
         title: 'Profil mis à jour',
         description: 'Votre profil a été mis à jour avec succès.',
+        variant: 'success', // Explicitly set to success
       });
     },
     onError: (error: any) => {
@@ -85,7 +86,7 @@ export const useProfile = () => {
       toast({
         title: 'Mot de passe changé',
         description: 'Votre mot de passe a été changé avec succès.',
-        variant: 'success',
+        variant: 'success', // Explicitly set to success
       });
     },
     onError: (error: any) => {
