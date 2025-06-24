@@ -174,11 +174,11 @@ export const DocumentImportForm: React.FC = () => {
       return;
     }
 
-    if (selectedFile) {
+    if (isDirectFileUploadOption) { // Use the correct variable name here
       // Existing flow for direct file upload
       const documentTypeEnum = mapDocumentTypeCodeToDocumentTypeEnum(importData.document_type_code!);
 
-      const uploaded = await uploadFile(selectedFile, {
+      const uploaded = await uploadFile(selectedFile!, { // Use selectedFile! as it's guaranteed to be non-null here
         documentType: documentTypeEnum, // Use mapped type for folder
         scopeCode: importData.airport,
         departmentCode: importData.department_code,
@@ -200,7 +200,7 @@ export const DocumentImportForm: React.FC = () => {
           language_code: importData.language_code!,
           version: 0, // Set initial version to 0 (REV:0)
           file_path: uploaded.path,
-          file_type: selectedFile.type,
+          file_type: selectedFile!.type, // Use selectedFile!.type
         };
 
         createDocument(documentData, {
@@ -214,7 +214,7 @@ export const DocumentImportForm: React.FC = () => {
           }
         });
       }
-    } else if (isTemplateSelected) { // Check if a template is selected (not 'none')
+    } else if (isTemplateSelectedOption) { // Use the correct variable name here
       // New flow for creating from template and opening in OnlyOffice
       const template = templates.find(t => t.id === selectedTemplateId);
       if (template) {
@@ -284,239 +284,6 @@ export const DocumentImportForm: React.FC = () => {
           <SelectContent>
             <SelectItem value="none">-- Aucun modèle --</SelectItem>
             {templates.length === 0 ? (
-              <SelectItem value="no-templates" disabled>Aucun modèle disponible</SelectItem>
-            ) : (
-              templates.map(template => (
-                <SelectItem key={template.id} value={template.id}>
-                  {template.title} ({template.airport} - {template.document_type_code})
-                </SelectItem>
-              ))
-            )}
-          </SelectContent>
-        </Select>
-        <p className="text-xs text-gray-500">
-          Sélectionnez un modèle pour pré-remplir les champs du document.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-2">
-          <Label htmlFor="titre-import">Titre du document *</Label>
-          <Input
-            id="titre-import"
-            value={importData.title}
-            onChange={(e) => setImportData(prev => ({ ...prev, title: e.target.value }))}
-            placeholder="Entrez le titre du document"
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="company_code_import">Code Société</Label>
-          <Input
-            id="company_code_import"
-            value={importData.company_code}
-            onChange={(e) => setImportData(prev => ({ ...prev, company_code: e.target.value }))}
-            placeholder="Ex: TAVTUN"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="aeroport-import">Aéroport (Scope) *</Label>
-          <Select
-            value={importData.airport}
-            onValueChange={(value: string) => setImportData(prev => ({ ...prev, airport: value }))}
-            required
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Sélectionner un aéroport" />
-            </SelectTrigger>
-            <SelectContent>
-              {codeConfig?.scopes.map(scope => (
-                <SelectItem key={scope.code} value={scope.code}>
-                  {scope.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="document_type_code_import">Type de document *</Label>
-          <Select
-            value={importData.document_type_code}
-            onValueChange={(value: string) => setImportData(prev => ({ ...prev, document_type_code: value }))}
-            required
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Sélectionner un type" />
-            </SelectTrigger>
-            <SelectContent>
-              {codeConfig?.documentTypes.map(docType => (
-                <SelectItem key={docType.code} value={docType.code}>
-                  {docType.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="department_code_import">Département *</Label>
-          <Select
-            value={importData.department_code}
-            onValueChange={(value: string) => setImportData(prev => ({ ...prev, department_code: value }))}
-            required
-            disabled={!!user?.department && importData.department_code === initialDepartmentCode && initialDepartmentCode !== undefined}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Sélectionner un département" />
-            </SelectTrigger>
-            <SelectContent>
-              {codeConfig?.departments.map(dept => (
-                <SelectItem key={dept.code} value={dept.code}>
-                  {dept.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {user?.department && initialDepartmentCode !== undefined && (
-            <p className="text-xs text-gray-500">
-              Département pré-rempli ({user.department})
-            </p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="sub_department_code_import">Sous-département</Label>
-          <Select
-            value={importData.sub_department_code}
-            onValueChange={(value: string) => setImportData(prev => ({ ...prev, sub_department_code: value }))}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Sélectionner un sous-département" />
-            </SelectTrigger>
-            <SelectContent>
-              {codeConfig?.subDepartments.map(subDept => (
-                <SelectItem key={subDept.code} value={subDept.code}>
-                  {subDept.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="language_code_import">Langue *</Label>
-          <Select
-            value={importData.language_code}
-            onValueChange={(value: string) => setImportData(prev => ({ ...prev, language_code: value }))}
-            required
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Sélectionner une langue" />
-            </SelectTrigger>
-            <SelectContent>
-              {codeConfig?.languages.map(lang => (
-                <SelectItem key={lang.code} value={lang.code}>
-                  {lang.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {/* Document Code Preview for Import */}
-      <div className="space-y-2">
-        <Label>Prévisualisation du Code Documentaire</Label>
-        <Input
-          value={previewQrCodeImport}
-          readOnly
-          className="font-mono bg-gray-100 text-gray-700"
-        />
-        <p className="text-xs text-gray-500">
-          Ce code sera généré automatiquement lors de la sauvegarde.
-        </p>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="version_import">Version</Label>
-        <Input
-          id="version_import"
-          value={importData.version}
-          readOnly
-          className="bg-gray-100"
-        />
-        <p className="text-xs text-gray-500">
-          La version initiale d'un nouveau document est toujours REV:0.
-        </p>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="description-import">Description</Label>
-        <Textarea
-          id="description-import"
-          value={importData.description}
-          onChange={(e) => setImportData(prev => ({ ...prev, description: e.target.value }))}
-          placeholder="Description du document importé..."
-          rows={3}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="content-import">Contenu du document</Label>
-        <Textarea
-          id="content-import"
-          value={importData.description} // Assuming description is used as content for imported docs
-          onChange={(e) => setImportData(prev => ({ ...prev, description: e.target.value }))}
-          placeholder="Saisissez le contenu complet du document..."
-          rows={8}
-        />
-      </div>
-
-      <div className="space-y-4">
-        <Label>Source du fichier *</Label>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Upload File Section */}
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-            <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600 mb-2">
-              Glissez-déposez votre fichier ici ou cliquez pour sélectionner
-            </p>
-            <p className="text-sm text-gray-500 mb-4">
-              Formats supportés: PDF, Word, Excel, PowerPoint
-            </p>
-            <Input
-              type="file"
-              onChange={handleFileUpload}
-              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
-              className="hidden"
-              id="file-upload"
-            />
-            <Label htmlFor="file-upload" className="cursor-pointer">
-              <Button type="button" variant="outline" disabled={isTemplateSelectedOption}>
-                Sélectionner un fichier
-              </Button>
-            </Label>
-          </div>
-
-          {/* Select Template Section */}
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-            <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600 mb-2">
-              Ou choisissez un modèle existant
-            </p>
-            <p className="text-sm text-gray-500 mb-4">
-              Utilisez un modèle pré-approuvé pour démarrer
-            </p>
-            <Select value={selectedTemplateId || ''} onValueChange={handleTemplateSelect} disabled={isDirectFileUploadOption || isLoadingTemplates}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner un modèle" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">-- Aucun modèle --</SelectItem>
-                {templates.length === 0 ? (
                   <SelectItem value="no-templates" disabled>Aucun modèle disponible</SelectItem>
                 ) : (
                   templates.map(template => (
@@ -527,62 +294,295 @@ export const DocumentImportForm: React.FC = () => {
                 )}
               </SelectContent>
             </Select>
+            <p className="text-xs text-gray-500">
+              Sélectionnez un modèle pour pré-remplir les champs du document.
+            </p>
           </div>
-        </div>
 
-        {(isDirectFileUploadOption || isTemplateSelectedOption) && (
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">
-                  {selectedFile?.name || templates.find(t => t.id === selectedTemplateId)?.title || 'Fichier sélectionné'}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="titre-import">Titre du document *</Label>
+              <Input
+                id="titre-import"
+                value={importData.title}
+                onChange={(e) => setImportData(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="Entrez le titre du document"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="company_code_import">Code Société</Label>
+              <Input
+                id="company_code_import"
+                value={importData.company_code}
+                onChange={(e) => setImportData(prev => ({ ...prev, company_code: e.target.value }))}
+                placeholder="Ex: TAVTUN"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="aeroport-import">Aéroport (Scope) *</Label>
+              <Select
+                value={importData.airport}
+                onValueChange={(value: string) => setImportData(prev => ({ ...prev, airport: value }))}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner un aéroport" />
+                </SelectTrigger>
+                <SelectContent>
+                  {codeConfig?.scopes.map(scope => (
+                    <SelectItem key={scope.code} value={scope.code}>
+                      {scope.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="document_type_code_import">Type de document *</Label>
+              <Select
+                value={importData.document_type_code}
+                onValueChange={(value: string) => setImportData(prev => ({ ...prev, document_type_code: value }))}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner un type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {codeConfig?.documentTypes.map(docType => (
+                    <SelectItem key={docType.code} value={docType.code}>
+                      {docType.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="department_code_import">Département *</Label>
+              <Select
+                value={importData.department_code}
+                onValueChange={(value: string) => setImportData(prev => ({ ...prev, department_code: value }))}
+                required
+                disabled={!!user?.department && importData.department_code === initialDepartmentCode && initialDepartmentCode !== undefined}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner un département" />
+                </SelectTrigger>
+                <SelectContent>
+                  {codeConfig?.departments.map(dept => (
+                    <SelectItem key={dept.code} value={dept.code}>
+                      {dept.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {user?.department && initialDepartmentCode !== undefined && (
+                <p className="text-xs text-gray-500">
+                  Département pré-rempli ({user.department})
                 </p>
-                <p className="text-sm text-gray-500">
-                  {selectedFile ? (selectedFile.size / 1024 / 1024).toFixed(2) + ' MB' : 'Modèle sélectionné'}
-                </p>
-              </div>
-              <div className="flex space-x-2">
-                {(isDirectFileUploadOption && previewUrl) || (isTemplateSelectedOption && previewUrl) ? (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    type="button"
-                    onClick={() => window.open(previewUrl!, '_blank')}
-                  >
-                    <Eye className="w-4 h-4 mr-2" />
-                    Prévisualiser
-                  </Button>
-                ) : null}
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  type="button"
-                  onClick={() => {
-                    removeFile();
-                    setSelectedTemplateId(null);
-                  }}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="sub_department_code_import">Sous-département</Label>
+              <Select
+                value={importData.sub_department_code}
+                onValueChange={(value: string) => setImportData(prev => ({ ...prev, sub_department_code: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner un sous-département" />
+                </SelectTrigger>
+                <SelectContent>
+                  {codeConfig?.subDepartments.map(subDept => (
+                    <SelectItem key={subDept.code} value={subDept.code}>
+                      {subDept.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="language_code_import">Langue *</Label>
+              <Select
+                value={importData.language_code}
+                onValueChange={(value: string) => setImportData(prev => ({ ...prev, language_code: value }))}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner une langue" />
+                </SelectTrigger>
+                <SelectContent>
+                  {codeConfig?.languages.map(lang => (
+                    <SelectItem key={lang.code} value={lang.code}>
+                      {lang.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
-        )}
-      </div>
 
-      <div className="flex justify-end space-x-4">
-        <Button type="button" variant="outline" onClick={() => navigate('/documents')}>
-          Annuler
-        </Button>
-        <Button
-          type="submit"
-          disabled={isCreating || isUploadingFile || !importData.title.trim() || !importData.airport || !importData.document_type_code || !importData.department_code || !importData.language_code || (!selectedFile && selectedTemplateId === 'none')}
-          className="bg-aviation-sky hover:bg-aviation-sky-dark"
-        >
-          <Save className="w-4 h-4 mr-2" />
-          {isCreating || isUploadingFile ? 'Import...' : (isTemplateSelectedOption ? 'Créer et Éditer' : 'Importer et Enregistrer')}
-        </Button>
-      </div>
-    </form>
+          {/* Document Code Preview for Import */}
+          <div className="space-y-2">
+            <Label>Prévisualisation du Code Documentaire</Label>
+            <Input
+              value={previewQrCodeImport}
+              readOnly
+              className="font-mono bg-gray-100 text-gray-700"
+            />
+            <p className="text-xs text-gray-500">
+              Ce code sera généré automatiquement lors de la sauvegarde.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="version_import">Version</Label>
+            <Input
+              id="version_import"
+              value={importData.version}
+              readOnly
+              className="bg-gray-100"
+            />
+            <p className="text-xs text-gray-500">
+              La version initiale d'un nouveau document est toujours REV:0.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="description-import">Description</Label>
+            <Textarea
+              id="description-import"
+              value={importData.description}
+              onChange={(e) => setImportData(prev => ({ ...prev, description: e.target.value }))}
+              placeholder="Description du document importé..."
+              rows={3}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="content-import">Contenu du document</Label>
+            <Textarea
+              id="content-import"
+              value={importData.description} // Assuming description is used as content for imported docs
+              onChange={(e) => setImportData(prev => ({ ...prev, description: e.target.value }))}
+              placeholder="Saisissez le contenu complet du document..."
+              rows={8}
+            />
+          </div>
+
+          <div className="space-y-4">
+            <Label>Source du fichier *</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Upload File Section */}
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600 mb-2">
+                  Glissez-déposez votre fichier ici ou cliquez pour sélectionner
+                </p>
+                <p className="text-sm text-gray-500 mb-4">
+                  Formats supportés: PDF, Word, Excel, PowerPoint
+                </p>
+                <Input
+                  type="file"
+                  onChange={handleFileUpload}
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                  className="hidden"
+                  id="file-upload"
+                />
+                <Label htmlFor="file-upload" className="cursor-pointer">
+                  <Button type="button" variant="outline" disabled={isTemplateSelectedOption}>
+                    Sélectionner un fichier
+                  </Button>
+                </Label>
+              </div>
+
+              {/* Select Template Section */}
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600 mb-2">
+                  Ou choisissez un modèle existant
+                </p>
+                <p className="text-sm text-gray-500 mb-4">
+                  Utilisez un modèle pré-approuvé pour démarrer
+                </p>
+                <Select value={selectedTemplateId || ''} onValueChange={handleTemplateSelect} disabled={isDirectFileUploadOption || isLoadingTemplates}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner un modèle" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">-- Aucun modèle --</SelectItem>
+                    {templates.length === 0 ? (
+                      <SelectItem value="no-templates" disabled>Aucun modèle disponible</SelectItem>
+                    ) : (
+                      templates.map(template => (
+                        <SelectItem key={template.id} value={template.id}>
+                          {template.title} ({template.airport} - {template.document_type_code})
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {(isDirectFileUploadOption || isTemplateSelectedOption) && (
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">
+                      {selectedFile?.name || templates.find(t => t.id === selectedTemplateId)?.title || 'Fichier sélectionné'}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {selectedFile ? (selectedFile.size / 1024 / 1024).toFixed(2) + ' MB' : 'Modèle sélectionné'}
+                    </p>
+                  </div>
+                  <div className="flex space-x-2">
+                    {(isDirectFileUploadOption && previewUrl) || (isTemplateSelectedOption && previewUrl) ? (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        type="button"
+                        onClick={() => window.open(previewUrl!, '_blank')}
+                      >
+                        <Eye className="w-4 h-4 mr-2" />
+                        Prévisualiser
+                      </Button>
+                    ) : null}
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      type="button"
+                      onClick={() => {
+                        removeFile();
+                        setSelectedTemplateId(null);
+                      }}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end space-x-4">
+            <Button type="button" variant="outline" onClick={() => navigate('/documents')}>
+              Annuler
+            </Button>
+            <Button
+              type="submit"
+              disabled={isCreating || isUploadingFile || !importData.title.trim() || !importData.airport || !importData.document_type_code || !importData.department_code || !importData.language_code || (!selectedFile && selectedTemplateId === 'none')}
+              className="bg-aviation-sky hover:bg-aviation-sky-dark"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {isCreating || isUploadingFile ? 'Import...' : (isTemplateSelectedOption ? 'Créer et Éditer' : 'Importer et Enregistrer')}
+            </Button>
+          </div>
+        </form>
   );
 };
