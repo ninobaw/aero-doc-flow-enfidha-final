@@ -289,8 +289,8 @@ export const CreateFormulaireForm = () => {
             <Button type="button" variant="outline" onClick={resetForm}>
               Annuler
             </Button>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="bg-aviation-sky hover:bg-aviation-sky-dark"
               disabled={isCreating}
             >

@@ -34,7 +34,7 @@ export const CreateUserDialog = () => {
     if (!formData.email || !formData.firstName || !formData.lastName || !formData.password) {
       toast({
         title: "Erreur",
-        description: "Veuillez remplir tous les champs obligatoires",
+        description: "Veuillez remplir tous les champs obligatoires.",
         variant: "destructive"
       });
       return;
@@ -45,7 +45,7 @@ export const CreateUserDialog = () => {
     if (!emailRegex.test(formData.email)) {
       toast({
         title: "Erreur",
-        description: "Veuillez entrer une adresse email valide",
+        description: "Veuillez entrer une adresse email valide.",
         variant: "destructive"
       });
       return;
@@ -55,7 +55,7 @@ export const CreateUserDialog = () => {
     if (formData.password.length < 6) {
       toast({
         title: "Erreur",
-        description: "Le mot de passe doit contenir au moins 6 caractères",
+        description: "Le mot de passe doit contenir au moins 6 caractères.",
         variant: "destructive"
       });
       return;
