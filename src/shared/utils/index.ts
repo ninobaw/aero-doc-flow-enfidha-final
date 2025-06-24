@@ -1,4 +1,4 @@
-import { DocumentType, Priority, ActionStatus, UserRole } from '../types';
+import { DocumentType, Priority, ActionStatus, UserRole, Airport } from '../types'; // Import Airport type
 import { DOCUMENT_TYPES, PRIORITIES, ACTION_STATUS, USER_ROLES, DOCUMENT_HISTORY_ACTIONS, TASK_STATUS, USER_STATUS } from '../constants';
 
 export const formatDate = (date: Date | string): string => {
@@ -262,6 +262,16 @@ export const mapDocumentTypeCodeToDocumentTypeEnum = (code: string): DocumentTyp
     case 'MN': return DocumentType.GENERAL; 
     case 'RG': return DocumentType.GENERAL;
     default: return DocumentType.GENERAL; // Fallback
+  }
+};
+
+// New utility function to map scope codes to Airport enum values
+export const mapScopeCodeToAirportEnum = (scopeCode: string): Airport => {
+  switch (scopeCode) {
+    case 'NBE': return 'ENFIDHA';
+    case 'MIR': return 'MONASTIR';
+    case 'GEN': return 'GENERALE';
+    default: return 'ENFIDHA'; // Default to Enfidha or handle as an error
   }
 };
 

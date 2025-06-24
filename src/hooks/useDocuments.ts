@@ -104,12 +104,13 @@ export const useDocuments = () => {
       templateId: string;
       title: string;
       description?: string;
-      airport: Airport;
+      airport: Airport; // This is the enum value (ENFIDHA, MONASTIR, GENERALE)
       company_code: string;
       department_code: string;
       sub_department_code?: string;
       document_type_code: string;
       language_code: string;
+      scope_code: string; // Add scope_code here
     }) => {
       if (!user?.id) throw new Error('Utilisateur non connecté');
 
