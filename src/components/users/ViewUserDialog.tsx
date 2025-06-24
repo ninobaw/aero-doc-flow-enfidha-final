@@ -29,7 +29,7 @@ export const ViewUserDialog: React.FC<ViewUserDialogProps> = ({ user, open, onOp
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto"> {/* Added max-h-[90vh] overflow-y-auto */}
         <DialogHeader>
           <DialogTitle>Profil Utilisateur</DialogTitle>
         </DialogHeader>
