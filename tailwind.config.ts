@@ -157,8 +157,8 @@ export default {
 				},
 				'shake': { // Nouvelle keyframe pour l'animation de secousse
 					'0%, 100%': { transform: 'translateX(0)' },
-					'10%, 30%, 50%, 70%, 90%': { transform: 'translateX(-8px)' }, /* Augmenté de 5px à 8px */
-					'20%, 40%, 60%, 80%': { transform: 'translateX(8px)' }, /* Augmenté de 5px à 8px */
+					'10%, 30%, 50%, 70%, 90%': { transform: 'translateX(-10px)' }, /* Augmenté de 8px à 10px */
+					'20%, 40%, 60%, 80%': { transform: 'translateX(10px)' }, /* Augmenté de 8px à 10px */
 				},
 			},
 			animation: {
@@ -169,7 +169,7 @@ export default {
 				'fly-plane': 'fly-plane 8s ease-in-out infinite', // Nouvelle animation
 				'gradient-shift': 'gradient-shift 15s ease infinite', // Animation de dégradé
 				'bounce-in': 'bounce-in 0.8s ease-out forwards', // Appliquer la nouvelle animation
-				'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both', // Appliquer la nouvelle animation
+				'shake': 'shake 0.6s cubic-bezier(.36,.07,.19,.97) both', // Augmenté de 0.5s à 0.6s
 			},
 			backgroundImage: { // Nouvelle propriété pour l'image de fond
 				'wallpaper': "url('/assets/wallpaper.png')",
