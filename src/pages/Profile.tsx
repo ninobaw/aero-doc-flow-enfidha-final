@@ -14,7 +14,7 @@ import { ProfilePhotoUpload } from '@/components/profile/ProfilePhotoUpload';
 import { Airport } from '@/shared/types'; // Import Airport type
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import { useFileUpload } from '@/hooks/useFileUpload'; // Import useFileUpload
-import { ResetPasswordDialog } from '@/components/profile/ResetPasswordDialog'; // Import ResetPasswordDialog
+import { ChangePasswordDialog } from '@/components/profile/ChangePasswordDialog'; // Import ChangePasswordDialog
 
 const Profile = () => {
   const { user } = useAuth();
@@ -29,7 +29,7 @@ const Profile = () => {
     department: '',
   });
   const [stagedProfilePhoto, setStagedProfilePhoto] = useState<File | null | undefined>(undefined); // undefined: no change, null: remove, File: new file
-  const [isResetPasswordDialogOpen, setIsResetPasswordDialogOpen] = useState(false); // State for reset password dialog
+  const [isChangePasswordDialogOpen, setIsChangePasswordDialogOpen] = useState(false); // State for change password dialog
 
   const navigate = useNavigate(); // Initialize useNavigate
 
@@ -186,10 +186,10 @@ const Profile = () => {
                 <Button 
                   variant="outline" 
                   className="w-full mt-4" 
-                  onClick={() => setIsResetPasswordDialogOpen(true)}
+                  onClick={() => setIsChangePasswordDialogOpen(true)}
                 >
                   <Lock className="w-4 h-4 mr-2" />
-                  Réinitialiser le mot de passe
+                  Changer le mot de passe
                 </Button>
               </div>
             </CardContent>
@@ -301,10 +301,10 @@ const Profile = () => {
           </Card>
         </div>
       </div>
-      {/* Reset Password Dialog */}
-      <ResetPasswordDialog 
-        open={isResetPasswordDialogOpen} 
-        onOpenChange={setIsResetPasswordDialogOpen} 
+      {/* Change Password Dialog */}
+      <ChangePasswordDialog 
+        open={isChangePasswordDialogOpen} 
+        onOpenChange={setIsChangePasswordDialogOpen} 
       />
     </AppLayout>
   );
