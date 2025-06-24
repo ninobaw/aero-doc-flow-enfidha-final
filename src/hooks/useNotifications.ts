@@ -38,6 +38,7 @@ export const useNotifications = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      // No toast here, as marking as read is a silent action
     },
     onError: (error: any) => {
       console.error('Erreur marquage notification:', error.response?.data || error.message);
@@ -59,6 +60,7 @@ export const useNotifications = () => {
       toast({
         title: 'Notifications marquées',
         description: 'Toutes les notifications ont été marquées comme lues.',
+        variant: 'success',
       });
     },
     onError: (error: any) => {

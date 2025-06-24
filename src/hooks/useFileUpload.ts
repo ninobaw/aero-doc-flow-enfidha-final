@@ -75,6 +75,7 @@ export const useFileUpload = () => {
       toast({
         title: 'Upload réussi',
         description: 'Le fichier a été uploadé avec succès.',
+        variant: 'success',
       });
 
       return {
@@ -139,6 +140,7 @@ export const useFileUpload = () => {
       toast({
         title: 'Modèle uploadé',
         description: 'Le modèle a été uploadé avec succès.',
+        variant: 'success',
       });
 
       return {
@@ -181,6 +183,7 @@ export const useFileUpload = () => {
       toast({
         title: 'Modèle copié',
         description: 'Le modèle a été copié pour le nouveau document.',
+        variant: 'success',
       });
 
       return {
@@ -210,6 +213,7 @@ export const useFileUpload = () => {
       toast({
         title: 'Fichier supprimé',
         description: 'Le fichier a été supprimé avec succès.',
+        variant: 'success', // Changed to success as it's a successful deletion
       });
 
       return true;

@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext'; // Correction: '=>' remplacé par 'from'
+import { useAuth } from '@/contexts/AuthContext';
 import { Airport } from '@/shared/types';
 
 const API_BASE_URL = 'http://localhost:5000/api';
@@ -79,6 +79,7 @@ export const useTemplates = () => {
       toast({
         title: 'Modèle créé',
         description: 'Le modèle de document a été créé avec succès.',
+        variant: 'success',
       });
     },
     onError: (error: any) => {
@@ -100,6 +101,7 @@ export const useTemplates = () => {
       toast({
         title: 'Modèle supprimé',
         description: 'Le modèle de document a été supprimé avec succès.',
+        variant: 'destructive',
       });
     },
     onError: (error: any) => {
