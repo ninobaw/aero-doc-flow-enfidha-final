@@ -27,7 +27,7 @@ export const LoginForm = () => {
         variant: "destructive"
       });
       setIsShaking(true); // Déclenche l'animation
-      setTimeout(() => setIsShaking(false), 500); // Réinitialise après 500ms
+      setTimeout(() => setIsShaking(false), 700); // Réinitialise après 700ms (correspond à la durée de l'animation)
       return;
     }
 
@@ -40,7 +40,7 @@ export const LoginForm = () => {
         variant: "destructive"
       });
       setIsShaking(true); // Déclenche l'animation
-      setTimeout(() => setIsShaking(false), 500); // Réinitialise après 500ms
+      setTimeout(() => setIsShaking(false), 700); // Réinitialise après 700ms
     }
   };
 
