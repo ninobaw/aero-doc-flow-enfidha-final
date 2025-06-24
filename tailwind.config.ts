@@ -160,6 +160,10 @@ export default {
 					'10%, 30%, 50%, 70%, 90%': { transform: 'translateX(-15px)' }, /* Augmenté de 10px à 15px */
 					'20%, 40%, 60%, 80%': { transform: 'translateX(15px)' }, /* Augmenté de 10px à 15px */
 				},
+				'toast-progress': { // Nouvelle keyframe pour l'animation de la barre de progression des toasts
+					from: { width: '100%' },
+					to: { width: '0%' },
+				},
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
@@ -170,6 +174,7 @@ export default {
 				'gradient-shift': 'gradient-shift 15s ease infinite', // Animation de dégradé
 				'bounce-in': 'bounce-in 0.8s ease-out forwards', // Appliquer la nouvelle animation
 				'shake': 'shake 0.7s cubic-bezier(.36,.07,.19,.97) both', // Augmenté de 0.6s à 0.7s
+				'toast-progress': 'toast-progress linear forwards', // Supprimé la durée ici
 			},
 			backgroundImage: { // Nouvelle propriété pour l'image de fond
 				'wallpaper': "url('/assets/wallpaper.png')",

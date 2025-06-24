@@ -25,7 +25,7 @@ const ToastViewport = React.forwardRef<
 ToastViewport.displayName = ToastPrimitives.Viewport.displayName
 
 const toastVariants = cva(
-  "group grid items-center gap-1 rounded-md border p-4 text-sm shadow-lg transition-all data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=open]:slide-in-from-top-full data-[state=open]:sm:slide-in-from-bottom-full data-[state=closed]:slide-out-to-right-full data-[swipe=end]:slide-out-to-right-full data-[swipe=cancel]:translate-x-0 data-[duration=long]:duration-1000 data-[duration=short]:duration-500",
+  "group grid items-center gap-1 rounded-md border p-4 text-sm shadow-lg transition-all data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=open]:slide-in-from-top-full data-[state=open]:sm:slide-in-from-bottom-full data-[state=closed]:slide-out-to-right-full data-[swipe=end]:slide-out-to-right-full data-[swipe=cancel]:translate-x-0 data-[duration=long]:duration-1000 data-[duration=short]:duration-500 overflow-hidden", // Added overflow-hidden here
   {
     variants: {
       variant: {
