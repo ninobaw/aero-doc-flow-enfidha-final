@@ -99,6 +99,44 @@ export const useDocuments = () => {
     },
   });
 
+  const createDocumentFromTemplate = useMutation({
+    mutationFn: async (data: {
+      templateId: string;
+      title: string;
+      description?: string;
+      airport: Airport;
+      company_code: string;
+      department_code: string;
+      sub_department_code?: string;
+      document_type_code: string;
+      language_code: string;
+    }) => {
+      if (!user?.id) throw new Error('Utilisateur non connecté');
+
+      const response = await axios.post(`${API_BASE_URL}/documents/from-template`, {
+        ...data,
+        author_id: user.id,
+      });
+      return response.data; // Should return the newly created document object
+    },
+    onSuccess: (newDocument) => {
+      queryClient.invalidateQueries({ queryKey: ['documents'] });
+      toast({
+        title: 'Document créé à partir du modèle',
+        description: `Le document "${newDocument.title}" a été créé et est prêt à être édité.`,
+        variant: 'success',
+      });
+    },
+    onError: (error: any) => {
+      console.error('Erreur création document depuis modèle:', error.response?.data || error.message);
+      toast({
+        title: 'Erreur',
+        description: error.response?.data?.message || error.message || 'Impossible de créer le document à partir du modèle.',
+        variant: 'destructive',
+      });
+    },
+  });
+
   const updateDocument = useMutation({
     mutationFn: async ({ id, ...updates }: { 
       id: string;
@@ -171,9 +209,10 @@ export const useDocuments = () => {
     isLoading,
     error,
     createDocument: createDocument.mutate,
+    createDocumentFromTemplate: createDocumentFromTemplate.mutate,
     updateDocument: updateDocument.mutate,
     deleteDocument: deleteDocument.mutate,
-    isCreating: createDocument.isPending,
+    isCreating: createDocument.isPending || createDocumentFromTemplate.isPending, // Combine pending states
     isUpdating: updateDocument.isPending,
     isDeleting: deleteDocument.isPending,
   };
