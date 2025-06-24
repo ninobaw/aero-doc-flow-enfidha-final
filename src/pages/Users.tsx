@@ -29,7 +29,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Users as UsersIcon, Settings, Shield, Search, Eye, Edit, MoreHorizontal, Trash2 } from 'lucide-react';
+import { Users as UsersIcon, Settings, Shield, Search, Eye, Edit, MoreHorizontal, Trash2, Power } from 'lucide-react'; // Import Power icon
 import { CreateUserDialog } from '@/components/users/CreateUserDialog';
 import { EditUserDialog } from '@/components/users/EditUserDialog';
 import { ViewUserDialog } from '@/components/users/ViewUserDialog';
@@ -254,16 +254,12 @@ const Users = () => {
                                 <Edit className="mr-2 h-4 w-4" />
                                 Modifier
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="cursor-pointer">
-                                <Settings className="mr-2 h-4 w-4" />
-                                Permissions
-                              </DropdownMenuItem>
                               <DropdownMenuItem 
-                                className="cursor-pointer text-red-600"
+                                className="cursor-pointer"
                                 onClick={() => handleToggleUserStatus(user.id)}
                               >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                {user.isActive ? 'Désactiver' : 'Activer'}
+                                <Power className="mr-2 h-4 w-4" /> {/* Changed icon to Power */}
+                                {user.isActive ? 'Désactiver le compte' : 'Activer le compte'} {/* Changed text */}
                               </DropdownMenuItem>
                               <DropdownMenuItem 
                                 className="cursor-pointer text-red-600"
@@ -271,7 +267,7 @@ const Users = () => {
                                 disabled={isDeleting}
                               >
                                 <Trash2 className="mr-2 h-4 w-4" />
-                                Supprimer
+                                Supprimer définitivement
                               </DropdownMenuItem>
                             </>
                           )}

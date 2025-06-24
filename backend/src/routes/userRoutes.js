@@ -127,18 +127,18 @@ router.put('/:id/change-password', async (req, res) => {
 });
 
 
-// DELETE /api/users/:id (soft delete by setting isActive to false)
+// DELETE /api/users/:id (now performs a hard delete)
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
 
   try {
-    const user = await User.findByIdAndUpdate(id, { isActive: false }, { new: true });
+    const user = await User.findByIdAndDelete(id); // Changed to findByIdAndDelete
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    res.json({ message: 'User deactivated successfully', user: formatUserResponse(user) });
+    res.status(204).send(); // 204 No Content for successful deletion
   } catch (error) {
-    console.error('Error deactivating user:', error);
+    console.error('Error deleting user:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

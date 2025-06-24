@@ -97,21 +97,22 @@ export const useUsers = () => {
 
   const deleteUser = useMutation({
     mutationFn: async (id: string) => {
+      // Changed from soft delete (isActive: false) to hard delete
       await axios.delete(`${API_BASE_URL}/users/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
       toast({
-        title: 'Utilisateur désactivé',
-        description: 'L\'utilisateur a été désactivé avec succès.',
-        variant: 'success', // Explicitly set to success for deactivation
+        title: 'Utilisateur supprimé',
+        description: 'L\'utilisateur a été supprimé définitivement.',
+        variant: 'destructive', // Explicitly set to destructive for permanent delete
       });
     },
     onError: (error: any) => {
-      console.error('Erreur désactivation utilisateur:', error.response?.data || error.message);
+      console.error('Erreur suppression utilisateur:', error.response?.data || error.message);
       toast({
         title: 'Erreur',
-        description: error.response?.data?.message || error.message || 'Impossible de désactiver l\'utilisateur.',
+        description: error.response?.data?.message || error.message || 'Impossible de supprimer l\'utilisateur.',
         variant: 'destructive',
       });
       },
