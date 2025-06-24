@@ -40,6 +40,7 @@ export const useDocumentCodeConfig = () => {
       toast({
         title: 'Configuration mise à jour',
         description: 'La configuration des codes documentaires a été mise à jour avec succès.',
+        variant: 'success',
       });
     },
     onError: (err: any) => {

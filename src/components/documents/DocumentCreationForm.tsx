@@ -95,6 +95,7 @@ export const DocumentCreationForm: React.FC = () => {
       toast({
         title: 'Modèle chargé',
         description: `Le modèle "${template.title}" a été chargé dans le formulaire.`,
+        variant: 'info', // Changed to info
       });
     } else {
       // If "Aucun modèle" is selected or template not found, clear relevant fields
@@ -153,6 +154,7 @@ export const DocumentCreationForm: React.FC = () => {
         toast({
           title: 'Document créé',
           description: 'Le document a été créé avec succès.',
+          variant: 'success',
         });
         navigate('/documents');
       }
