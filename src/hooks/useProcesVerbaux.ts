@@ -93,6 +93,7 @@ export const useProcesVerbaux = () => {
       toast({
         title: 'Procès-verbal créé',
         description: 'Le procès-verbal a été créé avec succès.',
+        variant: 'success',
       });
     },
     onError: (error: any) => {
@@ -115,6 +116,7 @@ export const useProcesVerbaux = () => {
       toast({
         title: 'Procès-verbal mis à jour',
         description: 'Le procès-verbal a été mis à jour avec succès.',
+        variant: 'success',
       });
     },
     onError: (error: any) => {
@@ -136,6 +138,7 @@ export const useProcesVerbaux = () => {
       toast({
         title: 'Procès-verbal supprimé',
         description: 'Le procès-verbal a été supprimé avec succès.',
+        variant: 'destructive',
       });
     },
     onError: (error: any) => {
@@ -154,7 +157,7 @@ export const useProcesVerbaux = () => {
     error,
     createProcesVerbal: createProcesVerbal.mutate,
     updateProcesVerbal: updateProcesVerbal.mutate,
-    deleteProcesVerbal: deleteProcesVerbal.mutate, // Expose delete mutation
+    deleteProcesVerbal: deleteProcesVerbal.mutate,
     isCreating: createProcesVerbal.isPending,
     isUpdating: updateProcesVerbal.isPending,
     isDeleting: deleteProcesVerbal.isPending,

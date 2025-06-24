@@ -63,7 +63,7 @@ export const useActions = () => {
       toast({
         title: 'Action créée',
         description: 'L\'action a été créée avec succès.',
-        variant: 'success', // Ajout de la variante success
+        variant: 'success',
       });
     },
     onError: (error: any) => {
@@ -86,7 +86,7 @@ export const useActions = () => {
       toast({
         title: 'Action mise à jour',
         description: 'L\'action a été mise à jour avec succès.',
-        variant: 'success', // Ajout de la variante success
+        variant: 'success',
       });
     },
     onError: (error: any) => {
