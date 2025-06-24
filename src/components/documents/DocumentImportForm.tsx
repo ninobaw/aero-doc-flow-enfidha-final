@@ -131,6 +131,29 @@ export const DocumentImportForm: React.FC = () => {
       if (template.file_path) {
         setPreviewUrl(getAbsoluteFilePath(template.file_path)); // Use getAbsoluteFilePath
       }
+      toast({
+        title: 'Modèle chargé',
+        description: `Le modèle "${template.title}" a été chargé dans le formulaire.`,
+        variant: 'info',
+      });
+    } else {
+      // If "Aucun modèle" is selected or template not found, clear relevant fields
+      setImportData(prev => ({
+        ...prev,
+        title: '',
+        description: '',
+        // Reset codification fields to defaults or user's department
+        airport: user?.airport || 'ENFIDHA',
+        document_type_code: undefined,
+        department_code: initialDepartmentCode,
+        sub_department_code: undefined,
+        language_code: 'FR',
+      }));
+      toast({
+        title: 'Modèle désélectionné',
+        description: 'Les champs du formulaire ont été réinitialisés.',
+        variant: 'info',
+      });
     }
   };
 
@@ -175,7 +198,7 @@ export const DocumentImportForm: React.FC = () => {
       } else {
         return; // Stop if file upload failed
       }
-    } else if (selectedTemplateId) {
+    } else if (selectedTemplateId && selectedTemplateId !== 'none') {
       const template = templates.find(t => t.id === selectedTemplateId);
       if (template && template.file_path && template.file_type) {
         const documentTypeEnum = mapDocumentTypeCodeToDocumentTypeEnum(importData.document_type_code!);
@@ -235,6 +258,7 @@ export const DocumentImportForm: React.FC = () => {
         toast({
           title: 'Document importé',
           description: 'Le document a été importé et enregistré avec succès.',
+          variant: 'success',
         });
         navigate('/documents');
       }
@@ -252,6 +276,34 @@ export const DocumentImportForm: React.FC = () => {
 
   return (
     <form onSubmit={handleFileSubmit} className="space-y-6">
+      <div className="space-y-2">
+        <Label htmlFor="select-template">Charger depuis un modèle</Label>
+        <Select
+          value={selectedTemplateId || ''}
+          onValueChange={handleTemplateSelect}
+          disabled={isLoadingTemplates}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Sélectionner un modèle existant" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">-- Aucun modèle --</SelectItem>
+            {templates.length === 0 ? (
+              <SelectItem value="no-templates" disabled>Aucun modèle disponible</SelectItem>
+            ) : (
+              templates.map(template => (
+                <SelectItem key={template.id} value={template.id}>
+                  {template.title} ({template.airport} - {template.document_type_code})
+                </SelectItem>
+              ))
+            )}
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-gray-500">
+          Sélectionnez un modèle pour pré-remplir les champs du document.
+        </p>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
           <Label htmlFor="titre-import">Titre du document *</Label>
@@ -417,6 +469,17 @@ export const DocumentImportForm: React.FC = () => {
         />
       </div>
 
+      <div className="space-y-2">
+        <Label htmlFor="content-import">Contenu du document</Label>
+        <Textarea
+          id="content-import"
+          value={importData.description} // Assuming description is used as content for imported docs
+          onChange={(e) => setImportData(prev => ({ ...prev, description: e.target.value }))}
+          placeholder="Saisissez le contenu complet du document..."
+          rows={8}
+        />
+      </div>
+
       <div className="space-y-4">
         <Label>Source du fichier *</Label>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -457,12 +520,13 @@ export const DocumentImportForm: React.FC = () => {
                 <SelectValue placeholder="Sélectionner un modèle" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="none">-- Aucun modèle --</SelectItem>
                 {templates.length === 0 ? (
                   <SelectItem value="no-templates" disabled>Aucun modèle disponible</SelectItem>
                 ) : (
                   templates.map(template => (
                     <SelectItem key={template.id} value={template.id}>
-                      {template.title} ({template.airport})
+                      {template.title} ({template.airport} - {template.document_type_code})
                     </SelectItem>
                   ))
                 )}
@@ -517,7 +581,7 @@ export const DocumentImportForm: React.FC = () => {
         </Button>
         <Button
           type="submit"
-          disabled={isCreating || isUploadingFile || !importData.title.trim() || !importData.airport || !importData.document_type_code || !importData.department_code || !importData.language_code || (!selectedFile && !selectedTemplateId)}
+          disabled={isCreating || isUploadingFile || !importData.title.trim() || !importData.airport || !importData.document_type_code || !importData.department_code || !importData.language_code || (!selectedFile && selectedTemplateId === 'none')}
           className="bg-aviation-sky hover:bg-aviation-sky-dark"
         >
           <Save className="w-4 h-4 mr-2" />
