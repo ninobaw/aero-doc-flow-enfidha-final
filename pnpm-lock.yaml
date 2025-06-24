@@ -116,7 +116,7 @@ importers:
       '@syncfusion/ej2-react-popups':
         specifier: ^29.2.8
         version: 29.2.8
-      '@syncfusion/ej2-splitbuttons':
+      '@syncfusion/ej2-react-splitbuttons':
         specifier: ^29.2.4
         version: 29.2.4
       '@tanstack/react-query':
@@ -1567,6 +1567,9 @@ packages:
 
   '@syncfusion/ej2-react-popups@29.2.8':
     resolution: {integrity: sha512-zrpTi6KJWEXaixo8bk7fws0VbYhJCyS+vDkTj8kviqM1h0qj4iUDpCveeRNoclQGVBRtb6haFZIxQbPeRPQ3NA==}
+
+  '@syncfusion/ej2-react-splitbuttons@29.2.4':
+    resolution: {integrity: sha512-NQ13W2ytr6VP7qz9Ii5GME5txKV0vxPkvUBbr57vevITjcjBHAQz3DkEg2dQl9A+kNaXiZpO1/gKu5klusF/Ww==}
 
   '@syncfusion/ej2-splitbuttons@29.2.4':
     resolution: {integrity: sha512-sZKs0IZJ6+rDK2OLRl+m5Rs1ai84GE9NV2hpDG5CPFv5uM5WoOf33qYOyp6BSuBerpobpycoXDWH/mh1fZSCDw==}
@@ -4395,6 +4398,12 @@ snapshots:
       '@syncfusion/ej2-base': 29.2.11
       '@syncfusion/ej2-popups': 29.2.8
       '@syncfusion/ej2-react-base': 29.2.4
+
+  '@syncfusion/ej2-react-splitbuttons@29.2.4':
+    dependencies:
+      '@syncfusion/ej2-base': 29.2.11
+      '@syncfusion/ej2-react-base': 29.2.4
+      '@syncfusion/ej2-splitbuttons': 29.2.4
 
   '@syncfusion/ej2-splitbuttons@29.2.4':
     dependencies:
