@@ -24,8 +24,6 @@ const UserSchema = new Schema({
   department: { type: String },
   position: { type: String },
   lastLogin: { type: Date },
-  resetPasswordToken: { type: String }, // Nouveau champ pour le jeton de réinitialisation
-  resetPasswordExpires: { type: Date }, // Nouveau champ pour la date d'expiration du jeton
 }, { timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' } });
 
 const User = model('User', UserSchema);

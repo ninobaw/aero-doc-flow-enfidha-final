@@ -22,7 +22,6 @@ import Profile from "./pages/Profile";
 import Templates from "./pages/Templates";
 import AuditLogs from "./pages/AuditLogs";
 import OnlyOfficeEditorPage from "./pages/OnlyOfficeEditorPage"; // Import the new page
-import ResetPasswordPage from "./pages/ResetPasswordPage"; // Import the new ResetPasswordPage
 
 const queryClient = new QueryClient();
 
@@ -104,7 +103,6 @@ const App = () => (
                 <Profile />
               </ProtectedRoute>
             } />
-            <Route path="/reset-password" element={<ResetPasswordPage />} /> {/* New route for password reset */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

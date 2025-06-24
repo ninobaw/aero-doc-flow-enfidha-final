@@ -69,7 +69,30 @@ export const useProfile = () => {
       console.error('useProfile: Erreur mise à jour profil:', error.response?.data || error.message);
       toast({
         title: 'Erreur',
-        description: error.response?.data?.message || error.message || 'Impossible de mettre à jour le profil.',
+        description: error.response?.data?.message || 'Impossible de mettre à jour le profil.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const changePassword = useMutation({
+    mutationFn: async ({ currentPassword, newPassword }: { currentPassword: string; newPassword: string }) => {
+      if (!user?.id) throw new Error('Utilisateur non connecté');
+      const response = await axios.put(`${API_BASE_URL}/users/${user.id}/change-password`, { currentPassword, newPassword });
+      return response.data;
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Mot de passe changé',
+        description: 'Votre mot de passe a été changé avec succès.',
+        variant: 'success',
+      });
+    },
+    onError: (error: any) => {
+      console.error('useProfile: Erreur changement mot de passe:', error.response?.data || error.message);
+      toast({
+        title: 'Erreur',
+        description: error.response?.data?.message || 'Impossible de changer le mot de passe. Vérifiez votre mot de passe actuel.',
         variant: 'destructive',
       });
     },
@@ -81,5 +104,7 @@ export const useProfile = () => {
     error,
     updateProfile: updateProfile.mutate,
     isUpdating: updateProfile.isPending,
+    changePassword: changePassword.mutate,
+    isChangingPassword: changePassword.isPending,
   };
 };
