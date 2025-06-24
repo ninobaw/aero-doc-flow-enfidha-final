@@ -175,12 +175,21 @@ router.post('/track', async (req, res) => {
       console.log(`OnlyOffice: Document ${document.title} (ID: ${documentId}) saved to ${targetFilePath}`);
 
       // Update document in MongoDB
+      const updates = {
+        $inc: { version: 1 }, // Increment version
+        updatedAt: new Date(), // Update modification timestamp
+      };
+
+      // If the document was in DRAFT status, change it to ACTIVE after the first save
+      // This assumes the first save from OnlyOffice means the document is ready.
+      // You might want a 'PENDING_APPROVAL' status here instead if there's an approval workflow.
+      if (document.status === 'DRAFT') {
+        updates.status = 'ACTIVE'; // Or 'PENDING_APPROVAL'
+      }
+
       const updatedDocument = await Document.findByIdAndUpdate(
         documentId,
-        {
-          $inc: { version: 1 }, // Increment version
-          updatedAt: new Date(), // Update modification timestamp
-        },
+        updates,
         { new: true }
       );
 

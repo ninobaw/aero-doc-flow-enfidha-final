@@ -4,6 +4,8 @@ const { User } = require('../models/User.js');
 const { DocumentCodeConfig } = require('../models/DocumentCodeConfig.js');
 const { ActivityLog } = require('../models/ActivityLog.js');
 const { v4: uuidv4 } = require('uuid');
+const fs = require('fs');
+const path = require('path');
 
 const router = Router();
 
@@ -179,6 +181,115 @@ router.post('/', async (req, res) => {
   }
 });
 
+// POST /api/documents/from-template - Create a new document by copying a template file
+router.post('/from-template', async (req, res) => {
+  const { 
+    templateId, title, description, author_id, airport, 
+    company_code, department_code, sub_department_code,
+    document_type_code, language_code
+  } = req.body;
+
+  if (!templateId || !title || !author_id || !airport || !company_code || !department_code || !document_type_code || !language_code) {
+    return res.status(400).json({ message: 'Missing required fields for document creation from template.' });
+  }
+
+  try {
+    const template = await Document.findById(templateId);
+    if (!template || !template.isTemplate || !template.filePath) {
+      return res.status(404).json({ message: 'Template not found or invalid.' });
+    }
+
+    // Determine the target directory for the new document
+    const uploadsDir = path.join(__dirname, '../../uploads');
+    const documentTypeFolder = template.type; // Use template's type for folder structure
+    const scopeFolder = airport; // Use the selected airport as scope folder
+    const departmentFolder = department_code; // Use the selected department code
+
+    const targetDir = path.join(uploadsDir, scopeFolder, departmentFolder, documentTypeFolder);
+    
+    // Ensure the target directory exists
+    fs.mkdirSync(targetDir, { recursive: true });
+
+    const fileName = path.basename(template.filePath);
+    const newFileName = `${uuidv4()}-${fileName}`; // Ensure unique name for the copy
+    const destinationPath = path.join(targetDir, newFileName);
+    const relativeFilePath = path.relative(uploadsDir, destinationPath);
+
+    // Copy the template file
+    await fs.promises.copyFile(path.join(uploadsDir, template.filePath), destinationPath);
+
+    // Generate new document code and sequence number
+    const { qrCode, sequence_number } = await generateDocumentCodeAndSequence(
+      company_code,
+      airport, // Use selected airport as scope_code for the new document
+      department_code,
+      sub_department_code,
+      document_type_code,
+      language_code
+    );
+
+    const newDocument = new Document({
+      _id: uuidv4(),
+      title,
+      type: template.type, // Keep the type from the template
+      content: description, // Use description as content
+      authorId: author_id,
+      airport,
+      filePath: relativeFilePath, // Save the path to the copied file
+      fileType: template.fileType, // Keep the file type from the template
+      qrCode, // Use the newly generated QR code
+      version: 0, // Start with version 0 (REV:0) for a new document
+      status: 'DRAFT', // New documents from template start as DRAFT
+      viewsCount: 0,
+      downloadsCount: 0,
+      company_code,
+      scope_code: airport, // Use selected airport as scope_code
+      department_code,
+      sub_department_code,
+      document_type_code,
+      language_code,
+      sequence_number,
+      isTemplate: false, // This is a new document, not a template
+    });
+
+    await newDocument.save();
+    
+    // Re-fetch the document by ID and populate to ensure correct population
+    const populatedDocument = await Document.findById(newDocument._id)
+      .populate('authorId', 'firstName lastName')
+      .populate('approvedBy', 'firstName lastName');
+    
+    // Log document creation from template
+    await ActivityLog.create({
+      _id: uuidv4(),
+      action: 'DOCUMENT_CREATED_FROM_TEMPLATE',
+      details: `Document "${populatedDocument.title}" (ID: ${populatedDocument._id}) créé à partir du modèle "${template.title}".`,
+      entityId: populatedDocument._id,
+      entityType: 'DOCUMENT',
+      userId: author_id,
+      timestamp: new Date(),
+    });
+
+    const formattedDocument = {
+      ...populatedDocument.toObject(),
+      id: populatedDocument._id,
+      author: populatedDocument.authorId ? {
+        first_name: populatedDocument.authorId.firstName,
+        last_name: populatedDocument.authorId.lastName,
+      } : null,
+      approved_by: populatedDocument.approvedBy ? {
+        first_name: populatedDocument.approvedBy.firstName,
+        last_name: populatedDocument.approvedBy.lastName,
+      } : null,
+      approved_at: populatedDocument.approvedAt ? populatedDocument.approvedAt.toISOString() : null,
+    };
+    res.status(201).json(formattedDocument);
+  } catch (error) {
+    console.error('Error creating document from template:', error);
+    res.status(500).json({ message: error.message || 'Server error' });
+  }
+});
+
 // PUT /api/documents/:id
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
@@ -222,7 +333,7 @@ router.put('/:id', async (req, res) => {
         details: `Document "${oldDocument.title}" (ID: ${oldDocument._id}) approuvé.`,
         entityId: oldDocument._id,
         entityType: 'DOCUMENT',
-        userId: updates.approvedBy, // Use the actual approver ID
+        userId: req.user ? req.user.id : 'system', // Assuming req.user from auth middleware
         timestamp: new Date(),
       });
     } else if (updates.status !== 'ACTIVE' && oldDocument.status === 'ACTIVE') {
