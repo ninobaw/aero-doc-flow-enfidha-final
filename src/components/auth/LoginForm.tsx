@@ -34,11 +34,7 @@ export const LoginForm = () => {
     const success = await login(email, password);
     
     if (!success) {
-      toast({
-        title: "Erreur de connexion",
-        description: "Email ou mot de passe incorrect.",
-        variant: "destructive"
-      });
+      // Le toast d'erreur est déjà géré par le hook useAuth
       setIsShaking(true); // Déclenche l'animation
       setTimeout(() => setIsShaking(false), 700); // Réinitialise après 700ms
     }
