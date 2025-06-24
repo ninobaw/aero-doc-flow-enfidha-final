@@ -19,6 +19,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Users as UsersIcon, Settings, Shield, Search, Eye, Edit, MoreHorizontal, Trash2 } from 'lucide-react';
 import { CreateUserDialog } from '@/components/users/CreateUserDialog';
 import { EditUserDialog } from '@/components/users/EditUserDialog';
@@ -33,8 +43,9 @@ const Users = () => {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [userToDeleteId, setUserToDeleteId] = useState<string | null>(null); // State for user to delete
   
-  const { users, isLoading, updateUser, deleteUser } = useUsers();
+  const { users, isLoading, updateUser, deleteUser, isDeleting } = useUsers();
   const { user: currentUser, hasPermission } = useAuth();
 
   const handleToggleUserStatus = (userId: string) => {
@@ -52,6 +63,17 @@ const Users = () => {
   const handleEditUser = (user: any) => {
     setSelectedUser(user);
     setEditDialogOpen(true);
+  };
+
+  const handleDeleteClick = (userId: string) => {
+    setUserToDeleteId(userId);
+  };
+
+  const handleConfirmDelete = () => {
+    if (userToDeleteId) {
+      deleteUser(userToDeleteId);
+      setUserToDeleteId(null); // Reset the state
+    }
   };
 
   const getRoleBadge = (role: string) => {
@@ -243,6 +265,14 @@ const Users = () => {
                                 <Trash2 className="mr-2 h-4 w-4" />
                                 {user.isActive ? 'Désactiver' : 'Activer'}
                               </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                className="cursor-pointer text-red-600"
+                                onClick={() => handleDeleteClick(user.id)}
+                                disabled={isDeleting}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Supprimer
+                              </DropdownMenuItem>
                             </>
                           )}
                         </DropdownMenuContent>
@@ -270,6 +300,24 @@ const Users = () => {
             />
           </>
         )}
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={!!userToDeleteId} onOpenChange={(open) => !open && setUserToDeleteId(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Êtes-vous absolument sûr ?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Cette action est irréversible. Cela supprimera définitivement l'utilisateur et toutes les données associées de nos serveurs.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isDeleting}>Annuler</AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirmDelete} disabled={isDeleting} className="bg-red-600 hover:bg-red-700">
+                {isDeleting ? 'Suppression...' : 'Supprimer'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AppLayout>
   );
