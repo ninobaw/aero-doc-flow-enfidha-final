@@ -5,8 +5,8 @@ import type {
   ToastProps,
 } from "@/components/ui/toast"
 
-const TOAST_LIMIT = 3 // Changed from 1 to 3
-const TOAST_REMOVE_DELAY = 5000 // Changed from 1000000 to 5000 (5 seconds)
+const TOAST_LIMIT = 3
+const TOAST_REMOVE_DELAY = 5000 // 5 secondes pour l'auto-fermeture
 
 type ToasterToast = ToastProps & {
   id: string
@@ -74,7 +74,7 @@ const addToRemoveQueue = (toastId: string) => {
 export const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case "ADD_TOAST":
-      console.log("TOAST_DEBUG: ADD_TOAST action dispatched:", action.toast.id, action.toast.title); // NOUVEAU LOG
+      console.log("TOAST_DEBUG: ADD_TOAST action dispatched:", action.toast.id, action.toast.title);
       return {
         ...state,
         toasts: [action.toast, ...state.toasts].slice(0, TOAST_LIMIT),
@@ -142,7 +142,7 @@ type Toast = Omit<ToasterToast, "id">
 
 function toast({ ...props }: Toast) {
   const id = genId()
-  console.log("TOAST_INVOCATION_DEBUG: toast() function called with title:", props.title, "and variant:", props.variant); // NOUVEAU LOG
+  console.log("TOAST_INVOCATION_DEBUG: toast() function called with title:", props.title, "and variant:", props.variant);
 
   const update = (props: ToasterToast) =>
     dispatch({
