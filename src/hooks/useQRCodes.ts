@@ -97,7 +97,8 @@ export const useQRCodes = () => {
       queryClient.invalidateQueries({ queryKey: ['correspondances'] }); // Invalidate correspondences too
       toast({
         title: "QR Code généré",
-        description: "Un nouveau QR code a été généré pour ce document/correspondance."
+        description: "Un nouveau QR code a été généré pour ce document/correspondance.",
+        variant: 'success',
       });
     },
     onError: (error: any) => {
