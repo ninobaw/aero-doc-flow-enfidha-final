@@ -64,10 +64,8 @@ export const EditUserDialog: React.FC<EditUserDialogProps> = ({ user, open, onOp
     updateUser({ id: user.id, ...formData }, {
       onSuccess: () => {
         onOpenChange(false);
-        toast({
-          title: "Utilisateur modifié",
-          description: "L'utilisateur a été modifié avec succès"
-        });
+        // Removed the duplicate toast call here.
+        // The toast is now handled directly within the useUsers hook's mutation onSuccess.
       }
     });
   };
