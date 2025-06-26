@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Lock, User, Plane, Loader2 } from 'lucide-react'; // Import Loader2
+import { Lock, User, Plane, Loader2, Eye, EyeOff } from 'lucide-react'; // Import Eye and EyeOff
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -15,6 +15,7 @@ export const LoginForm = () => {
   const [password, setPassword] = useState('');
   const [isShaking, setIsShaking] = useState(false); // Nouveau state pour l'animation
   const [isForgotPasswordDialogOpen, setIsForgotPasswordDialogOpen] = useState(false); // State for forgot password dialog
+  const [showPassword, setShowPassword] = useState(false); // New state for password visibility
   const { login, isLoading } = useAuth();
   const { toast } = useToast();
 
@@ -92,13 +93,27 @@ export const LoginForm = () => {
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
                   id="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"} // Dynamic type
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="pl-10"
+                  className="pl-10 pr-10" // Add padding for the eye icon
                   disabled={isLoading}
                 />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  disabled={isLoading}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-gray-500" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-gray-500" />
+                  )}
+                </Button>
               </div>
             </div>
 
