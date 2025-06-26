@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import dyadComponentTagger from '@dyad-sh/react-vite-component-tagger';
 // import { componentTagger } from "lovable-tagger"; // Supprimé pour éviter toute interférence
 
 // https://vitejs.dev/config/
@@ -9,7 +10,7 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
   },
-  plugins: [
+  plugins: [dyadComponentTagger(), 
     react({
       jsxRuntime: 'automatic' // Explicitement défini le runtime JSX
     }),
