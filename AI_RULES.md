@@ -11,7 +11,7 @@ This document outlines the core technologies used in the AeroDoc project and pro
 *   **Styling**: Tailwind CSS
 *   **Routing**: React Router (specifically `react-router-dom`)
 *   **State Management & Data Fetching**: TanStack Query
-*   **Backend & Database**: Supabase (PostgreSQL, Authentication, Storage, Edge Functions)
+*   **Backend & Database**: Node.js (Express.js), MongoDB (Mongoose)
 *   **Icons**: Lucide React
 *   **Form Management**: React Hook Form
 *   **Date Utilities**: date-fns
@@ -42,10 +42,10 @@ To maintain a consistent and efficient codebase, please follow these specific gu
     *   **Management & Validation**: Use `react-hook-form` for building and managing forms, including validation.
 
 7.  **Backend Interactions**:
-    *   **Supabase Client**: All interactions with the backend (database queries, authentication, file storage) must be done using the `supabase` client instance from `src/integrations/supabase/client.ts`.
-    *   **Authentication**: Handle user authentication (login, logout, session management) via Supabase Auth.
-    *   **Database Operations**: Perform CRUD operations on the PostgreSQL database via Supabase client methods.
-    *   **File Storage**: Manage file uploads and downloads using Supabase Storage.
+    *   **Node.js/Express.js Backend**: All interactions with the backend (database queries, authentication, file storage) must be done via the custom Node.js/Express.js API.
+    *   **Authentication**: Handle user authentication (login, logout, session management) via your custom backend routes.
+    *   **Database Operations**: Perform CRUD operations on the MongoDB database via Mongoose.
+    *   **File Storage**: Manage file uploads and downloads using Multer and the local filesystem.
 
 8.  **Notifications**:
     *   **Toasts**: Use the `useToast` hook (which leverages `shadcn/ui`'s `Toaster` component) for displaying transient messages like success, error, or info notifications.
@@ -63,9 +63,9 @@ To maintain a consistent and efficient codebase, please follow these specific gu
     *   `src/components/`: For reusable UI components.
     *   `src/hooks/`: For custom React hooks.
     *   `src/shared/`: For shared types, constants, and utility functions.
-    *   `src/integrations/`: For third-party service integrations (e.g., Supabase).
+    *   `src/integrations/`: For third-party service integrations (e.g., OnlyOffice).
 *   **Component Granularity**: Create new files for every new component or hook, no matter how small. Avoid adding multiple components to a single file. Aim for components that are concise and focused on a single responsibility (ideally under 100 lines of code).
 *   **TypeScript**: Always use TypeScript for type safety. Define clear interfaces and types for data structures.
-*   **Error Handling**: For API calls using `TanStack Query`, let errors bubble up to the query client's error handling mechanism. Avoid `try/catch` blocks directly around `supabase` calls within `useMutation` or `useQuery` functions unless specific local error handling is required.
+*   **Error Handling**: For API calls using `TanStack Query`, let errors bubble up to the query client's error handling mechanism. Avoid `try/catch` blocks directly around backend calls within `useMutation` or `useQuery` functions unless specific local error handling is required.
 *   **Simplicity**: Prioritize simple and elegant solutions. Avoid over-engineering or adding unnecessary complexity.
 *   **No Partial Changes**: All code changes must be complete and functional. Do not leave unimplemented features or refer to non-existent files.

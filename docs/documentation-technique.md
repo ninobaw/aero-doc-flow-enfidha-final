@@ -1,4 +1,3 @@
-
 # Documentation Technique - AeroDoc
 
 ## Table des matières
@@ -19,16 +18,16 @@ AeroDoc est une application de gestion documentaire spécialement conçue pour l
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Frontend      │    │   Backend       │    │   Database      │
-│   React + TS    │◄──►│   Supabase      │◄──►│   PostgreSQL    │
-│   Tailwind CSS  │    │   Edge Functions│    │   + Storage     │
+│   React + TS    │◄──►│   Node.js       │◄──►│   MongoDB       │
+│   Tailwind CSS  │    │   Express.js    │    │   + Filesystem  │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
 ### Composants principaux:
 - **Frontend**: React 18 avec TypeScript et Tailwind CSS
-- **Backend**: Supabase (authentification, API, fonctions)
-- **Base de données**: PostgreSQL avec RLS (Row Level Security)
-- **Stockage**: Supabase Storage pour les fichiers
+- **Backend**: Node.js avec Express.js (authentification, API, fonctions)
+- **Base de données**: MongoDB avec gestion des fichiers sur le système de fichiers
+- **Stockage**: Système de fichiers pour les fichiers
 - **État global**: TanStack Query pour la gestion des données
 
 ## Diagramme UML
@@ -418,10 +417,10 @@ SuperAdmin --> UC12
 - **TanStack Query**: State management et cache
 
 ### Backend
-- **Supabase**: Backend-as-a-Service
-- **PostgreSQL**: Base de données relationnelle
-- **Edge Functions**: Fonctions serverless
-- **Row Level Security**: Sécurité au niveau ligne
+- **Node.js + Express.js**: Backend-as-a-Service
+- **MongoDB**: Base de données NoSQL
+- **Edge Functions**: Fonctions serverless (conceptuel, implémenté via Express)
+- **Row Level Security**: Sécurité au niveau ligne (conceptuel, implémenté via middleware Express)
 
 ### Outils de développement
 - **Vite**: Build tool rapide
@@ -431,14 +430,14 @@ SuperAdmin --> UC12
 
 ### Déploiement
 - **Vercel/Netlify**: Hébergement frontend
-- **Supabase Cloud**: Hébergement backend
+- **MongoDB Atlas**: Hébergement backend (base de données)
 - **Git**: Versioning du code
 - **CI/CD**: Déploiement automatique
 
 ## Maintenance et évolution
 
 ### Monitoring
-- Logs applicatifs via Supabase
+- Logs applicatifs via MongoDB
 - Métriques de performance
 - Alertes automatiques
 
