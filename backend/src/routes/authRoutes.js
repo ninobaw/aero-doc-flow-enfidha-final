@@ -79,7 +79,9 @@ router.post('/forgot-password', async (req, res) => {
     await user.save();
 
     // Construct the reset URL (frontend URL)
-    const resetUrl = `${req.protocol}://${req.get('host')}/reset-password?token=${resetToken}`;
+    // Use FRONTEND_BASE_URL from environment variables
+    const frontendBaseUrl = process.env.FRONTEND_BASE_URL || `${req.protocol}://${req.get('host')}`;
+    const resetUrl = `${frontendBaseUrl}/reset-password?token=${resetToken}`;
 
     // Send email
     await sendEmail(

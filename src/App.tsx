@@ -22,6 +22,7 @@ import Profile from "./pages/Profile";
 import Templates from "./pages/Templates";
 import AuditLogs from "./pages/AuditLogs";
 import OnlyOfficeEditorPage from "./pages/OnlyOfficeEditorPage"; // Import the new page
+import ResetPasswordPage from "./pages/ResetPasswordPage"; // Import ResetPasswordPage
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,13 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            {/* Routes publiques (non protégées) */}
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            
+            {/* Route de connexion (gérée par ProtectedRoute si non connecté) */}
+            <Route path="/login" element={<ProtectedRoute><Index /></ProtectedRoute>} /> {/* Redirige vers Index si connecté, sinon affiche LoginForm */}
+
+            {/* Routes protégées */}
             <Route path="/" element={
               <ProtectedRoute>
                 <Index />
