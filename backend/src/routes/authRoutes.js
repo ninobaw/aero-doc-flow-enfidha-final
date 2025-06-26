@@ -61,4 +61,78 @@ router.post('/logout', (req, res) => {
   res.status(200).json({ message: 'Logged out successfully' });
 });
 
+// POST /api/auth/forgot-password
+router.post('/forgot-password', async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      // Send a generic success message to prevent email enumeration
+      return res.status(200).json({ message: 'If a user with that email exists, a password reset link has been sent.' });
+    }
+
+    // Generate a reset token
+    const resetToken = crypto.randomBytes(20).toString('hex');
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour from now
+    await user.save();
+
+    // Construct the reset URL (frontend URL)
+    const resetUrl = `${req.protocol}://${req.get('host')}/reset-password?token=${resetToken}`;
+
+    // Send email
+    await sendEmail(
+      user._id,
+      'Réinitialisation de votre mot de passe AeroDoc',
+      `Vous recevez ceci car vous (ou quelqu'un d'autre) avez demandé la réinitialisation du mot de passe pour votre compte.\n\n` +
+      `Veuillez cliquer sur le lien suivant, ou le coller dans votre navigateur pour compléter le processus :\n\n` +
+      `${resetUrl}\n\n` +
+      `Si vous n'avez pas demandé cela, veuillez ignorer cet e-mail et votre mot de passe restera inchangé.\n`,
+      `<p>Vous recevez ceci car vous (ou quelqu'un d'autre) avez demandé la réinitialisation du mot de passe pour votre compte.</p>` +
+      `<p>Veuillez cliquer sur le lien suivant, ou le coller dans votre navigateur pour compléter le processus :</p>` +
+      `<p><a href="${resetUrl}">${resetUrl}</a></p>` +
+      `<p>Si vous n'avez pas demandé cela, veuillez ignorer cet e-mail et votre mot de passe restera inchangé.</p>`
+    );
+
+    res.status(200).json({ message: 'If a user with that email exists, a password reset link has been sent.' });
+  } catch (error) {
+    console.error('Error in forgot-password:', error);
+    res.status(500).json({ message: 'Server error during password reset request.' });
+  }
+});
+
+// POST /api/auth/reset-password/:token
+router.post('/reset-password/:token', async (req, res) => {
+  const { token } = req.params;
+  const { newPassword } = req.body;
+
+  if (!newPassword || newPassword.length < 6) {
+    return res.status(400).json({ message: 'New password is required and must be at least 6 characters long.' });
+  }
+
+  try {
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() }, // Token must not be expired
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Password reset token is invalid or has expired.' });
+    }
+
+    // Hash new password
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    user.resetPasswordToken = undefined; // Clear token
+    user.resetPasswordExpires = undefined; // Clear expiry
+    await user.save();
+
+    res.status(200).json({ message: 'Your password has been updated.' });
+  } catch (error) {
+    console.error('Error in reset-password:', error);
+    res.status(500).json({ message: 'Server error during password reset.' });
+  }
+});
+
 module.exports = router;

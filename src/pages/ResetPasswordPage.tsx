@@ -1,4 +1,4 @@
-import React, { useState, useEffect } => 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -56,7 +56,7 @@ const ResetPasswordPage: React.FC = () => {
     if (newPassword !== confirmPassword) {
       toast({
         title: 'Erreur',
-        description: 'Les mots de passe ne correspondent pas.',
+        description: 'Les nouveaux mots de passe ne correspondent pas.',
         variant: 'destructive',
       });
       return;
@@ -87,7 +87,6 @@ const ResetPasswordPage: React.FC = () => {
         </Card>
       </div>
     );
-  );
   }
 
   return (

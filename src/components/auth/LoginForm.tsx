@@ -8,12 +8,13 @@ import { Lock, User, Plane, Loader2 } from 'lucide-react'; // Import Loader2
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { ForgotPasswordDialog } from './ForgotPasswordDialog'; // Import the new dialog
 
 export const LoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showTestAccounts, setShowTestAccounts] = useState(false);
   const [isShaking, setIsShaking] = useState(false); // Nouveau state pour l'animation
+  const [isForgotPasswordDialogOpen, setIsForgotPasswordDialogOpen] = useState(false); // State for forgot password dialog
   const { login, isLoading } = useAuth();
   const { toast } = useToast();
 
@@ -38,11 +39,6 @@ export const LoginForm = () => {
       setIsShaking(true); // Déclenche l'animation
       setTimeout(() => setIsShaking(false), 700); // Réinitialise après 700ms
     }
-  };
-
-  const handleTestLogin = (testEmail: string, testPassword: string) => {
-    setEmail(testEmail);
-    setPassword(testPassword);
   };
 
   return (
@@ -122,43 +118,22 @@ export const LoginForm = () => {
             </Button>
           </form>
 
-          <Separator />
-
-          <div className="space-y-3">
-            <Button
-              variant="outline"
-              onClick={() => setShowTestAccounts(!showTestAccounts)}
-              className="w-full"
+          <div className="text-center text-sm">
+            <Button 
+              variant="link" 
+              className="text-aviation-sky hover:text-aviation-sky-dark"
+              onClick={() => setIsForgotPasswordDialogOpen(true)}
             >
-              {showTestAccounts ? 'Masquer' : 'Afficher'} les comptes de test
+              Mot de passe oublié ?
             </Button>
-
-            {showTestAccounts && (
-              <div className="space-y-2 p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm font-medium text-gray-700">Comptes de test :</p>
-                
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleTestLogin('superadmin@aerodoc.tn', 'admin123')}
-                  className="w-full justify-start text-xs"
-                >
-                  Super Admin - superadmin@aerodoc.tn / admin123
-                </Button>
-                
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleTestLogin('user@aerodoc.tn', 'user123')}
-                  className="w-full justify-start text-xs"
-                >
-                  Utilisateur - user@aerodoc.tn / user123
-                </Button>
-              </div>
-            )}
           </div>
         </CardContent>
       </Card>
+
+      <ForgotPasswordDialog 
+        open={isForgotPasswordDialogOpen} 
+        onOpenChange={setIsForgotPasswordDialogOpen} 
+      />
     </div>
   );
 };

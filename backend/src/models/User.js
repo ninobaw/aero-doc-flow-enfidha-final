@@ -24,6 +24,8 @@ const UserSchema = new Schema({
   department: { type: String },
   position: { type: String },
   lastLogin: { type: Date },
+  resetPasswordToken: { type: String }, // New field for password reset token
+  resetPasswordExpires: { type: Date }, // New field for password reset token expiration
 }, { timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' } });
 
 const User = model('User', UserSchema);
