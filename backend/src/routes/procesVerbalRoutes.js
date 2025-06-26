@@ -51,7 +51,9 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    let qrCode = generateSimpleQRCode(); // Generate a simple UUID-based QR code by default
+    const newProcesVerbalId = uuidv4(); // Generate ID first to use in QR code URL
+
+    let qrCodeValue;
     let sequence_number = null;
 
     // If codification fields are provided, generate a structured code and QR
@@ -66,15 +68,17 @@ router.post('/', async (req, res) => {
         'PV', // Use 'PV' as type code for PVs
         language_code
       );
-      qrCode = newGeneratedCode; // Use the structured code as QR code
+      qrCodeValue = newGeneratedCode; // Use the structured code as part of the QR code URL
       sequence_number = newSequenceNumber;
     }
+    
+    qrCodeValue = generateSimpleQRCode('proces-verbal', newProcesVerbalId); // Always generate a URL for QR code
 
     const newProcesVerbal = new ProcesVerbal({
-      _id: uuidv4(),
+      _id: newProcesVerbalId,
       title, // Directly on ProcesVerbal
       authorId: author_id, // Directly on ProcesVerbal
-      qrCode, // Directly on ProcesVerbal
+      qrCode: qrCodeValue, // Use the generated QR code URL
       filePath: file_path, // Directly on ProcesVerbal
       fileType: file_type, // Directly on ProcesVerbal
       version: 1, // Directly on ProcesVerbal
@@ -174,7 +178,7 @@ router.put('/:id', async (req, res) => {
         'PV', // Use 'PV' as type code for PVs
         updates.language_code || oldProcesVerbal.language_code
       );
-      updates.qrCode = generatedCode; // Update QR code with the new structured code
+      updates.qrCode = generateSimpleQRCode('proces-verbal', id); // Update QR code with the new structured code URL
       updates.sequence_number = sequence_number;
     }
 

@@ -151,7 +151,7 @@ export const ViewDocumentDialog: React.FC<ViewDocumentDialogProps> = ({ document
                 {document.approved_by && document.approved_at && (
                   <div className="flex items-center text-green-700">
                     <CheckCircle className="w-4 h-4 mr-2" />
-                    <span>Approuvé par {document.approved_by.firstName} {document.approved_by.lastName} le {formatDate(document.approved_at)}</span>
+                    <span>Approuvé par {document.approved_by.first_name} {document.approved_by.last_name} le {formatDate(document.approved_at)}</span>
                   </div>
                 )}
               </CardContent>
@@ -233,8 +233,16 @@ export const ViewDocumentDialog: React.FC<ViewDocumentDialogProps> = ({ document
                       className="mx-auto border rounded-lg p-2"
                     />
                     <p className="font-mono text-sm bg-gray-100 px-2 py-1 rounded inline-block">
-                      {document.qr_code}
+                      {document.qr_code.length > 30 ? `${document.qr_code.substring(0, 27)}...` : document.qr_code}
                     </p>
+                    <Button
+                      variant="outline"
+                      className="mt-2"
+                      onClick={() => window.open(document.qr_code, '_blank')} // Open QR code URL directly
+                    >
+                      <Eye className="w-4 h-4 mr-2" />
+                      Visualiser le lien
+                    </Button>
                   </>
                 ) : (
                   <p className="text-gray-500">Aucun QR Code généré pour ce document.</p>

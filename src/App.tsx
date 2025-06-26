@@ -23,6 +23,7 @@ import Templates from "./pages/Templates";
 import AuditLogs from "./pages/AuditLogs";
 import OnlyOfficeEditorPage from "./pages/OnlyOfficeEditorPage"; // Import the new page
 import ResetPasswordPage from "./pages/ResetPasswordPage"; // Import ResetPasswordPage
+import PublicViewPage from "./pages/PublicViewPage"; // Import PublicViewPage
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ const App = () => (
           <Routes>
             {/* Routes publiques (non protégées) */}
             <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/public-view/:type/:id" element={<PublicViewPage />} /> {/* Nouvelle route publique */}
             
             {/* Route de connexion (gérée par ProtectedRoute si non connecté) */}
             <Route path="/login" element={<ProtectedRoute><Index /></ProtectedRoute>} /> {/* Redirige vers Index si connecté, sinon affiche LoginForm */}

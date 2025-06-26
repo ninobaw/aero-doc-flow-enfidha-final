@@ -25,13 +25,11 @@ const QRCodes = () => {
   );
 
   const handleViewQRCode = (qrData: any) => {
-    // Find the full document data to pass to ViewDocumentDialog
-    const fullDocument = documents.find(doc => doc.id === qrData.document_id);
-    if (fullDocument) {
-      setSelectedDocumentForView(fullDocument); // Pass the full document object
-      setIsViewDialogOpen(true);
+    // Instead of opening a dialog, open the QR code URL directly
+    if (qrData.qr_code) {
+      window.open(qrData.qr_code, '_blank');
     } else {
-      console.error("Document not found for QR code:", qrData.document_id);
+      console.error("QR code URL not found for:", qrData);
     }
   };
 
@@ -130,7 +128,7 @@ const QRCodes = () => {
                     <div className="text-center">
                       <p className="text-xs text-gray-500 mb-1">Code QR</p>
                       <p className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
-                        {qrData.qr_code.substring(0, 12)}...
+                        {qrData.qr_code.length > 30 ? `${qrData.qr_code.substring(0, 27)}...` : qrData.qr_code}
                       </p>
                     </div>
 
@@ -155,7 +153,9 @@ const QRCodes = () => {
                             const link = document.createElement('a');
                             link.href = qrUrl;
                             link.download = `qr-${qrData.document?.title.replace(/[^a-z0-9]/gi, '_').toLowerCase() || qrData.id}.png`;
+                            document.body.appendChild(link);
                             link.click();
+                            document.body.removeChild(link);
                           }
                         }}
                       >

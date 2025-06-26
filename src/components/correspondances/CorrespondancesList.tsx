@@ -199,7 +199,7 @@ export const CorrespondancesList = ({ correspondances, isLoading }: Correspondan
                     </Button>
                   </>
                 )}
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={() => window.open(correspondance.qr_code, '_blank')}> {/* Open QR code URL directly */}
                   <Eye className="w-4 h-4 mr-1" />
                   Voir détails
                 </Button>

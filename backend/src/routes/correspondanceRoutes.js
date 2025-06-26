@@ -54,8 +54,10 @@ router.post('/', async (req, res) => {
   }
 
   try {
+    const newCorrespondanceId = uuidv4(); // Generate ID first to use in QR code URL
+
     let generatedCode = code;
-    let qrCode = generateSimpleQRCode();
+    let qrCodeValue;
     let sequence_number = null;
 
     if (company_code && scope_code && department_code && language_code) {
@@ -70,15 +72,16 @@ router.post('/', async (req, res) => {
         language_code
       );
       generatedCode = newGeneratedCode;
-      qrCode = newGeneratedCode;
       sequence_number = newSequenceNumber;
     }
+    
+    qrCodeValue = generateSimpleQRCode('correspondance', newCorrespondanceId); // Always generate a URL for QR code
 
     const newCorrespondance = new Correspondance({
-      _id: uuidv4(),
+      _id: newCorrespondanceId,
       title,
       authorId: author_id,
-      qrCode,
+      qrCode: qrCodeValue, // Use the generated QR code URL
       filePath: file_path,
       fileType: file_type,
       version: 1,
@@ -172,7 +175,7 @@ router.put('/:id', async (req, res) => {
     }
 
     let generatedCode = oldCorrespondance.code; // Keep existing code by default
-    let qrCode = oldCorrespondance.qrCode; // Keep existing QR by default
+    let qrCodeValue = oldCorrespondance.qrCode; // Keep existing QR by default
     let sequence_number = oldCorrespondance.sequence_number; // Keep existing sequence by default
 
     const codificationFieldsChanged = [
@@ -192,11 +195,14 @@ router.put('/:id', async (req, res) => {
         updates.language_code || oldCorrespondance.language_code
       );
       generatedCode = newGeneratedCode;
-      qrCode = newGeneratedCode;
       sequence_number = newSequenceNumber;
       updates.code = generatedCode; // Update the code field in updates
-      updates.qrCode = qrCode; // Update the qrCode field in updates
       updates.sequence_number = sequence_number; // Update the sequence_number field in updates
+    }
+    
+    // Always regenerate QR code URL if codification changed or if QR code itself is updated
+    if (codificationFieldsChanged || updates.qrCode) {
+      updates.qrCode = generateSimpleQRCode('correspondance', id);
     }
 
 

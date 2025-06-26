@@ -3,13 +3,13 @@ const { v4: uuidv4 } = require('uuid');
 
 // Helper function to generate a document/correspondence code and update sequence
 const generateCodeAndSequence = async (
-  entityType, // e.g., 'DOCUMENT', 'CORRESPONDANCE'
+  entityType, // e.g., 'DOCUMENT', 'CORRESPONDANCE', 'PROCES_VERBAL'
   company_code,
   scope_code,
   department_code,
   sub_department_code,
   document_type_code, // For documents
-  correspondence_type_code, // For correspondences (INCOMING/OUTGOING)
+  correspondence_or_pv_type_code, // For correspondences (IN/OUT) or PVs (PV)
   language_code
 ) => {
   const config = await DocumentCodeConfig.findOne({});
@@ -21,7 +21,9 @@ const generateCodeAndSequence = async (
   if (entityType === 'DOCUMENT') {
     typeCode = document_type_code;
   } else if (entityType === 'CORRESPONDANCE') {
-    typeCode = correspondence_type_code; // Use IN/OUT for correspondence type code
+    typeCode = correspondence_or_pv_type_code; // Use IN/OUT for correspondence type code
+  } else if (entityType === 'PROCES_VERBAL') {
+    typeCode = correspondence_or_pv_type_code; // Use PV for proces verbal type code
   } else {
     throw new Error('Invalid entityType for code generation.');
   }
@@ -45,8 +47,9 @@ const generateCodeAndSequence = async (
 };
 
 // Helper to generate a simple QR code value (UUID based)
-const generateSimpleQRCode = () => {
-  return `QR-${uuidv4()}`;
+const generateSimpleQRCode = (entityType, entityId) => {
+  const frontendBaseUrl = process.env.FRONTEND_BASE_URL || 'http://localhost:8080';
+  return `${frontendBaseUrl}/public-view/${entityType.toLowerCase()}/${entityId}`;
 };
 
 module.exports = { generateCodeAndSequence, generateSimpleQRCode };

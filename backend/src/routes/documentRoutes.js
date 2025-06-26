@@ -6,39 +6,35 @@ const { ActivityLog } = require('../models/ActivityLog.js');
 const { v4: uuidv4 } = require('uuid');
 const fs = require('fs');
 const path = require('path');
+const { generateCodeAndSequence, generateSimpleQRCode } = require('../utils/codeGenerator.js'); // Import new code generator
 
 const router = Router();
 
 // Helper function to generate the document code and update sequence
-const generateDocumentCodeAndSequence = async (
+const generateDocumentCodeAndSequenceForDocument = async (
   company_code,
   scope_code,
   department_code,
   sub_department_code,
   document_type_code,
-  language_code
+  language_code,
+  documentId // Pass document ID to generate the full URL
 ) => {
-  const config = await DocumentCodeConfig.findOne({});
-  if (!config) {
-    throw new Error('Document code configuration not found.');
-  }
-
-  // Construct the key for the sequence counter
-  const sequenceKey = `${company_code}-${scope_code}-${department_code}-${sub_department_code || 'NA'}-${document_type_code}-${language_code}`;
+  const { generatedCode, sequence_number } = await generateCodeAndSequence(
+    'DOCUMENT',
+    company_code,
+    scope_code,
+    department_code,
+    sub_department_code,
+    document_type_code,
+    null, // No correspondence/PV type code for documents
+    language_code
+  );
   
-  let currentSequence = config.sequenceCounters.get(sequenceKey) || 0;
-  currentSequence++;
+  const frontendBaseUrl = process.env.FRONTEND_BASE_URL || 'http://localhost:8080';
+  const qrCodeUrl = `${frontendBaseUrl}/public-view/document/${documentId}`; // Use the generated code as part of the URL or just the ID
   
-  // Update the sequence counter in the database
-  config.sequenceCounters.set(sequenceKey, currentSequence);
-  await config.save();
-
-  const paddedSequence = String(currentSequence).padStart(3, '0'); // e.g., 001, 002
-
-  // Construct the full QR code string
-  const qrCode = `${company_code}-${scope_code}-${department_code}${sub_department_code ? `-${sub_department_code}` : ''}-${document_type_code}-${paddedSequence}-${language_code}`;
-  
-  return { qrCode, sequence_number: currentSequence };
+  return { qrCode: qrCodeUrl, sequence_number: sequence_number, structuredCode: generatedCode };
 };
 
 
@@ -110,17 +106,20 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    const { qrCode, sequence_number } = await generateDocumentCodeAndSequence(
+    const newDocumentId = uuidv4(); // Generate ID first to use in QR code URL
+
+    const { qrCode, sequence_number, structuredCode } = await generateDocumentCodeAndSequenceForDocument(
       company_code,
       scope_code,
       department_code,
       sub_department_code,
       document_type_code,
-      language_code
+      language_code,
+      newDocumentId // Pass the newly generated ID
     );
 
     const newDocument = new Document({
-      _id: uuidv4(),
+      _id: newDocumentId,
       title,
       type,
       content,
@@ -128,7 +127,7 @@ router.post('/', async (req, res) => {
       airport,
       filePath: file_path, // Save file path
       fileType: file_type, // Save file type
-      qrCode, // Use the generated QR code
+      qrCode, // Use the generated QR code URL
       version: 1,
       status: 'DRAFT', // New documents start as DRAFT
       viewsCount: 0,
@@ -218,18 +217,20 @@ router.post('/from-template', async (req, res) => {
     // Copy the template file
     await fs.promises.copyFile(path.join(uploadsDir, template.filePath), destinationPath);
 
+    const newDocumentId = uuidv4(); // Generate ID first to use in QR code URL
     // Generate new document code and sequence number
-    const { qrCode, sequence_number } = await generateDocumentCodeAndSequence(
+    const { qrCode, sequence_number, structuredCode } = await generateDocumentCodeAndSequenceForDocument(
       company_code,
       airport, // Use selected airport as scope_code for the new document
       department_code,
       sub_department_code,
       document_type_code,
-      language_code
+      language_code,
+      newDocumentId // Pass the newly generated ID
     );
 
     const newDocument = new Document({
-      _id: uuidv4(),
+      _id: newDocumentId,
       title,
       type: template.type, // Keep the type from the template
       content: description, // Use description as content
@@ -237,7 +238,7 @@ router.post('/from-template', async (req, res) => {
       airport,
       filePath: relativeFilePath, // Save the path to the copied file
       fileType: template.fileType, // Keep the file type from the template
-      qrCode, // Use the newly generated QR code
+      qrCode, // Use the newly generated QR code URL
       version: 0, // Start with version 0 (REV:0) for a new document
       status: 'DRAFT', // New documents from template start as DRAFT
       viewsCount: 0,
@@ -309,13 +310,14 @@ router.put('/:id', async (req, res) => {
 
     // If codification fields changed, regenerate QR code and sequence number
     if (codificationFieldsChanged) {
-      const { qrCode, sequence_number } = await generateDocumentCodeAndSequence(
+      const { qrCode, sequence_number, structuredCode } = await generateDocumentCodeAndSequenceForDocument(
         updates.company_code || oldDocument.company_code,
         updates.scope_code || oldDocument.scope_code,
         updates.department_code || oldDocument.department_code,
         updates.sub_department_code || oldDocument.sub_department_code,
         updates.document_type_code || oldDocument.document_type_code,
-        updates.language_code || oldDocument.language_code
+        updates.language_code || oldDocument.language_code,
+        id // Pass the document ID
       );
       updates.qrCode = qrCode;
       updates.sequence_number = sequence_number;

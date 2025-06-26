@@ -96,12 +96,12 @@ export const ProcesVerbauxList = ({ procesVerbaux, isLoading, onEdit }: ProcesVe
                 </div>
                 <div className="flex items-center space-x-1">
                   <User className="w-3 h-3" />
-                  <span>{pv.document?.author?.firstName} {pv.document?.author?.lastName}</span>
+                  <span>{pv.author?.firstName} {pv.author?.lastName}</span>
                 </div>
               </div>
 
               <div className="flex justify-between pt-2">
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={() => window.open(pv.qr_code, '_blank')}> {/* Open QR code URL directly */}
                   <Eye className="w-4 h-4 mr-1" />
                   Voir détails
                 </Button>
