@@ -58,6 +58,9 @@ const Documents = () => {
     return matchesSearch && matchesType && matchesStatus && matchesAirport && matchesTags && matchesAuthor && matchesStartDate && matchesEndDate;
   });
 
+  console.log('Documents.tsx: Documents reçus du hook:', documents); // Log des documents bruts
+  console.log('Documents.tsx: Documents filtrés:', filteredDocuments); // Log des documents après filtrage
+
   const handleDelete = (id: string) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer ce document ?')) {
       deleteDocument(id);

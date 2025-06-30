@@ -53,6 +53,7 @@ export const useDocuments = () => {
     queryKey: ['documents'],
     queryFn: async () => {
       const response = await axios.get(`${API_BASE_URL}/documents`);
+      console.log('useDocuments: Données brutes reçues du backend:', response.data); // Log des données reçues
       return response.data as DocumentData[];
     },
   });
@@ -82,6 +83,7 @@ export const useDocuments = () => {
       return response.data;
     },
     onSuccess: () => {
+      console.log('useDocuments: Invalidation du cache pour la clé documents.'); // Log d'invalidation
       queryClient.invalidateQueries({ queryKey: ['documents'] });
       toast({
         title: 'Document créé',
@@ -121,6 +123,7 @@ export const useDocuments = () => {
       return response.data; // Should return the newly created document object
     },
     onSuccess: (newDocument) => {
+      console.log('useDocuments: Invalidation du cache pour la clé documents (depuis modèle).'); // Log d'invalidation
       queryClient.invalidateQueries({ queryKey: ['documents'] });
       toast({
         title: 'Document créé à partir du modèle',
@@ -166,6 +169,7 @@ export const useDocuments = () => {
       return response.data;
     },
     onSuccess: () => {
+      console.log('useDocuments: Invalidation du cache pour la clé documents (mise à jour).'); // Log d'invalidation
       queryClient.invalidateQueries({ queryKey: ['documents'] });
       toast({
         title: 'Document mis à jour',
@@ -188,6 +192,7 @@ export const useDocuments = () => {
       await axios.delete(`${API_BASE_URL}/documents/${id}`);
     },
     onSuccess: () => {
+      console.log('useDocuments: Invalidation du cache pour la clé documents (suppression).'); // Log d'invalidation
       queryClient.invalidateQueries({ queryKey: ['documents'] });
       toast({
         title: 'Document supprimé',
