@@ -34,9 +34,14 @@ const Documents = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   
   const filteredDocuments = documents.filter(doc => {
-    const matchesSearch = doc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         doc.content?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         doc.qr_code.toLowerCase().includes(searchTerm.toLowerCase());
+    // Assurer que les valeurs sont des chaînes pour toLowerCase et includes
+    const docTitle = doc.title || '';
+    const docQrCode = doc.qr_code || '';
+    const docContent = doc.content || '';
+
+    const matchesSearch = docTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         docContent.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         docQrCode.toLowerCase().includes(searchTerm.toLowerCase());
     
     // Filter by allowed types
     const allowedTypes = ['FORMULAIRE_DOC', 'QUALITE_DOC', 'GENERAL']; // These correspond to Formulaire, Politique/Procédure, Manuel/Instruction
@@ -48,12 +53,17 @@ const Documents = () => {
     const matchesTags = filterTags.length === 0 || 
                         (doc.tags && filterTags.every(tag => doc.tags.includes(tag)));
 
+    // Assurer que les noms d'auteur sont des chaînes
+    const authorFirstName = doc.author?.firstName || '';
+    const authorLastName = doc.author?.lastName || '';
     const matchesAuthor = filterAuthor === '' || 
-                          (doc.author && `${doc.author.firstName} ${doc.author.lastName}`.toLowerCase().includes(filterAuthor.toLowerCase()));
+                          `${authorFirstName} ${authorLastName}`.toLowerCase().includes(filterAuthor.toLowerCase());
 
+    // Gérer les dates invalides
     const docCreatedAt = new Date(doc.created_at);
-    const matchesStartDate = !filterStartDate || docCreatedAt >= filterStartDate;
-    const matchesEndDate = !filterEndDate || docCreatedAt <= filterEndDate;
+    const isValidDate = !isNaN(docCreatedAt.getTime());
+    const matchesStartDate = !filterStartDate || (isValidDate && docCreatedAt >= filterStartDate);
+    const matchesEndDate = !filterEndDate || (isValidDate && docCreatedAt <= filterEndDate);
 
     return matchesSearch && matchesType && matchesStatus && matchesAirport && matchesTags && matchesAuthor && matchesStartDate && matchesEndDate;
   });
