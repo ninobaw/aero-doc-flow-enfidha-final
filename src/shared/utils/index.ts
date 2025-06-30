@@ -2,7 +2,12 @@ import { DocumentType, Priority, ActionStatus, UserRole, Airport } from '../type
 import { DOCUMENT_TYPES, PRIORITIES, ACTION_STATUS, USER_ROLES, DOCUMENT_HISTORY_ACTIONS, TASK_STATUS, USER_STATUS } from '../constants';
 
 export const formatDate = (date: Date | string): string => {
-  return new Date(date).toLocaleDateString('fr-FR', {
+  if (!date) return 'N/A'; // Gère les valeurs null, undefined ou chaînes vides
+  const d = new Date(date);
+  if (isNaN(d.getTime())) { // Vérifie si l'objet Date est invalide (ex: new Date("chaîne invalide"))
+    return 'Date invalide';
+  }
+  return d.toLocaleDateString('fr-FR', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit'
@@ -51,17 +56,6 @@ export const generateReference = (type: DocumentType, airport: string): string =
   const airportCode = airport.substring(0, 3).toUpperCase();
   
   return `${typeCode}-${airportCode}-${year}${month}-${random}`;
-};
-
-export const generateActionReference = (priority: Priority): string => {
-  const year = new Date().getFullYear();
-  const month = String(new Date().getMonth() + 1).padStart(2, '0');
-  const day = String(new Date().getDate()).padStart(2, '0');
-  const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
-  
-  const priorityCode = priority.substring(0, 1).toUpperCase();
-  
-  return `ACT-${priorityCode}${year}${month}${day}-${random}`;
 };
 
 export const getDocumentTypeLabel = (type: DocumentType): string => {
