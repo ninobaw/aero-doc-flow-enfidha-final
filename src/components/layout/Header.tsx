@@ -1,6 +1,5 @@
-import { Search, User, LogOut } from 'lucide-react';
+import { User, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -15,7 +14,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { USER_ROLES, AIRPORTS } from '@/shared/constants';
 import { NotificationDropdown } from '@/components/notifications/NotificationDropdown';
-import { getAbsoluteFilePath } from '@/shared/utils'; // Import getAbsoluteFilePath
+import { getAbsoluteFilePath } from '@/shared/utils';
 
 export const Header = () => {
   const { user, logout } = useAuth();
@@ -34,21 +33,13 @@ export const Header = () => {
   const roleLabel = USER_ROLES[user.role]?.label || user.role;
   const airportName = AIRPORTS[user.airport]?.name || user.airport;
 
-  // Construct the absolute URL for the avatar image
   const avatarSrc = user.profilePhoto ? getAbsoluteFilePath(user.profilePhoto) : undefined;
 
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4">
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4 flex-1">
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <Input
-              placeholder="Rechercher des documents..."
-              className="pl-10 w-full"
-            />
-          </div>
-        </div>
+        {/* La zone de recherche a été supprimée ici */}
+        <div className="flex-1"></div> {/* Ajout d'un div flex-1 vide pour pousser les éléments à droite */}
 
         <div className="flex items-center space-x-4">
           <NotificationDropdown />
@@ -57,7 +48,7 @@ export const Header = () => {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center space-x-3 px-3">
                 <Avatar className="w-8 h-8">
-                  <AvatarImage src={avatarSrc} /> {/* Use the constructed absolute URL */}
+                  <AvatarImage src={avatarSrc} />
                   <AvatarFallback className="bg-aviation-sky text-white">
                     {user.firstName[0]}{user.lastName[0]}
                   </AvatarFallback>
