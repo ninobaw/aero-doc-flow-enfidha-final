@@ -62,7 +62,7 @@ export const CreateCorrespondanceDialog = () => {
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
     }
-    setSelectedFile(null);
+    selectedFile(null);
     setPreviewUrl(null);
     if (fileInputRef.current) { // Clear the file input value
       fileInputRef.current.value = '';
@@ -72,7 +72,7 @@ export const CreateCorrespondanceDialog = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.title || !formData.from_address || !formData.to_address || !formData.subject || !formData.type || !formData.airport) {
+    if (!formData.title || !formData.from_address || !formData.to_address.trim() || !formData.subject || !formData.type || !formData.airport) { // Added .trim() for to_address
       toast({
         title: 'Champs manquants',
         description: 'Veuillez remplir tous les champs obligatoires (Titre, De, À, Objet, Type, Aéroport).',
@@ -108,6 +108,7 @@ export const CreateCorrespondanceDialog = () => {
 
     createCorrespondance({
       ...formData,
+      to_address: formData.to_address.trim(), // Ensure trimmed value is sent
       file_path: finalFilePath,
       file_type: finalFileType,
     }, {
