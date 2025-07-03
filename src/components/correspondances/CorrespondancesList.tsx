@@ -1,10 +1,18 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Mail, Eye, Calendar, User, ArrowRight, Tag, FileDown } from 'lucide-react'; // Import FileDown icon
-import { formatDate, getAbsoluteFilePath } from '@/shared/utils'; // Import getAbsoluteFilePath
+import { Mail, Eye, Calendar, User, ArrowRight, Tag, FileDown, ArrowUpRight, ArrowDownLeft } from 'lucide-react'; // Import new icons for type
+import { formatDate, getAbsoluteFilePath } from '@/shared/utils';
 import type { CorrespondanceData } from '@/hooks/useCorrespondances';
-import { useUsers } from '@/hooks/useUsers'; // Import useUsers to resolve assignee names
+import { useUsers } from '@/hooks/useUsers';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 interface CorrespondancesListProps {
   correspondances: CorrespondanceData[];
@@ -12,26 +20,14 @@ interface CorrespondancesListProps {
 }
 
 export const CorrespondancesList = ({ correspondances, isLoading }: CorrespondancesListProps) => {
-  const { users, isLoading: isLoadingUsers } = useUsers(); // Fetch users to resolve names
+  const { users, isLoading: isLoadingUsers } = useUsers();
 
   if (isLoading || isLoadingUsers) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {[...Array(4)].map((_, i) => (
-          <Card key={i} className="animate-pulse">
-            <CardHeader>
-              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-              <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="h-3 bg-gray-200 rounded"></div>
-                <div className="h-3 bg-gray-200 rounded w-2/3"></div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <Card className="p-8 text-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-aviation-sky mx-auto mb-4"></div>
+        <p className="text-gray-600">Chargement des correspondances...</p>
+      </Card>
     );
   }
 
@@ -79,135 +75,135 @@ export const CorrespondancesList = ({ correspondances, isLoading }: Correspondan
     }
   };
 
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'INCOMING': return <ArrowDownLeft className="w-4 h-4 text-purple-600" />;
+      case 'OUTGOING': return <ArrowUpRight className="w-4 h-4 text-indigo-600" />;
+      default: return <Mail className="w-4 h-4 text-gray-600" />;
+    }
+  };
+
   const getAssigneeName = (userId: string) => {
     const user = users.find(u => u.id === userId);
     return user ? `${user.firstName} ${user.lastName}` : 'Utilisateur inconnu';
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {correspondances.map((correspondance) => (
-        <Card key={correspondance.id} className="hover:shadow-md transition-shadow">
-          <CardHeader>
-            <div className="flex items-start justify-between">
-              <div className="flex items-center space-x-2">
-                <Mail className="w-5 h-5 text-aviation-sky" />
-                <Badge variant="outline" className="text-xs">
-                  {correspondance.airport}
-                </Badge>
-                {correspondance.type && (
-                  <Badge className={`text-xs ${getTypeBadgeColor(correspondance.type)}`}>
-                    {correspondance.type === 'INCOMING' ? 'Entrante' : 'Sortante'}
-                  </Badge>
-                )}
-              </div>
-              <div className="flex space-x-1">
-                <Badge className={`text-xs ${getPriorityColor(correspondance.priority)}`}>
-                  {correspondance.priority}
-                </Badge>
-                <Badge className={`text-xs ${getStatusColor(correspondance.status)}`}>
-                  {correspondance.status}
-                </Badge>
-              </div>
-            </div>
-            <CardTitle className="text-lg line-clamp-2">
-              {correspondance.subject}
-            </CardTitle>
-            <CardDescription>
-              <div className="flex items-center space-x-2 text-sm">
-                <span className="font-medium">{correspondance.from_address}</span>
-                <ArrowRight className="w-3 h-3" />
-                <span className="font-medium">{correspondance.to_address}</span>
-              </div>
-              {correspondance.code && (
-                <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded mt-1 inline-block">
-                  Code: {correspondance.code}
-                </span>
-              )}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <p className="text-sm text-gray-600 line-clamp-3">
-                {correspondance.content}
-              </p>
-
-              {correspondance.tags && correspondance.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-2">
-                  {correspondance.tags.map((tag, index) => (
-                    <Badge key={index} variant="secondary" className="text-xs flex items-center">
-                      <Tag className="w-3 h-3 mr-1" /> {tag}
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <Mail className="w-5 h-5 mr-2 text-aviation-sky" />
+          Liste des Correspondances
+        </CardTitle>
+        <CardDescription>
+          Gérer toutes les correspondances officielles.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[250px]">Objet</TableHead>
+                <TableHead>De</TableHead>
+                <TableHead>À</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Priorité</TableHead>
+                <TableHead>Statut</TableHead>
+                <TableHead>Aéroport</TableHead>
+                <TableHead>Tags</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {correspondances.map((correspondance) => (
+                <TableRow key={correspondance.id} className="hover:bg-gray-50">
+                  <TableCell className="font-medium">
+                    <div className="line-clamp-2">{correspondance.subject}</div>
+                    {correspondance.code && (
+                      <span className="font-mono text-xs bg-gray-100 px-1 py-0.5 rounded mt-1 inline-block">
+                        Code: {correspondance.code}
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-sm text-gray-600">
+                    {correspondance.from_address}
+                  </TableCell>
+                  <TableCell className="text-sm text-gray-600">
+                    {correspondance.to_address}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-1">
+                      {getTypeIcon(correspondance.type)}
+                      <Badge className={`text-xs ${getTypeBadgeColor(correspondance.type)}`}>
+                        {correspondance.type === 'INCOMING' ? 'Entrante' : 'Sortante'}
+                      </Badge>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={`text-xs ${getPriorityColor(correspondance.priority)}`}>
+                      {correspondance.priority}
                     </Badge>
-                  ))}
-                </div>
-              )}
-
-              {correspondance.actions_decidees && correspondance.actions_decidees.length > 0 && (
-                <div className="text-xs text-gray-500 mt-2">
-                  <p className="font-medium">Actions décidées:</p>
-                  <ul className="list-disc list-inside ml-2">
-                    {correspondance.actions_decidees.map((action, index) => (
-                      <li key={index} className="truncate">
-                        {action.titre} (Resp: {getAssigneeName(action.responsable[0])}) {/* Access first element of responsable array */}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {correspondance.document && (
-                <div className="text-xs text-gray-500">
-                  Document lié: {correspondance.document.title}
-                </div>
-              )}
-
-              <div className="flex items-center justify-between text-xs text-gray-500">
-                <div className="flex items-center space-x-1">
-                  <Calendar className="w-3 h-3" />
-                  <span>{formatDate(correspondance.created_at)}</span>
-                </div>
-                {correspondance.attachments && correspondance.attachments.length > 0 && (
-                  <span>{correspondance.attachments.length} pièce(s) jointe(s)</span>
-                )}
-              </div>
-
-              <div className="flex justify-end pt-2 space-x-2">
-                {correspondance.file_path && (
-                  <>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => window.open(getAbsoluteFilePath(correspondance.file_path!), '_blank')}
-                    >
-                      <Eye className="w-4 h-4 mr-1" />
-                      Visualiser
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => {
-                        const link = document.createElement('a');
-                        link.href = getAbsoluteFilePath(correspondance.file_path!);
-                        link.download = `correspondance-${correspondance.code || correspondance.id}.${correspondance.file_type?.split('/')[1] || 'file'}`;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                      }}
-                    >
-                      <FileDown className="w-4 h-4 mr-1" />
-                      Télécharger
-                    </Button>
-                  </>
-                )}
-                <Button variant="outline" size="sm" onClick={() => window.open(correspondance.qr_code, '_blank')}> {/* Open QR code URL directly */}
-                  <Eye className="w-4 h-4 mr-1" />
-                  Voir détails
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={`text-xs ${getStatusColor(correspondance.status)}`}>
+                      {correspondance.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="text-xs">
+                      {correspondance.airport}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1 max-w-[150px]">
+                      {correspondance.tags && correspondance.tags.length > 0 ? (
+                        correspondance.tags.slice(0, 2).map((tag, index) => (
+                          <Badge key={index} variant="secondary" className="text-xs">
+                            {tag}
+                          </Badge>
+                        ))
+                      ) : (
+                        <span className="text-xs text-gray-500">Aucun tag</span>
+                      )}
+                      {correspondance.tags && correspondance.tags.length > 2 && (
+                        <span className="text-xs text-gray-500">+{correspondance.tags.length - 2}</span>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-sm text-gray-500">
+                    {formatDate(correspondance.created_at)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end space-x-2">
+                      <Button variant="outline" size="sm" onClick={() => window.open(correspondance.qr_code, '_blank')}>
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                      {correspondance.file_path && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const link = document.createElement('a');
+                            link.href = getAbsoluteFilePath(correspondance.file_path!);
+                            link.download = `correspondance-${correspondance.code || correspondance.id}.${correspondance.file_type?.split('/')[1] || 'file'}`;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                          }}
+                        >
+                          <FileDown className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
