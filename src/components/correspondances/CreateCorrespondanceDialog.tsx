@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'; // Import useRef
+import React, { useState, useRef } => 'react'; // Import useRef
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -62,7 +62,7 @@ export const CreateCorrespondanceDialog = () => {
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
     }
-    selectedFile(null);
+    setSelectedFile(null);
     setPreviewUrl(null);
     if (fileInputRef.current) { // Clear the file input value
       fileInputRef.current.value = '';
@@ -72,7 +72,7 @@ export const CreateCorrespondanceDialog = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.title || !formData.from_address || !formData.to_address.trim() || !formData.subject || !formData.type || !formData.airport) { // Added .trim() for to_address
+    if (!formData.title || !formData.from_address.trim() || !formData.to_address.trim() || !formData.subject || !formData.type || !formData.airport) { // Added .trim() for from_address and to_address
       toast({
         title: 'Champs manquants',
         description: 'Veuillez remplir tous les champs obligatoires (Titre, De, À, Objet, Type, Aéroport).',
@@ -108,6 +108,7 @@ export const CreateCorrespondanceDialog = () => {
 
     createCorrespondance({
       ...formData,
+      from_address: formData.from_address.trim(), // Ensure trimmed value is sent
       to_address: formData.to_address.trim(), // Ensure trimmed value is sent
       file_path: finalFilePath,
       file_type: finalFileType,

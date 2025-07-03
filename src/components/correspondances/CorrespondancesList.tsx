@@ -104,16 +104,16 @@ export const CorrespondancesList = ({ correspondances, isLoading }: Correspondan
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[250px]">Objet</TableHead>
-                <TableHead>De</TableHead>
-                <TableHead>À</TableHead>
-                <TableHead>Type</TableHead>
+                <TableHead className="min-w-[180px]">Objet</TableHead> {/* Adjusted width */}
+                <TableHead className="min-w-[120px]">De</TableHead> {/* Adjusted width */}
+                <TableHead className="min-w-[120px]">À</TableHead> {/* Adjusted width */}
+                <TableHead className="min-w-[100px]">Type</TableHead> {/* Adjusted width */}
                 <TableHead>Priorité</TableHead>
                 <TableHead>Statut</TableHead>
                 <TableHead>Aéroport</TableHead>
-                <TableHead>Tags</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="min-w-[120px]">Tags</TableHead> {/* Adjusted width */}
+                <TableHead className="min-w-[100px]">Date</TableHead> {/* Adjusted width */}
+                <TableHead className="text-right min-w-[120px]">Actions</TableHead> {/* Adjusted width */}
               </TableRow>
             </TableHeader>
             <TableBody>

@@ -36,6 +36,7 @@ router.get('/', async (req, res) => {
       created_at: corr.createdAt ? corr.createdAt.toISOString() : null, // Ensure ISO string
       updated_at: corr.updatedAt ? corr.updatedAt.toISOString() : null, // Ensure ISO string
       to_address: corr.toAddress || '', // Ensure it's not null/undefined
+      from_address: corr.fromAddress || '', // Ensure it's not null/undefined
     }));
     res.json(formattedCorrespondances);
   } catch (error) {
@@ -131,6 +132,7 @@ router.post('/', async (req, res) => {
       created_at: populatedCorrespondance.createdAt ? populatedCorrespondance.createdAt.toISOString() : null, // Ensure ISO string
       updated_at: populatedCorrespondance.updatedAt ? populatedCorrespondance.updatedAt.toISOString() : null, // Ensure ISO string
       to_address: populatedCorrespondance.toAddress || '', // Ensure it's not null/undefined
+      from_address: populatedCorrespondance.fromAddress || '', // Ensure it's not null/undefined
     };
 
     // --- Notifications for new correspondence ---
@@ -238,6 +240,7 @@ router.put('/:id', async (req, res) => {
       created_at: correspondance.createdAt ? correspondance.createdAt.toISOString() : null, // Ensure ISO string
       updated_at: correspondance.updatedAt ? correspondance.updatedAt.toISOString() : null, // Ensure ISO string
       to_address: correspondance.toAddress || '', // Ensure it's not null/undefined
+      from_address: correspondance.fromAddress || '', // Ensure it's not null/undefined
     };
 
     // --- Notifications for updated correspondence ---
