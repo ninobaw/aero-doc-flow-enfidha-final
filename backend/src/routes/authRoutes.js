@@ -1,8 +1,9 @@
 const { Router } = require('express');
 const { User } = require('../models/User');
+const { AppSettings } = require('../models/AppSettings'); // Import AppSettings model
 const bcrypt = require('bcryptjs');
-const crypto = require('crypto'); // Importation du module crypto
-const { sendEmail } = require('../utils/emailSender.js'); // Importation de la fonction d'envoi d'email
+const crypto = require('crypto');
+const { sendEmail } = require('../utils/emailSender.js');
 
 const router = Router();
 
@@ -31,6 +32,10 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
+    // Fetch user-specific app settings to get sessionTimeout
+    const userSettings = await AppSettings.findOne({ userId: user._id });
+    const sessionTimeoutMinutes = userSettings ? userSettings.sessionTimeout : 60; // Default to 60 minutes if no settings found
+
     const userResponse = {
       id: user._id,
       email: user.email,
@@ -45,6 +50,7 @@ router.post('/login', async (req, res) => {
       phone: user.phone,
       department: user.department,
       lastLogin: user.lastLogin,
+      sessionTimeout: sessionTimeoutMinutes, // Include sessionTimeout in the response
     };
 
     console.log(`Connexion réussie pour l'utilisateur: ${email}`);

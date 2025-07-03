@@ -1,12 +1,39 @@
-import React from 'react';
+import React, { useEffect } from 'react'; // Import useEffect
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
+import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
 
 interface AppLayoutProps {
   children: React.ReactNode;
 }
 
 export const AppLayout = ({ children }: AppLayoutProps) => {
+  const { user, resetActivityTimer } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      const activityEvents = ['mousemove', 'keydown', 'click', 'scroll'];
+      const handleActivity = () => {
+        resetActivityTimer();
+      };
+
+      // Add event listeners
+      activityEvents.forEach(event => {
+        window.addEventListener(event, handleActivity);
+      });
+
+      // Initial reset when component mounts and user is logged in
+      resetActivityTimer();
+
+      // Cleanup event listeners on component unmount
+      return () => {
+        activityEvents.forEach(event => {
+          window.removeEventListener(event, handleActivity);
+        });
+      };
+    }
+  }, [user, resetActivityTimer]); // Re-run effect if user or resetActivityTimer changes
+
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar />

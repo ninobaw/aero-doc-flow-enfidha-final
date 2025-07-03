@@ -1,9 +1,9 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react'; // Import useRef
 import { User, UserRole, Airport } from '@/shared/types';
 import { useToast } from '@/hooks/use-toast';
 import axios from 'axios';
-import { getAbsoluteFilePath } from '@/shared/utils'; // Import getAbsoluteFilePath
-import { USER_ROLES } from '@/shared/constants'; // Import USER_ROLES from constants
+import { getAbsoluteFilePath } from '@/shared/utils';
+import { USER_ROLES } from '@/shared/constants';
 
 const API_BASE_URL = 'http://localhost:5000/api';
 
@@ -13,7 +13,8 @@ interface AuthContextType {
   logout: () => void;
   isLoading: boolean;
   hasPermission: (permission: string) => boolean;
-  refreshUser: () => Promise<void>; // New function to refresh user data
+  refreshUser: () => Promise<void>;
+  resetActivityTimer: () => void; // New: Function to reset the inactivity timer
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,6 +23,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const activityTimerRef = useRef<NodeJS.Timeout | null>(null); // Ref to store the timer
 
   const fetchAndSetUser = async (userId: string) => {
     try {
@@ -33,21 +35,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         firstName: fetchedUser.firstName,
         lastName: fetchedUser.lastName,
         role: fetchedUser.role as UserRole,
-        profilePhoto: fetchedUser.profilePhoto, // This is the relative path
+        profilePhoto: fetchedUser.profilePhoto,
         airport: fetchedUser.airport as Airport,
         createdAt: new Date(fetchedUser.createdAt),
         updatedAt: new Date(fetchedUser.updatedAt),
         isActive: fetchedUser.isActive,
         phone: fetchedUser.phone,
         department: fetchedUser.department,
+        sessionTimeout: fetchedUser.sessionTimeout, // Store sessionTimeout from backend
       };
       setUser(mappedUser);
       return true;
     } catch (error) {
       console.error('Failed to fetch user data:', error);
       setUser(null);
-      localStorage.removeItem('userId'); // Clear invalid userId from storage
+      localStorage.removeItem('userId');
       return false;
+    }
+  };
+
+  const startActivityTimer = (timeoutMinutes: number) => {
+    if (activityTimerRef.current) {
+      clearTimeout(activityTimerRef.current);
+    }
+    const timeoutMs = timeoutMinutes * 60 * 1000;
+    activityTimerRef.current = setTimeout(() => {
+      console.log('Session timed out due to inactivity.');
+      logout(); // Call logout when timer expires
+      toast({
+        title: "Session expirée",
+        description: "Vous avez été déconnecté en raison d'une inactivité prolongée.",
+        variant: "info"
+      });
+    }, timeoutMs);
+    console.log(`Activity timer set for ${timeoutMinutes} minutes.`);
+  };
+
+  const resetActivityTimer = () => {
+    if (user?.sessionTimeout) {
+      startActivityTimer(user.sessionTimeout);
     }
   };
 
@@ -56,7 +82,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const storedUserId = localStorage.getItem('userId');
       if (storedUserId) {
         console.log('AuthContext: Found userId in localStorage, attempting to fetch user data.');
-        await fetchAndSetUser(storedUserId);
+        const success = await fetchAndSetUser(storedUserId);
+        if (success && user?.sessionTimeout) { // Start timer if user is successfully fetched and has a timeout
+          startActivityTimer(user.sessionTimeout);
+        }
       } else {
         console.log('AuthContext: No userId found in localStorage.');
       }
@@ -65,18 +94,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     checkUserSession();
 
-    // Listen for storage events to synchronize logout across tabs
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === 'userId' && event.newValue === null) {
-        // userId was removed from localStorage, meaning another tab logged out
         console.log('AuthContext: userId removed from localStorage, logging out this tab.');
         setUser(null);
+        if (activityTimerRef.current) {
+          clearTimeout(activityTimerRef.current);
+        }
         toast({
           title: "Déconnexion",
           description: "Vous avez été déconnecté d'un autre onglet.",
         });
       } else if (event.key === 'userId' && event.newValue !== null && !user) {
-        // userId was added to localStorage, meaning another tab logged in
         console.log('AuthContext: userId added to localStorage, attempting to log in this tab.');
         fetchAndSetUser(event.newValue);
       }
@@ -86,8 +115,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
+      if (activityTimerRef.current) {
+        clearTimeout(activityTimerRef.current); // Clear timer on unmount
+      }
     };
-  }, []); // Empty dependency array means this runs once on mount
+  }, []);
+
+  useEffect(() => {
+    // Restart timer whenever user object (and thus sessionTimeout) changes
+    if (user?.sessionTimeout) {
+      startActivityTimer(user.sessionTimeout);
+    } else if (!user && activityTimerRef.current) {
+      // Clear timer if user logs out
+      clearTimeout(activityTimerRef.current);
+    }
+  }, [user?.sessionTimeout, user]); // Depend on user.sessionTimeout and user object itself
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
@@ -102,21 +144,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         firstName: loggedInUser.firstName,
         lastName: loggedInUser.lastName,
         role: loggedInUser.role as UserRole,
-        profilePhoto: loggedInUser.profilePhoto, // This is the relative path
+        profilePhoto: loggedInUser.profilePhoto,
         airport: loggedInUser.airport as Airport,
         createdAt: new Date(loggedInUser.createdAt),
         updatedAt: new Date(loggedInUser.updatedAt),
         isActive: loggedInUser.isActive,
         phone: loggedInUser.phone,
         department: loggedInUser.department,
+        sessionTimeout: loggedInUser.sessionTimeout, // Store sessionTimeout from login response
       };
       setUser(mappedUser);
-      localStorage.setItem('userId', mappedUser.id); // Persist userId
+      localStorage.setItem('userId', mappedUser.id);
       console.log('AuthContext: Login successful, user set and userId stored in localStorage:', mappedUser);
       toast({
         title: "Connexion réussie",
         description: "Vous êtes maintenant connecté.",
-        variant: "success" // Ajout de la variante 'success'
+        variant: "success"
       });
       return true;
     } catch (error: any) {
@@ -139,16 +182,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await axios.post(`${API_BASE_URL}/auth/logout`);
       setUser(null);
-      localStorage.removeItem('userId'); // Remove userId from localStorage
+      localStorage.removeItem('userId');
+      if (activityTimerRef.current) {
+        clearTimeout(activityTimerRef.current); // Clear timer on explicit logout
+      }
       console.log('AuthContext: Logout successful, user set to null and userId removed from localStorage.');
       toast({
         title: "Déconnexion réussie",
         description: "Vous avez été déconnecté.",
-        variant: "success" // Ajout de la variante 'success'
+        variant: "success"
       });
     } catch (error: any) {
       console.error('AuthContext: Logout failed:', error.response?.data?.message || error.message);
-      console.log('AuthContext: Calling toast for logout error.'); // Nouveau log pour le débogage
       toast({
         title: "Erreur de déconnexion",
         description: error.response?.data?.message || "Impossible de se déconnecter.",
@@ -177,7 +222,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading, hasPermission, refreshUser }}>
+    <AuthContext.Provider value={{ user, login, logout, isLoading, hasPermission, refreshUser, resetActivityTimer }}>
       {children}
     </AuthContext.Provider>
   );
