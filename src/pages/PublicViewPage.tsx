@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
-  FileText, Mail, ClipboardList, Calendar, User, Download, Eye, QrCode, Info, Hash, Building2, BookOpen, CheckCircle, Loader2, XCircle
+  FileText, Mail, ClipboardList, Calendar, User, Download, Eye, QrCode, Info, Hash, Building2, BookOpen, CheckCircle, Loader2, XCircle, Tag // Added Tag
 } from 'lucide-react';
 import { formatDate, getAbsoluteFilePath } from '@/shared/utils';
 import { DocumentData } from '@/hooks/useDocuments';
