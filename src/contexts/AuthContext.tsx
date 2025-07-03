@@ -45,6 +45,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         sessionTimeout: fetchedUser.sessionTimeout, // Store sessionTimeout from backend
       };
       setUser(mappedUser);
+      console.log('AuthContext: User fetched and set. Session Timeout:', mappedUser.sessionTimeout); // ADDED LOG
       return true;
     } catch (error) {
       console.error('Failed to fetch user data:', error);
@@ -57,10 +58,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const startActivityTimer = (timeoutMinutes: number) => {
     if (activityTimerRef.current) {
       clearTimeout(activityTimerRef.current);
+      console.log('AuthContext: Cleared existing activity timer.'); // ADDED LOG
     }
     const timeoutMs = timeoutMinutes * 60 * 1000;
     activityTimerRef.current = setTimeout(() => {
-      console.log('Session timed out due to inactivity.');
+      console.log('AuthContext: Session timed out due to inactivity. Calling logout.'); // ADDED LOG
       logout(); // Call logout when timer expires
       toast({
         title: "Session expirée",
@@ -68,12 +70,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         variant: "info"
       });
     }, timeoutMs);
-    console.log(`Activity timer set for ${timeoutMinutes} minutes.`);
+    console.log(`AuthContext: Activity timer set for ${timeoutMinutes} minutes.`); // ADDED LOG
   };
 
   const resetActivityTimer = () => {
     if (user?.sessionTimeout) {
+      console.log('AuthContext: Resetting activity timer. Current sessionTimeout:', user.sessionTimeout); // ADDED LOG
       startActivityTimer(user.sessionTimeout);
+    } else {
+      console.log('AuthContext: Cannot reset activity timer, user or sessionTimeout is missing.'); // ADDED LOG
     }
   };
 
@@ -81,13 +86,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const checkUserSession = async () => {
       const storedUserId = localStorage.getItem('userId');
       if (storedUserId) {
-        console.log('AuthContext: Found userId in localStorage, attempting to fetch user data.');
+        console.log('AuthContext: Initial check - userId found in localStorage.');
         const success = await fetchAndSetUser(storedUserId);
-        if (success && user?.sessionTimeout) { // Start timer if user is successfully fetched and has a timeout
-          startActivityTimer(user.sessionTimeout);
-        }
+        // The timer will be started by the second useEffect reacting to `user` state change.
+        // No need to call startActivityTimer here directly after fetchAndSetUser.
       } else {
-        console.log('AuthContext: No userId found in localStorage.');
+        console.log('AuthContext: Initial check - No userId found in localStorage.');
       }
       setIsLoading(false);
     };
@@ -119,15 +123,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         clearTimeout(activityTimerRef.current); // Clear timer on unmount
       }
     };
-  }, []);
+  }, []); // This useEffect runs only once on mount.
 
   useEffect(() => {
-    // Restart timer whenever user object (and thus sessionTimeout) changes
+    // This useEffect is crucial for starting/restarting the timer when `user` or `user.sessionTimeout` changes.
     if (user?.sessionTimeout) {
+      console.log('AuthContext: User or sessionTimeout changed. Attempting to start/restart timer.'); // ADDED LOG
       startActivityTimer(user.sessionTimeout);
     } else if (!user && activityTimerRef.current) {
-      // Clear timer if user logs out
+      console.log('AuthContext: User logged out or no user. Clearing activity timer.'); // ADDED LOG
       clearTimeout(activityTimerRef.current);
+      activityTimerRef.current = null; // Clear ref
     }
   }, [user?.sessionTimeout, user]); // Depend on user.sessionTimeout and user object itself
 
