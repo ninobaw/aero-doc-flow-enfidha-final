@@ -1,4 +1,4 @@
-import React, { useState, useRef } => 'react'; // Import useRef
+import React, { useState, useRef } from 'react'; // Corrected: Changed '=>' to 'from'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -62,7 +62,7 @@ export const CreateCorrespondanceDialog = () => {
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
     }
-    setSelectedFile(null);
+    setSelectedFile(null); // Corrected: Changed selectedFile(null) to setSelectedFile(null)
     setPreviewUrl(null);
     if (fileInputRef.current) { // Clear the file input value
       fileInputRef.current.value = '';
