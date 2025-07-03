@@ -45,6 +45,46 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET /api/correspondances/:id
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const correspondance = await Correspondance.findById(id)
+      .populate('authorId', 'firstName lastName');
+
+    if (!correspondance) {
+      return res.status(404).json({ message: 'Correspondance not found' });
+    }
+
+    const formattedCorrespondance = {
+      ...correspondance.toObject(),
+      id: correspondance._id,
+      author: correspondance.authorId ? {
+        first_name: correspondance.authorId.firstName,
+        last_name: correspondance.authorId.lastName,
+      } : null,
+      actions_decidees: correspondance.actionsDecidees,
+      tags: correspondance.tags,
+      type: correspondance.type,
+      code: correspondance.code,
+      file_path: correspondance.filePath,
+      file_type: correspondance.fileType,
+      qr_code: correspondance.qrCode,
+      version: correspondance.version,
+      views_count: correspondance.viewsCount,
+      downloads_count: correspondance.downloadsCount,
+      created_at: correspondance.createdAt ? correspondance.createdAt.toISOString() : null,
+      updated_at: correspondance.updatedAt ? correspondance.updatedAt.toISOString() : null,
+      to_address: correspondance.toAddress || '',
+      from_address: correspondance.fromAddress || '',
+    };
+    res.json(formattedCorrespondance);
+  } catch (error) {
+    console.error('Error fetching single correspondance:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // POST /api/correspondances
 router.post('/', async (req, res) => {
   const { 
