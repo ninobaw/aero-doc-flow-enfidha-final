@@ -1,15 +1,21 @@
 const { Router } = require('express');
 const { User } = require('../models/User.js'); // Changed to require with .js extension
+const { AppSettings } = require('../models/AppSettings.js'); // Import AppSettings model
 const { v4: uuidv4 } = require('uuid'); // uuid is a CommonJS module, no change needed here
 const bcrypt = require('bcryptjs'); // Changed to require
 
 const router = Router();
 
 // Helper to format user object for consistent frontend consumption
-const formatUserResponse = (userDoc) => {
+const formatUserResponse = async (userDoc) => { // Made async to fetch AppSettings
   const userObject = userDoc.toObject();
   delete userObject.password; // Ensure password is never sent
   userObject.id = userObject._id; // Explicitly map _id to id
+
+  // Fetch user-specific app settings to get sessionTimeout
+  const userSettings = await AppSettings.findOne({ userId: userDoc._id });
+  userObject.sessionTimeout = userSettings ? userSettings.sessionTimeout : 60; // Default to 60 minutes
+
   return userObject;
 };
 
@@ -17,7 +23,8 @@ const formatUserResponse = (userDoc) => {
 router.get('/', async (req, res) => {
   try {
     const users = await User.find({});
-    const formattedUsers = users.map(user => formatUserResponse(user));
+    // Use Promise.all to await all formatUserResponse calls
+    const formattedUsers = await Promise.all(users.map(user => formatUserResponse(user)));
     res.json(formattedUsers);
   } catch (error) {
     console.error('Error fetching users:', error);
@@ -32,7 +39,8 @@ router.get('/:id', async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    res.json(formatUserResponse(user));
+    // Use the async formatUserResponse helper
+    res.json(await formatUserResponse(user));
   } catch (error) {
     console.error('Error fetching single user:', error);
     res.status(500).json({ message: 'Server error' });
@@ -71,7 +79,34 @@ router.post('/', async (req, res) => {
 
     await newUser.save();
     
-    res.status(201).json(formatUserResponse(newUser));
+    // When creating a new user, also create default AppSettings for them
+    const defaultAppSettings = {
+      _id: uuidv4(),
+      userId: newUser._id,
+      companyName: 'AeroDoc - Gestion Documentaire',
+      defaultAirport: newUser.airport,
+      language: 'fr',
+      theme: 'light',
+      emailNotifications: true,
+      smsNotifications: false,
+      pushNotifications: true,
+      sessionTimeout: 60, // Default session timeout for new users
+      requireTwoFactor: false,
+      passwordExpiry: 90,
+      documentRetention: 365,
+      autoArchive: true,
+      maxFileSize: 10,
+      smtpHost: '',
+      smtpPort: 587,
+      smtpUsername: '',
+      useSsl: true,
+      twilioAccountSid: '',
+      twilioAuthToken: '',
+      twilioPhoneNumber: '',
+    };
+    await AppSettings.create(defaultAppSettings);
+
+    res.status(201).json(await formatUserResponse(newUser)); // Use async helper
   } catch (error) {
     console.error('Error creating user:', error);
     res.status(500).json({ message: 'Server error' });
@@ -88,7 +123,7 @@ router.put('/:id', async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    res.json(formatUserResponse(user));
+    res.json(await formatUserResponse(user)); // Use async helper
   } catch (error) {
     console.error('Error updating user:', error);
     res.status(500).json({ message: 'Server error' });
