@@ -37,7 +37,7 @@ export interface AppSettings {
 
 export const useSettings = () => {
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth(); // Import refreshUser from useAuth
   const queryClient = useQueryClient();
 
   const { data: settings, isLoading, error } = useQuery({
@@ -71,6 +71,8 @@ export const useSettings = () => {
         description: 'Vos paramètres ont été mis à jour avec succès.',
         variant: 'success',
       });
+      // IMPORTANT: Refresh user data in AuthContext to apply session timeout changes immediately
+      refreshUser(); 
     },
     onError: (error: any) => {
       console.error('Erreur sauvegarde paramètres:', error.response?.data || error.message);
