@@ -30,17 +30,17 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
+      <Toaster /> {/* Moved here */}
+      <Sonner /> {/* Moved here */}
       <AuthProvider>
-        <Toaster />
-        <Sonner />
         <BrowserRouter>
           <Routes>
             {/* Routes publiques (non protégées) */}
             <Route path="/reset-password" element={<ResetPasswordPage />} />
-            <Route path="/public-view/:type/:id" element={<PublicViewPage />} /> {/* Nouvelle route publique */}
+            <Route path="/public-view/:type/:id" element={<PublicViewPage />} /> 
             
             {/* Route de connexion (gérée par ProtectedRoute si non connecté) */}
-            <Route path="/login" element={<ProtectedRoute><Index /></ProtectedRoute>} /> {/* Redirige vers Index si connecté, sinon affiche LoginForm */}
+            <Route path="/login" element={<ProtectedRoute><Index /></ProtectedRoute>} />
 
             {/* Routes protégées */}
             <Route path="/" element={
