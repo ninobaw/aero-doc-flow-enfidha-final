@@ -49,7 +49,7 @@ export const useDocuments = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const { data: documents = [], isLoading, error } = useQuery({
+  const { data: documents = [], isLoading, error } = useQuery<DocumentData[], Error>({
     queryKey: ['documents'],
     queryFn: async () => {
       const response = await axios.get(`${API_BASE_URL}/documents`);
@@ -145,7 +145,7 @@ export const useDocuments = () => {
     mutationFn: async ({ id, ...updates }: { 
       id: string;
       title?: string;
-      type?: 'FORMULAIRE_DOC' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL'; // Removed CORRESPONDANCE and PROCES_VERBAL
+      type?: 'FORMULAIRE_DOC' | 'QUALITE_DOC' | 'NOUVEAU_DOC' | 'GENERAL' | 'TEMPLATE'; // Added TEMPLATE type for updates
       content?: string;
       status?: 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
       airport?: Airport; // Updated to use Airport type
@@ -164,6 +164,7 @@ export const useDocuments = () => {
       sequence_number?: number;
       tags?: string[]; // Include tags in updates
       approved_by_id?: string; // New field for approval
+      updated_at?: string; // Allow updating updated_at
     }) => {
       const response = await axios.put(`${API_BASE_URL}/documents/${id}`, updates);
       return response.data;

@@ -9,7 +9,7 @@ export const useDocumentCodeConfig = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: config, isLoading, error } = useQuery({
+  const { data: config, isLoading, error } = useQuery<DocumentCodeConfig, Error>({
     queryKey: ['documentCodeConfig'],
     queryFn: async () => {
       try {
@@ -26,7 +26,7 @@ export const useDocumentCodeConfig = () => {
       }
     },
     staleTime: Infinity, // Configuration data doesn't change often
-    cacheTime: Infinity,
+    gcTime: Infinity, // Use gcTime instead of cacheTime for TanStack Query v5
   });
 
   const updateDocumentCodeConfig = useMutation({

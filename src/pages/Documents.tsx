@@ -54,8 +54,8 @@ const Documents = () => {
                         (doc.tags && filterTags.every(tag => doc.tags.includes(tag)));
 
     // Assurer que les noms d'auteur sont des chaînes
-    const authorFirstName = doc.author?.firstName || '';
-    const authorLastName = doc.author?.lastName || '';
+    const authorFirstName = doc.author?.first_name || '';
+    const authorLastName = doc.author?.last_name || '';
     const matchesAuthor = filterAuthor === '' || 
                           `${authorFirstName} ${authorLastName}`.toLowerCase().includes(filterAuthor.toLowerCase());
 

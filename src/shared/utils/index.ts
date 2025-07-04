@@ -231,7 +231,8 @@ export const generateDocumentCodePreview = (
   department_code?: string,
   sub_department_code?: string,
   document_type_code?: string,
-  language_code?: string
+  language_code?: string,
+  sequence_number?: string // Added sequence_number for preview
 ): string => {
   const parts = [
     company_code || 'COMP',
@@ -239,7 +240,7 @@ export const generateDocumentCodePreview = (
     department_code || 'DEPT',
     sub_department_code || null, // Use null to filter out if not present
     document_type_code || 'TYPE',
-    '001', // Placeholder for sequence number
+    sequence_number || '001', // Use provided sequence_number or placeholder
     language_code || 'LANG'
   ].filter(Boolean); // Filter out null/undefined values
 
@@ -249,8 +250,8 @@ export const generateDocumentCodePreview = (
 export const mapDocumentTypeCodeToDocumentTypeEnum = (code: string): DocumentType => {
   switch (code) {
     case 'FM': return DocumentType.FORMULAIRE_DOC;
-    case 'CR': return DocumentType.CORRESPONDANCE;
-    case 'PV': return DocumentType.PROCES_VERBAL;
+    // case 'CR': return DocumentType.CORRESPONDANCE; // Removed as it's not a DocumentType
+    // case 'PV': return DocumentType.PROCES_VERBAL; // Removed as it's not a DocumentType
     case 'PQ': return DocumentType.QUALITE_DOC;
     case 'ND': return DocumentType.NOUVEAU_DOC;
     case 'MN': return DocumentType.GENERAL; 

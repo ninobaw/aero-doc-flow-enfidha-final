@@ -10,7 +10,7 @@ import { useTemplates } from '@/hooks/useTemplates';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Airport } from '@/shared/types';
+import { Airport, DocumentCodeConfig } from '@/shared/types';
 import { useDocumentCodeConfig } from '@/hooks/useDocumentCodeConfig';
 import { generateDocumentCodePreview } from '@/shared/utils';
 
@@ -90,9 +90,9 @@ export const UploadTemplateForm: React.FC = () => {
       setSelectedFile(file);
       
       if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
+        window.URL.revokeObjectURL(previewUrl);
       }
-      const url = URL.createObjectURL(file);
+      const url = window.URL.createObjectURL(file);
       setPreviewUrl(url);
     } else {
       console.log('Aucun fichier sélectionné.');
@@ -102,7 +102,7 @@ export const UploadTemplateForm: React.FC = () => {
 
   const removeFile = () => {
     if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
+      window.URL.revokeObjectURL(previewUrl);
     }
     setSelectedFile(null);
     setPreviewUrl(null);
@@ -130,7 +130,6 @@ export const UploadTemplateForm: React.FC = () => {
         description: 'Veuillez remplir tous les champs obligatoires (Titre, Aéroport, Type de document, Département, Langue, et sélectionner un fichier).',
         variant: 'destructive',
       });
-      console.log('Validation échouée: Champs manquants ou fichier non sélectionné.');
       return;
     }
 

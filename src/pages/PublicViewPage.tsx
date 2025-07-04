@@ -322,7 +322,7 @@ const PublicViewPage: React.FC = () => {
             <CardContent className="space-y-3 text-sm text-gray-700">
               <div className="flex items-center">
                 <User className="w-4 h-4 mr-2 text-gray-500" />
-                <span>Auteur: {item.author?.firstName || item.author?.first_name} {item.author?.lastName || item.author?.last_name}</span>
+                <span>Auteur: {item.author?.first_name} {item.author?.last_name}</span>
               </div>
               <div className="flex items-center">
                 <Calendar className="w-4 h-4 mr-2 text-gray-500" />
@@ -421,7 +421,7 @@ const PublicViewPage: React.FC = () => {
                   <>
                     <img
                       src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(item.qr_code)}`}
-                      alt={`QR Code pour ${item.title || item.subject}`}
+                      alt={`QR Code pour ${'title' in item ? item.title : item.subject}`}
                       className="mx-auto border rounded-lg p-2"
                     />
                     <p className="font-mono text-sm bg-gray-100 px-2 py-1 rounded inline-block mt-2">
@@ -448,12 +448,12 @@ const PublicViewPage: React.FC = () => {
                       </Button>
                       <Button
                         onClick={() => {
-                          const link = document.createElement('a');
+                          const link = window.document.createElement('a');
                           link.href = getAbsoluteFilePath(item.file_path!);
-                          link.download = item.title || item.subject || 'document';
-                          document.body.appendChild(link);
+                          link.download = 'title' in item ? item.title : item.subject || 'document';
+                          window.document.body.appendChild(link);
                           link.click();
-                          document.body.removeChild(link);
+                          window.document.body.removeChild(link);
                         }}
                       >
                         <Download className="w-4 h-4 mr-2" />
